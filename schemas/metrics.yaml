@@ -1,0 +1,257 @@
+# Claude Code Metrics Schema - Enterprise Level
+# SSOT for all QuestDB tables and metrics collection
+#
+# Usage: This schema defines ALL metrics collected across repos.
+# Any new metric must be added here first.
+
+version: "1.0"
+storage: questdb
+protocol: ilp
+
+# =============================================================================
+# TABLES
+# =============================================================================
+
+tables:
+  # ---------------------------------------------------------------------------
+  # Tool Usage - Every tool call
+  # ---------------------------------------------------------------------------
+  claude_tool_usage:
+    description: "Individual tool call metrics"
+    retention: 90d
+    tags:
+      - project        # Project/repo name
+      - session_id     # Session identifier
+      - tool_name      # Tool called (Bash, Edit, Read, etc.)
+    fields:
+      duration_ms: int        # Execution time
+      success: bool           # Completed successfully
+      error: string           # Error message if failed
+      params: string          # Summarized params (file, command preview)
+
+    derived_metrics:
+      - name: tool_success_rate
+        query: "SELECT tool_name, avg(success) FROM claude_tool_usage GROUP BY tool_name"
+      - name: avg_tool_duration
+        query: "SELECT tool_name, avg(duration_ms) FROM claude_tool_usage GROUP BY tool_name"
+
+  # ---------------------------------------------------------------------------
+  # Events - Errors, blocks, anomalies
+  # ---------------------------------------------------------------------------
+  claude_events:
+    description: "Discrete events (errors, blocks, warnings)"
+    retention: 90d
+    tags:
+      - project
+      - session_id
+      - event_type      # error, block, warning, info
+      - severity        # critical, high, medium, low
+      - tool_name       # Related tool (optional)
+      - category        # NEW: hook_failure, permission_denied, timeout, etc.
+    fields:
+      count: int              # Always 1 for individual events
+      error: string           # Error message
+      context: string         # NEW: Additional context
+
+    event_types:
+      - hook_failure          # Hook crashed or timed out
+      - permission_denied     # Tool blocked by permissions
+      - timeout               # Operation timed out
+      - validation_error      # Input validation failed
+      - external_error        # External service error (git, API)
+
+  # ---------------------------------------------------------------------------
+  # Sessions - Session lifecycle and summary
+  # ---------------------------------------------------------------------------
+  claude_sessions:
+    description: "Session-level aggregated metrics"
+    retention: 365d
+    tags:
+      - project
+      - session_id
+      - model           # NEW: claude-opus-4, etc.
+    fields:
+      tokens_input: int       # Input tokens
+      tokens_output: int      # Output tokens
+      tokens_cache: int       # Cached tokens
+      cost_usd: float         # Estimated cost
+      lines_added: int        # Lines added
+      lines_removed: int      # Lines removed
+      duration_min: float     # NEW: Session duration
+      tool_count: int         # NEW: Total tool calls
+      error_count: int        # NEW: Total errors
+      task_count: int         # NEW: Tasks completed
+
+  # ---------------------------------------------------------------------------
+  # Agents - Agent spawn and performance
+  # ---------------------------------------------------------------------------
+  claude_agents:
+    description: "Agent spawn and execution metrics"
+    retention: 90d
+    tags:
+      - project
+      - session_id
+      - agent_type      # Explore, Plan, Bash, etc.
+      - parent_agent    # NEW: For nested agents
+    fields:
+      duration_ms: int        # Execution time
+      success: bool           # Completed successfully
+      tokens_used: int        # NEW: Tokens consumed
+      tool_calls: int         # NEW: Tools called by agent
+      prompt_length: int      # NEW: Prompt size (chars)
+      result_length: int      # NEW: Result size (chars)
+      error: string           # Error if failed
+
+  # ---------------------------------------------------------------------------
+  # Hooks - Hook execution performance
+  # ---------------------------------------------------------------------------
+  claude_hooks:
+    description: "Hook execution metrics"
+    retention: 30d
+    tags:
+      - project
+      - hook_type       # PreToolUse, PostToolUse, Stop, etc.
+      - hook_name       # Script name
+      - tool_matcher    # Tool pattern matched
+    fields:
+      duration_ms: int        # Execution time
+      success: bool           # Completed without error
+      blocked: bool           # Did hook block the tool?
+      modified: bool          # Did hook modify input?
+      error: string           # Error message
+
+  # ---------------------------------------------------------------------------
+  # Tasks - Task tracking (from TodoWrite)
+  # ---------------------------------------------------------------------------
+  claude_tasks:
+    description: "Task lifecycle metrics"
+    retention: 365d
+    tags:
+      - project
+      - session_id
+      - task_status     # pending, in_progress, completed
+    fields:
+      task_content: string    # Task description (truncated)
+      duration_min: float     # Time to complete
+      tool_calls: int         # Tools used for this task
+      tokens_used: int        # Tokens for this task
+
+  # ---------------------------------------------------------------------------
+  # Context - Context window utilization
+  # ---------------------------------------------------------------------------
+  claude_context:
+    description: "Context window usage snapshots"
+    retention: 30d
+    tags:
+      - project
+      - session_id
+    fields:
+      context_used: int       # Current context usage
+      context_max: int        # Max context available
+      utilization_pct: float  # Usage percentage
+      message_count: int      # Messages in context
+
+# =============================================================================
+# DERIVED VIEWS (for dashboards)
+# =============================================================================
+
+views:
+  daily_summary:
+    description: "Daily aggregated metrics per project"
+    query: |
+      SELECT
+        project,
+        date_trunc('day', timestamp) as day,
+        count(*) as tool_calls,
+        sum(case when success then 1 else 0 end) as successes,
+        avg(duration_ms) as avg_duration,
+        sum(tokens_input + tokens_output) as total_tokens
+      FROM claude_tool_usage
+      WHERE timestamp > dateadd('d', -30, now())
+      GROUP BY project, day
+      ORDER BY day DESC
+
+  agent_roi:
+    description: "Agent effectiveness analysis"
+    query: |
+      SELECT
+        agent_type,
+        count(*) as spawns,
+        avg(duration_ms) as avg_duration,
+        sum(tokens_used) as total_tokens,
+        avg(case when success then 1.0 else 0.0 end) as success_rate
+      FROM claude_agents
+      WHERE timestamp > dateadd('d', -7, now())
+      GROUP BY agent_type
+      ORDER BY total_tokens DESC
+
+  hook_health:
+    description: "Hook performance monitoring"
+    query: |
+      SELECT
+        hook_name,
+        avg(duration_ms) as avg_latency,
+        max(duration_ms) as max_latency,
+        count(*) as invocations,
+        sum(case when not success then 1 else 0 end) as failures
+      FROM claude_hooks
+      WHERE timestamp > dateadd('d', -7, now())
+      GROUP BY hook_name
+      HAVING avg_latency > 100  -- Flag slow hooks
+      ORDER BY avg_latency DESC
+
+# =============================================================================
+# ALERTS
+# =============================================================================
+
+alerts:
+  hook_latency_high:
+    description: "Hook taking too long"
+    condition: "avg(duration_ms) > 500"
+    table: claude_hooks
+    window: 1h
+    action: notify
+
+  agent_failure_spike:
+    description: "Agent failures above threshold"
+    condition: "avg(success) < 0.8"
+    table: claude_agents
+    window: 1h
+    action: notify
+
+  cost_spike:
+    description: "Daily cost exceeds threshold"
+    condition: "sum(cost_usd) > 50"
+    table: claude_sessions
+    window: 1d
+    action: notify
+
+# =============================================================================
+# COLLECTION POINTS
+# =============================================================================
+
+collection:
+  # Where each metric is collected from
+  claude_tool_usage:
+    hook: context_bundle_builder.py (PreToolUse)
+    hook: post-tool-use.py (PostToolUse)
+
+  claude_events:
+    hook: smart-safety-check.py (on block)
+    hook: any hook with error
+
+  claude_sessions:
+    hook: session-summary.py (Stop)
+
+  claude_agents:
+    hook: agent-spawn-tracker.py (PreToolUse Task)
+    hook: NEW subagent-metrics.py (SubagentStop)
+
+  claude_hooks:
+    collector: NEW hook-profiler.py (wraps all hooks)
+
+  claude_tasks:
+    hook: NEW task-tracker.py (PostToolUse TodoWrite)
+
+  claude_context:
+    hook: context_bundle_builder.py (periodic)

@@ -1,0 +1,178 @@
+version: '1.0'
+updated: '2026-01-09'
+infrastructure:
+  questdb:
+    host: localhost
+    http_port: 9000
+    ilp_port: 9009
+    pg_port: 8812
+  redis:
+    host: localhost
+    port: 6379
+  hooks_shared:
+    path: /media/sam/1TB/claude-hooks-shared
+  # Monitoring is in nautilus_dev but serves ALL projects (shared infra)
+  monitoring:
+    path: /media/sam/1TB/nautilus_dev/monitoring
+    grafana_port: 3000
+    dashboards: /media/sam/1TB/nautilus_dev/monitoring/grafana/dashboards
+    alerts: /media/sam/1TB/nautilus_dev/monitoring/grafana/provisioning/alerting
+repositories:
+  nautilus_dev:
+    path: /media/sam/1TB/nautilus_dev
+    language: python
+    framework: nautilustrader
+    test_command: uv run pytest tests/ -x
+    lint_command: uv run ruff check .
+    format_command: uv run ruff format .
+    features:
+    - trading_strategies
+    - backtesting
+    - live_trading
+  n8n_dev:
+    path: /media/sam/1TB/N8N_dev
+    language: typescript
+    framework: n8n
+    test_command: npm test
+    lint_command: npm run lint
+    features:
+    - workflow_automation
+    - integrations
+  utxoracle:
+    path: /media/sam/1TB/UTXOracle
+    language: python
+    framework: fastapi
+    test_command: uv run pytest tests/ -x
+    lint_command: uv run ruff check .
+    features:
+    - bitcoin_analytics
+    - utxo_analysis
+  liquidation_heatmap:
+    path: /media/sam/1TB/LiquidationHeatmap
+    language: python
+    framework: flask
+    test_command: uv run pytest tests/ -x
+    lint_command: uv run ruff check .
+    features:
+    - market_visualization
+    - liquidation_data
+global:
+  commands:
+  - tdd/
+  - undo/
+  - speckit.analyze
+  - speckit.checklist
+  - speckit.clarify
+  - speckit.constitution
+  - speckit.implement
+  - speckit.plan
+  - speckit.specify
+  - speckit.tasks
+  - speckit.taskstoissues
+  skills:
+  - pytest-test-generator
+  - pydantic-model-generator
+  - github-workflow
+  - metrics-insight
+  hooks:
+    pre_tool_use:
+    - context_bundle_builder.py
+    - smart-safety-check.py (Bash)
+    - git-safety-check.py (Bash)
+    - tdd-guard-check.py (Write|Edit)
+    - agent-spawn-tracker.py (Task)
+    post_tool_use:
+    - post-tool-use.py
+    - dora-tracker.py
+    - auto-format.py (Write|Edit)
+    - architecture-validator.py (Bash)
+    stop:
+    - stop.py
+    - context-preservation.py
+    - session-summary.py
+    - auto-ralph.py
+    - ralph-loop.py
+    subagent_stop:
+    - subagent-checkpoint.sh
+    user_prompt_submit:
+    - task-classifier-v2.py
+    - ssot_check.py
+    - ralph-resume.py
+    - verbalized_sampling.py
+project_specific:
+  nautilus_dev:
+    skills:
+    - paper-to-strategy
+    - formula-to-code
+    commands:
+    - research.md
+    - optimize.md
+    - pinescript.md
+    agents:
+    - nautilus-coder
+    - nautilus-docs-specialist
+    - backtest-analyzer
+  utxoracle:
+    skills:
+    - bitcoin-rpc-connector
+metrics:
+  schema: ~/.claude/schemas/metrics.yaml
+  tables:
+  - claude_tool_usage
+  - claude_events
+  - claude_sessions
+  - claude_agents
+  - claude_hooks
+  - claude_tasks
+  - claude_context
+  retention:
+    default: 90d
+    sessions: 365d
+    hooks: 30d
+reports:
+  daily:
+    period: 24h
+    sections:
+    - summary
+    - errors
+    - top_issues
+    output: terminal
+  weekly:
+    period: 7d
+    sections:
+    - summary
+    - trends
+    - agent_performance
+    - recommendations
+    output: markdown
+  monthly:
+    period: 30d
+    sections:
+    - summary
+    - cost_analysis
+    - trends
+    - agent_roi
+    - recommendations
+    - next_actions
+    output: markdown
+thresholds:
+  hook_latency_warn_ms: 100
+  hook_latency_critical_ms: 500
+  agent_success_rate_min: 0.8
+  daily_cost_warn_usd: 30
+  daily_cost_critical_usd: 50
+  context_utilization_warn: 0.8
+sync:
+  global_to_project:
+  - commands/tdd/
+  - commands/undo/
+  - skills/pytest-test-generator/
+  - skills/pydantic-model-generator/
+  - skills/github-workflow/
+  project_only:
+  - CLAUDE.md
+  - settings.local.json
+  - agents/
+  consistency_check:
+  - hooks configuration in settings.json
+  - env variables (QUESTDB_HOST, etc.)

@@ -1,0 +1,247 @@
+# Skill Template Schema - Enterprise Grade
+# Based on Anthropic best practices + FAANG engineering patterns
+#
+# Sources:
+# - https://www.anthropic.com/engineering/claude-code-best-practices
+# - Google Developer Intelligence (speed, ease, quality dimensions)
+# - LinkedIn Developer Insights (friction reduction)
+# - SPACE Framework (satisfaction, performance, activity, collaboration, efficiency)
+
+version: "1.0"
+
+# =============================================================================
+# SKILL METADATA
+# =============================================================================
+
+metadata:
+  name: "{skill-name}"
+  description: "{one-line description with token savings estimate}"
+  version: "1.0"
+  author: "auto-generated"
+  updated: "{date}"
+
+  # Categorization for discovery
+  category:
+    - productivity    # Reduces manual work
+    - quality         # Improves code quality
+    - automation      # Automates repetitive tasks
+    - analysis        # Analyzes data/code
+    - documentation   # Generates docs
+
+  # Token economics (FAANG: measure ROI)
+  token_economics:
+    without_skill: "{estimated tokens}"
+    with_skill: "{estimated tokens}"
+    savings_percent: "{calculated}"
+
+# =============================================================================
+# TRIGGERS (When skill activates)
+# =============================================================================
+
+triggers:
+  # Explicit triggers (user types these)
+  explicit:
+    - "/{skill-name}"
+    - "/skill-name {args}"
+
+  # Implicit triggers (detected from prompt)
+  implicit:
+    keywords:
+      - "{keyword1}"
+      - "{keyword2}"
+    patterns:
+      - "{regex pattern}"
+    context:
+      - "{when X file is open}"
+      - "{when in Y directory}"
+
+  # Anti-triggers (never activate)
+  exclude:
+    - "{scenario to avoid}"
+
+# =============================================================================
+# INPUTS (What skill needs)
+# =============================================================================
+
+inputs:
+  required:
+    - name: "{param1}"
+      type: string
+      description: "{what it is}"
+      source: auto  # auto, prompt, file, env
+
+  optional:
+    - name: "{param2}"
+      type: string
+      default: "{default value}"
+      description: "{what it is}"
+
+  # Context from environment
+  context:
+    - project_name      # Auto-detected
+    - language          # From canonical.yaml
+    - framework         # From canonical.yaml
+    - test_command      # From canonical.yaml
+    - lint_command      # From canonical.yaml
+
+# =============================================================================
+# TEMPLATES (Core skill content)
+# =============================================================================
+
+templates:
+  # Main template with variables
+  main: |
+    # {Title}
+
+    ## Quick Start
+    {quick_start_example}
+
+    ## Templates
+
+    ### Template 1: {use_case_1}
+    ```{language}
+    {code_template_1}
+    ```
+
+    ### Template 2: {use_case_2}
+    ```{language}
+    {code_template_2}
+    ```
+
+    ## Usage Patterns
+    {usage_patterns}
+
+    ## Output Format
+    {output_format}
+
+  # Variations per project type
+  variations:
+    python:
+      test_framework: pytest
+      lint_tool: ruff
+      type_hints: required
+
+    typescript:
+      test_framework: jest
+      lint_tool: eslint
+      type_hints: strict
+
+    rust:
+      test_framework: cargo test
+      lint_tool: clippy
+
+# =============================================================================
+# OUTPUTS (What skill produces)
+# =============================================================================
+
+outputs:
+  primary:
+    type: file  # file, terminal, json, markdown
+    path: "{generated file path}"
+    format: "{format specification}"
+
+  secondary:
+    - type: terminal
+      content: "{summary message}"
+
+  # Metrics to log (QuestDB)
+  metrics:
+    table: claude_skills
+    fields:
+      skill_name: "{skill-name}"
+      tokens_saved: "{calculated}"
+      success: true/false
+      duration_ms: "{measured}"
+
+# =============================================================================
+# QUALITY GATES (Anthropic: verify before commit)
+# =============================================================================
+
+quality_gates:
+  pre_output:
+    - name: "Syntax valid"
+      check: "{validation command}"
+
+    - name: "Tests pass"
+      check: "{test command}"
+      required: true
+
+    - name: "Lint clean"
+      check: "{lint command}"
+      required: false
+
+  post_output:
+    - name: "File created"
+      check: "file exists"
+
+    - name: "User confirmation"
+      check: "prompt if destructive"
+
+# =============================================================================
+# ERROR HANDLING
+# =============================================================================
+
+errors:
+  missing_input:
+    action: prompt_user
+    message: "Please provide {input_name}"
+
+  validation_failed:
+    action: retry_with_feedback
+    max_retries: 2
+
+  external_failure:
+    action: graceful_degradation
+    fallback: "{fallback behavior}"
+
+# =============================================================================
+# INTEGRATION (How skill connects to ecosystem)
+# =============================================================================
+
+integration:
+  # Hooks that should run
+  hooks:
+    pre: []   # Before skill runs
+    post:     # After skill completes
+      - auto-format.py  # Format output
+      - architecture-validator.py  # Verify consistency
+
+  # Other skills to chain
+  chains:
+    - skill: pytest-test-generator
+      when: "after implementation"
+
+    - skill: github-workflow
+      when: "after tests pass"
+
+  # Metrics collection
+  metrics:
+    log_to: questdb
+    table: claude_skills
+    track:
+      - invocation_count
+      - tokens_saved
+      - success_rate
+      - duration
+
+# =============================================================================
+# DOCUMENTATION (For discoverability)
+# =============================================================================
+
+documentation:
+  summary: "{2-3 sentence summary}"
+
+  examples:
+    - input: "{example user prompt}"
+      output: "{expected result}"
+
+  best_practices:
+    - "{tip 1}"
+    - "{tip 2}"
+
+  anti_patterns:
+    - "{what NOT to do}"
+
+  related_skills:
+    - "{other skill 1}"
+    - "{other skill 2}"

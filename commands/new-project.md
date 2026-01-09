@@ -1,0 +1,118 @@
+# New Project Setup Command
+
+Initialize a new repository with Claude Code skeleton based on canonical.yaml.
+
+## Command
+`/new-project`
+
+## What It Does
+
+1. Creates `.claude/` directory structure
+2. Generates `CLAUDE.md` from template
+3. Creates `settings.local.json` with correct env vars
+4. Links to global hooks via settings
+5. Optionally copies project-specific skills
+
+## Usage
+
+```bash
+# In the new repo directory
+/new-project
+
+# With language hint
+/new-project python
+
+# With framework
+/new-project python fastapi
+```
+
+## Directory Structure Created
+
+```
+.claude/
+├── CLAUDE.md                 # Project instructions
+├── settings.local.json       # Local settings (inherits global hooks)
+├── agents/                   # Project-specific agents (empty)
+├── commands/                 # Project-specific commands (empty)
+└── skills/                   # Project-specific skills (empty)
+```
+
+## CLAUDE.md Template
+
+The generated CLAUDE.md includes:
+
+```markdown
+# CLAUDE.md
+
+## Project Overview
+**{project_name}** - {description}
+
+## Tech Stack
+- Language: {language}
+- Framework: {framework}
+- Test Command: {test_command}
+- Lint Command: {lint_command}
+
+## Development Rules
+- Follow project conventions in existing code
+- Run tests before committing
+- Use native tools, avoid reimplementing
+
+## Quick Commands
+- `/health` - Check system health
+- `/tdd:cycle` - TDD workflow
+- `/undo:checkpoint` - Create rollback point
+```
+
+## settings.local.json Template
+
+```json
+{
+  "env": {
+    "QUESTDB_HOST": "localhost",
+    "QUESTDB_ILP_PORT": "9009"
+  }
+}
+```
+
+Note: Hooks are inherited from `~/.claude/settings.json` (global).
+
+## Execution Steps
+
+1. **Detect project info**:
+   - Project name from directory
+   - Language from files (pyproject.toml → Python, package.json → TypeScript)
+   - Framework from dependencies
+
+2. **Create structure**:
+   ```bash
+   mkdir -p .claude/{agents,commands,skills}
+   ```
+
+3. **Generate CLAUDE.md**:
+   - Use template with detected values
+   - Include project-specific rules based on language
+
+4. **Create settings.local.json**:
+   - Copy env vars from canonical.yaml
+   - No hooks (inherited from global)
+
+5. **Update canonical.yaml**:
+   - Add new repo to repositories section
+   - Run drift-detector to verify
+
+## Post-Setup
+
+After running `/new-project`:
+
+1. Review generated `CLAUDE.md`
+2. Add project-specific rules
+3. Run `/health` to verify integration
+4. Commit `.claude/` directory
+
+## Integration with Canonical
+
+The command reads from `~/.claude/canonical.yaml`:
+- Infrastructure settings (QuestDB host/port)
+- Global skills/commands list
+- Default test/lint commands per language
