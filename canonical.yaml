@@ -99,7 +99,6 @@ global:
     - ssot_check.py
     - ralph-resume.py
     - verbalized_sampling.py
-    - tips-injector.py
 project_specific:
   nautilus_dev:
     skills:
@@ -184,8 +183,7 @@ features:
   optimization_tips:
     enabled: true
     tips_file: ~/.claude/metrics/last_session_tips.json
-    auto_inject_critical: true
-    max_tips_in_context: 2
+    command: /tips  # Manual command, user decides when to view/use
 sync:
   global_to_project:
   - commands/tdd/
