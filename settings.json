@@ -104,7 +104,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/core/context_bundle_builder.py"
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/core/context_bundle_builder.py",
+            "timeout": 3
           }
         ]
       },
@@ -160,7 +161,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/core/post-tool-use.py"
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/core/post-tool-use.py",
+            "timeout": 3
           },
           {
             "type": "command",
@@ -211,7 +213,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/ux/notification.py"
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/ux/notification.py",
+            "timeout": 5
           }
         ]
       }
@@ -222,7 +225,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/ux/stop.py"
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/ux/stop.py",
+            "timeout": 3
           },
           {
             "type": "command",
@@ -253,7 +257,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/productivity/subagent-checkpoint.sh"
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/productivity/subagent-checkpoint.sh",
+            "timeout": 5
           }
         ]
       }
