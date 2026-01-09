@@ -1,0 +1,289 @@
+{
+  "permissions": {
+    "allow": [
+      "WebSearch",
+      "Read(//home/sam/**)",
+      "Edit(//home/sam/**)",
+      "MultiEdit(//home/sam/**)",
+      "Read(//media/sam/**)",
+      "Edit(//media/sam/1TB/**)",
+      "Edit(//media/sam/1TB1/**)",
+      "MultiEdit(//media/sam/1TB/**)",
+      "MultiEdit(//media/sam/1TB1/**)",
+      "Write(//media/sam/1TB/**)",
+      "Write(//media/sam/1TB1/**)",
+      "Read(//dev/**)",
+      "Read(//usr/share/fonts/**)",
+      "Read(//boot/grub/**)",
+      "Read(//sys/devices/system/clocksource/**)",
+      "mcp__context7__get-library-docs",
+      "Bash(docker-compose:*)",
+      "Bash(docker:*)",
+      "Bash(uv:*)",
+      "Bash(serena:*)",
+      "Bash(ssh:*)",
+      "Bash(sync)",
+      "Bash(chmod:*)",
+      "Bash(rsync:*)",
+      "Bash(ln:*)",
+      "Bash(mkdir:*)",
+      "Bash(head:*)",
+      "Bash(tail:*)",
+      "Bash(zcat:*)",
+      "Bash(for:*)",
+      "Bash(bash:*)",
+      "Bash(python:*)",
+      "Bash(python3:*)",
+      "Bash(source:*)",
+      "Bash(echo:*)",
+      "Bash(cat:*)",
+      "Bash(dpkg:*)",
+      "Bash(systemctl:*)",
+      "Bash(pkill:*)",
+      "Bash(sudo apt:*)",
+      "Bash(sudo apt-get:*)",
+      "Bash(sudo add-apt-repository:*)",
+      "Bash(git:*)",
+      "Bash(gh:*)",
+      "Bash(ccundo:*)",
+      "Bash(pytest:*)",
+      "Bash(ruff:*)",
+      "Bash(npx:*)",
+      "Bash(npm:*)",
+      "Bash(node:*)",
+      "Bash(curl:*)",
+      "Bash(wget:*)",
+      "Bash(setsid:*)",
+      "Bash(nohup:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:docs.github.com)",
+      "WebFetch(domain:api.github.com)",
+      "WebFetch(domain:www.binance.com)",
+      "WebFetch(domain:binance-docs.github.io)",
+      "WebFetch(domain:bybit-exchange.github.io)",
+      "WebFetch(domain:data.binance.vision)",
+      "WebFetch(domain:www.coinglass.com)",
+      "WebFetch(domain:docs.coinglass.com)",
+      "WebFetch(domain:coinank.com)",
+      "WebFetch(domain:alternative.me)",
+      "WebFetch(domain:bitcoincounterflow.com)",
+      "WebFetch(domain:docs.nautilustrader.io)",
+      "WebFetch(domain:nautilustrader.io)",
+      "WebFetch(domain:packages.nautechsystems.io)",
+      "WebFetch(domain:tardis.dev)",
+      "WebFetch(domain:docs.tardis.dev)",
+      "WebFetch(domain:docs.n8n.io)",
+      "WebFetch(domain:www.youtube.com)",
+      "WebFetch(domain:arxiv.org)",
+      "WebFetch(domain:pypi.org)"
+    ],
+    "deny": [
+      "Read(.claude/tdd-guard/**)"
+    ],
+    "defaultMode": "bypassPermissions"
+  },
+  "model": "opus",
+  "enableAllProjectMcpServers": true,
+  "alwaysThinkingEnabled": true,
+  "env": {
+    "USE_BUILTIN_RIPGREP": "1",
+    "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1",
+    "CLAUDE_CODE_DISABLE_TERMINAL_TITLE": "0",
+    "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1",
+    "DISABLE_COST_WARNINGS": "1",
+    "DATABASE_URL": "postgresql://n8n:n8n@localhost:5433/claude_sessions"
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "python3 /media/sam/1TB/claude-hooks-shared/scripts/context-monitor.py"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/core/context_bundle_builder.py"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/safety/smart-safety-check.py",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/safety/git-safety-check.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "WebSearch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -c \"import json, sys, re; from datetime import datetime; input_data = json.load(sys.stdin); tool_input = input_data.get('tool_input', {}); query = tool_input.get('query', ''); current_year = str(datetime.now().year); has_year = re.search(r'\\\\b20\\\\d{2}\\\\b', query); has_temporal = any(word in query.lower() for word in ['latest', 'recent', 'current', 'new', 'now', 'today']); should_add_year = not has_year and not has_temporal; modified_query = f'{query} {current_year}' if should_add_year else query; output = {'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'modifiedToolInput': {'query': modified_query}}}; print(json.dumps(output)); sys.exit(0)\"",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/productivity/tdd-guard-check.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/metrics/agent-spawn-tracker.py",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/core/post-tool-use.py"
+          },
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/metrics/dora-tracker.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Write|Edit|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/productivity/auto-format.py",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/productivity/architecture-validator.py",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/quality/sentry-error-context.py",
+            "timeout": 5
+          }
+        ]
+      },
+      {
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/productivity/task-auto-checkpoint.py",
+            "timeout": 10
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/ux/notification.py"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/ux/stop.py"
+          },
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/core/context-preservation.py",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/ux/session-summary.py",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/control/auto-ralph.py",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/control/ralph-loop.py",
+            "timeout": 30
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/productivity/subagent-checkpoint.sh"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/productivity/task-classifier-v2.py",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/session/ssot_check.py",
+            "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/session/ralph-resume.py",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/ux/verbalized_sampling.py",
+            "timeout": 5
+          }
+        ]
+      }
+    ]
+  }
+}

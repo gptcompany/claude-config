@@ -1,0 +1,37 @@
+# Credentials and sensitive data
+.credentials.json
+*.backup
+
+# Large transient data
+history.jsonl
+stats-cache.json
+n8n-errors.log
+
+# Session and temporary data
+todos/
+shell-snapshots/
+debug/
+file-history/
+paste-cache/
+plans/
+projects/
+session-env/
+ide/
+logs/
+metrics/
+ralph/
+
+# Analytics
+statsig/
+
+# Downloads
+downloads/
+
+# Plugins (may contain large data)
+plugins/
+
+# SpecKit local data
+.specify/
+
+# TDD guard state
+tdd-guard/
