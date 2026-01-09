@@ -99,6 +99,7 @@ global:
     - ssot_check.py
     - ralph-resume.py
     - verbalized_sampling.py
+    - tips-injector.py
 project_specific:
   nautilus_dev:
     skills:
@@ -162,6 +163,29 @@ thresholds:
   daily_cost_warn_usd: 30
   daily_cost_critical_usd: 50
   context_utilization_warn: 0.8
+features:
+  self_healing_hooks:
+    enabled: true
+    max_failures: 3
+    failure_window_seconds: 300
+    disable_duration_seconds: 3600
+    state_file: ~/.claude/metrics/hook_health.json
+  cost_attribution:
+    enabled: true
+    by_project: true
+    by_branch: true
+    by_task_type: true
+    task_types:
+    - feature
+    - bugfix
+    - refactor
+    - testing
+    - docs
+  optimization_tips:
+    enabled: true
+    tips_file: ~/.claude/metrics/last_session_tips.json
+    auto_inject_critical: true
+    max_tips_in_context: 2
 sync:
   global_to_project:
   - commands/tdd/

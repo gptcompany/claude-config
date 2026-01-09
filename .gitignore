@@ -35,3 +35,6 @@ plugins/
 
 # TDD guard state
 tdd-guard/
+
+# Nested .claude folder (created by context-monitor)
+.claude/
