@@ -91,7 +91,8 @@
     "CLAUDE_CODE_DISABLE_TERMINAL_TITLE": "0",
     "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1",
     "DISABLE_COST_WARNINGS": "1",
-    "DATABASE_URL": "postgresql://n8n:n8n@localhost:5433/claude_sessions"
+    "QUESTDB_HOST": "localhost",
+    "QUESTDB_ILP_PORT": "9009"
   },
   "statusLine": {
     "type": "command",
