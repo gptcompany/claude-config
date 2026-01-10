@@ -184,6 +184,23 @@ global:
     - ssot_check.py
     - ralph-resume.py
     - verbalized_sampling.py
+  utility_scripts:
+    drift_detector:
+      path: ~/.claude/scripts/drift-detector.py
+      description: Check for config drift across repositories
+      checks: [duplicates, missing_files, settings_drift, obsolete, ports, services, containers, cron]
+    weekly_health_report:
+      path: ~/.claude/scripts/weekly-health-report.sh
+      description: Send health report to Discord
+      schedule: "0 8 * * 1"  # Every Monday 8:00 AM
+    system_state_snapshot:
+      path: ~/.claude/scripts/system-state-snapshot.sh
+      description: Capture system configuration for disaster recovery
+      usage: --save to persist, --save --push to push to git
+    backup_validator:
+      path: ~/.claude/scripts/backup-validator.sh
+      description: Verify GitHub backups are recent and complete
+      usage: --fix to push unpushed changes
 project_specific:
   nautilus_dev:
     skills:
