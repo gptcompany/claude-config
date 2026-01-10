@@ -17,6 +17,91 @@ infrastructure:
     grafana_port: 3000
     dashboards: /media/sam/1TB/nautilus_dev/monitoring/grafana/dashboards
     alerts: /media/sam/1TB/nautilus_dev/monitoring/grafana/provisioning/alerting
+    prometheus_port: 9090
+    cadvisor_port: 8484
+  # Expected services for infrastructure health monitoring
+  expected_services:
+    systemd:
+      critical:
+        - name: grafana-server
+          port: 3000
+        - name: prometheus
+          port: 9090
+        - name: node_exporter
+          port: 9100
+        - name: process-exporter
+          port: 9256
+        - name: docker
+        - name: bitcoind
+          port: 8333
+      important:
+        - name: research-events
+        - name: cloudflared
+        - name: ollama
+    docker:
+      critical:
+        - name: nautilus-questdb
+          ports: [9000, 9009, 8812]
+        - name: nautilus-redis
+          ports: [6379]
+      important:
+        - name: n8n-n8n-1
+          ports: [5678]
+        - name: neo4j-research
+          ports: [7474, 7687]
+        - name: mempool-api
+          ports: [8999]
+        - name: mempool-web
+          ports: [8080]
+        - name: claude-reflection-qdrant
+          ports: [6333]
+        - name: influxdb-production
+          ports: [8086]
+      optional:
+        - name: nautilus-github-runner
+        - name: n8n-n8n-worker-1
+        - name: n8n-postgres-1
+        - name: n8n-redis-1
+        - name: mempool-electrs
+        - name: mempool-db
+        - name: phoenix-phoenix-1
+        - name: phoenix-postgres-1
+        - name: claude-reflection-mcp
+    cron:
+      - name: utxoracle_daily
+        schedule: "*/10 * * * *"
+        command: /media/sam/1TB/UTXOracle/scripts/daily_analysis.py
+        log: /tmp/daily_analysis_cron.log
+        severity: high
+      - name: weekly_scrape
+        schedule: "0 3 * * 0"
+        command: /media/sam/1TB/UTXOracle/scripts/bootstrap/run_weekly_scrape.sh
+        severity: medium
+      - name: nautilus_update
+        schedule: "0 7 * * *"
+        command: /media/sam/1TB/nautilus_dev/scripts/auto_update/run_update.sh
+        severity: medium
+    ports:
+      critical:
+        3000: grafana
+        9000: questdb-http
+        9009: questdb-ilp
+        8812: questdb-pg
+        6379: redis
+        9090: prometheus
+        8333: bitcoind
+      important:
+        5678: n8n
+        7474: neo4j-http
+        7687: neo4j-bolt
+        8080: mempool-web
+        8999: mempool-api
+        6333: qdrant
+        8086: influxdb
+      monitoring:
+        9100: node_exporter
+        9256: process_exporter
+        8484: cadvisor
 repositories:
   nautilus_dev:
     path: /media/sam/1TB/nautilus_dev
