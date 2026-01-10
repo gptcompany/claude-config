@@ -192,6 +192,11 @@
           },
           {
             "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/productivity/readme-generator.py",
+            "timeout": 10
+          },
+          {
+            "type": "command",
             "command": "/media/sam/1TB/claude-hooks-shared/hooks/quality/sentry-error-context.py",
             "timeout": 5
           }
