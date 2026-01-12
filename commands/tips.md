@@ -129,9 +129,53 @@ Ready to proceed with your task.
 - "Show details" = explain each tip's meaning and rationale
 - "Acknowledge" = user has read them, continue normally
 
+## Multi-Window Analysis (NEW)
+
+When tips are available, also query QuestDB for multi-window trend analysis:
+
+```python
+from questdb_client import get_multi_window_stats
+stats = get_multi_window_stats(project)
+```
+
+Display the trend analysis BEFORE the tips:
+
+```markdown
+## Session Trend Analysis
+
+**Total**: {total_sessions} sessions | Source: {data_source}
+
+| Window | Error Rate | Rework Rate |
+|--------|------------|-------------|
+| All time | {all_time.avg_error_rate}% ± {stddev}% | {all_time.avg_rework_rate}% |
+| Last 50 | {recent.avg_error_rate}% | {recent.avg_rework_rate}% |
+| Last 20 | {trend.avg_error_rate}% | {trend.avg_rework_rate}% |
+
+**Trend**: Error rate {error_rate_trend} ({error_rate_delta:+.1%})
+```
+
+Trend indicators:
+- ↓ improving (delta < -3%)
+- → stable (-3% to +3%)
+- ↑ degrading (delta > +3%)
+
 ## Example Output
 
 ```markdown
+## Session Trend Analysis
+
+**Total**: 400 sessions | Source: project
+
+| Window | Error Rate | Rework Rate |
+|--------|------------|-------------|
+| All time | 32% ± 5% | 15% ± 8% |
+| Last 50 | 28% ± 4% | 12% ± 6% |
+| Last 20 | 22% ± 3% | 10% ± 5% |
+
+**Trend**: Error rate improving ↓ (-10%)
+
+---
+
 ## Previous Session Tips
 
 **Analysis**: 10 sessions | Data source: project
