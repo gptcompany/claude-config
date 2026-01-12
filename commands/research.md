@@ -94,9 +94,47 @@ Confidence = (avg_relevance + avg_source_quality + coverage) / 3
 - Check if N8N academic trigger needed
 - Output final response
 
-## N8N Academic Trigger (Manual Flag Required)
+## N8N Academic Trigger (Smart Suggestion)
 
-**Only trigger if user passed `--academic` or `-a` flag.**
+### Step 1: Check explicit flag
+If user passed `--academic` or `-a` → Set `TRIGGER_N8N=true`
+
+### Step 2: Semantic evaluation (if no flag)
+After completing CoAT research, evaluate if academic papers would add value.
+
+**Criteria to consider:**
+- **Complexity**: Is this a nuanced topic requiring peer-reviewed depth?
+- **Novelty**: Are there recent academic advances the user should know?
+- **Rigor**: Would mathematical proofs/formulas benefit the answer?
+- **Importance**: Is accuracy critical (finance, medical, legal)?
+- **Gap**: Did web search leave significant knowledge gaps?
+
+**Decision matrix:**
+
+| Complexity | Importance | Web Coverage | Suggest Academic? |
+|------------|------------|--------------|-------------------|
+| High | High | Poor | Yes |
+| High | Medium | Poor | Yes |
+| Medium | High | Poor | Yes |
+| Low | Any | Good | No |
+| Any | Any | Excellent | No |
+
+### Step 3: Suggest (don't auto-trigger)
+
+If evaluation suggests academic enrichment would help, ASK the user:
+
+```
+The research is complete, but this topic could benefit from academic papers:
+- [Reason 1: e.g., "Complex mathematical foundations"]
+- [Reason 2: e.g., "Recent advances in 2024-2025 not fully covered"]
+
+Would you like me to trigger the academic pipeline? (~15-30 min async)
+Reply 'yes' or run: /research --academic "query"
+```
+
+**Only trigger after user confirms.**
+
+### Step 4: Trigger (if confirmed or flag present)
 
 If `TRIGGER_N8N=true`:
 
@@ -111,7 +149,16 @@ Academic research triggered for: "QUERY"
 - Use `/research-papers` to view results
 ```
 
-**If `TRIGGER_N8N=false`:** Do NOT mention academic pipeline at all.
+### Examples
+
+**No suggestion needed:**
+- "How to use Python asyncio" → Web coverage excellent, low complexity
+- "Git rebase vs merge" → Well-documented, no academic depth needed
+
+**Suggest academic:**
+- "Optimal execution algorithms for large orders" → High complexity, finance importance
+- "Kelly criterion with correlated assets" → Mathematical rigor needed
+- "Volatility surface arbitrage" → Recent academic advances, critical accuracy
 
 ## Output Format
 
