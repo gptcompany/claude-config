@@ -87,9 +87,9 @@ For technical requests:
 - Identify potential edge cases
 - Consider error scenarios
 
-## Output Format
+## Output Format (MUST DISPLAY)
 
-Generate a refined prompt with this structure:
+**IMPORTANT**: You MUST output the refined prompt to the user BEFORE using AskUserQuestion. Generate AND DISPLAY a refined prompt with this structure:
 
 ```markdown
 ## Refined Request
@@ -234,17 +234,46 @@ Performance improvements could include:
 - Performance budget (memory/CPU tradeoffs)?
 ```
 
+## User Interaction (REQUIRED)
+
+**STEP 1**: First, OUTPUT the refined prompt to the user (the markdown block above).
+**STEP 2**: THEN use the `AskUserQuestion` tool to let the user choose.
+
+Do NOT skip Step 1. The user must SEE the refined prompt before being asked how to proceed.
+
+**IMPORTANT**: Always use exactly this AskUserQuestion call:
+
+```json
+{
+  "questions": [{
+    "question": "How would you like to proceed with the refined prompt?",
+    "header": "Action",
+    "options": [
+      {"label": "Proceed with refined prompt (Recommended)", "description": "Start implementation using the specification above"},
+      {"label": "Modify scope/constraints", "description": "I want to adjust the target or constraints"},
+      {"label": "Answer my questions first", "description": "I'll provide the missing information"}
+    ],
+    "multiSelect": false
+  }]
+}
+```
+
+**After user selection:**
+- "Proceed" → Start implementation with the refined spec
+- "Modify" → Ask what to change, regenerate spec
+- "Answer questions" → Wait for user answers, then regenerate
+- "Other" (custom input) → Treat as modification request
+
 ## Integration
 
-After refinement:
-1. User reviews and approves refined prompt
-2. Use refined prompt for implementation
-3. Refined prompt serves as mini-specification
+After user approval:
+1. Use refined prompt for implementation
+2. Refined prompt serves as mini-specification
 
 For complex features, consider using `/speckit.specify` instead for full specification workflow.
 
 ## Notes
 
 - This command does NOT execute the task, only refines the prompt
-- User must explicitly proceed with the refined version
+- User MUST explicitly approve before proceeding (use AskUserQuestion)
 - Output can feed into `/speckit.specify` for larger features

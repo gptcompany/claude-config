@@ -85,14 +85,16 @@ Output verification report:
 For each verified task:
 
 1. Read the tasks.md file
-2. Replace `- [ ] T{ID}` with `- [x] T{ID}`
+2. Replace `- [ ] T{ID}` with `- [X] T{ID}` (uppercase X for consistency)
 3. Write updated file
 
 Use the Edit tool:
 ```
 old_string: "- [ ] T045"
-new_string: "- [x] T045"
+new_string: "- [X] T045"
 ```
+
+**Note**: Use uppercase `[X]` for consistency with existing tasks.md files.
 
 ### Step 6: Commit Changes (if --commit)
 
@@ -171,3 +173,14 @@ Updated: specs/008-feature-name/tasks.md (1 change)
 After running `/verify-tasks`, you can:
 - Run `/speckit.analyze` to check cross-artifact consistency
 - Run git push to share updated task status
+- Run `python scripts/sync_tasks_issues.py` to sync with GitHub Issues
+
+## Dual Tracking
+
+This command maintains the **tasks.md** side of dual tracking:
+- **tasks.md**: Planning artifact with checkboxes (local)
+- **GitHub Issues**: Execution tracking (visibility, assignments)
+
+Use `scripts/sync_tasks_issues.py` to keep both in sync:
+- Completed tasks [X] → Closes matching GitHub Issues
+- Closed Issues → Marks [X] in tasks.md

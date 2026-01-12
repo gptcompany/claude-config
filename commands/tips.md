@@ -18,11 +18,16 @@ User can then use the suggested commands or ignore if not applicable.
 
 ## Execution
 
-Read the tips file:
+Read the tips file using the Read tool:
 
-```bash
-cat ~/.claude/metrics/last_session_tips.json 2>/dev/null || echo '{"error": "No tips from previous session"}'
 ```
+Read file: ~/.claude/metrics/last_session_tips.json
+```
+
+**Error handling:**
+- File not found → Treat as "no tips"
+- JSON parse error → Treat as "no tips", warn user
+- Empty tips array → Treat as "no tips"
 
 ## Format Output
 
@@ -90,6 +95,39 @@ This happens when:
 - No patterns triggered tips
 - Session ended abnormally
 ```
+
+## User Interaction (REQUIRED)
+
+After displaying the tips, you MUST use the `AskUserQuestion` tool.
+
+**If tips exist (1 or more):**
+```json
+{
+  "questions": [{
+    "question": "How would you like to handle these tips?",
+    "header": "Tips",
+    "options": [
+      {"label": "Show details for each", "description": "Explain what each tip means before I decide"},
+      {"label": "Acknowledge and continue", "description": "I've noted the tips, proceed with my task"},
+      {"label": "Skip", "description": "Ignore tips for now"}
+    ],
+    "multiSelect": false
+  }]
+}
+```
+
+**If NO tips exist:**
+Do NOT use AskUserQuestion. Just display:
+```
+No optimization tips from previous session.
+Ready to proceed with your task.
+```
+
+**IMPORTANT:**
+- NEVER auto-execute commands from tips
+- Tips are informational only - user decides what to do
+- "Show details" = explain each tip's meaning and rationale
+- "Acknowledge" = user has read them, continue normally
 
 ## Example Output
 
