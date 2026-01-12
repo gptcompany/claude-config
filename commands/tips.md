@@ -9,8 +9,10 @@ Inject optimization tips from the previous session into context.
 
 ## What It Does
 
-Reads `~/.claude/metrics/last_session_tips.json` (saved by session-summary.py at stop) and displays:
-- Session analysis summary (data source, sessions analyzed)
+Reads session insights from SSOT (Single Source of Truth) and displays:
+- Context usage and delegation recommendations
+- Session summary (tool calls, errors, duration)
+- Git status (uncommitted changes)
 - Evidence-based optimization tips with confidence scores
 - Suggested commands for each tip
 
@@ -18,8 +20,14 @@ User can then use the suggested commands or ignore if not applicable.
 
 ## Execution
 
-Read the tips file using the Read tool:
+**SSOT First (Preferred):**
+Read the unified insights file:
+```
+Read file: ~/.claude/metrics/session_insights.json
+```
 
+**Fallback to Legacy:**
+If SSOT doesn't exist, read the legacy tips file:
 ```
 Read file: ~/.claude/metrics/last_session_tips.json
 ```
@@ -30,6 +38,48 @@ Read file: ~/.claude/metrics/last_session_tips.json
 - Empty tips array → Treat as "no tips"
 
 ## Format Output
+
+### SSOT Format (session_insights.json)
+
+For SSOT format with full session data, format as:
+
+```markdown
+## Previous Session Insights
+
+**Ended**: {ended_at}
+
+### Context
+- **Usage**: {percentage}% ({tokens_used:,} tokens)
+- **Status**: {status} (normal/warning/critical)
+{if delegation.recommended}
+- **Delegation**: RECOMMENDED - Consider agents: {agents}
+{/if}
+
+### Summary
+- **Tool Calls**: {tool_calls}
+- **Errors**: {errors}
+- **Duration**: {duration_min} min
+
+### Git Status
+{if uncommitted}
+- **Uncommitted Changes**: +{lines_added}/-{lines_removed}
+- **Files**: {code} code, {test} test, {config} config
+{else}
+- All changes committed
+{/if}
+
+### Tips
+
+#### 1. [{confidence}%] {message}
+**Command**: `{command}`
+**Evidence**: {evidence}
+**Category**: {category}
+
+...
+
+---
+*Use the suggested commands, or ignore if not applicable.*
+```
 
 ### Tips Engine v2 Format (with confidence and evidence)
 

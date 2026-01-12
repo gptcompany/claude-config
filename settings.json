@@ -256,6 +256,11 @@
           },
           {
             "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/ux/session_insights_writer.py",
+            "timeout": 5
+          },
+          {
+            "type": "command",
             "command": "/media/sam/1TB/claude-hooks-shared/hooks/control/auto-ralph.py",
             "timeout": 10
           },
@@ -286,6 +291,11 @@
           {
             "type": "command",
             "command": "/media/sam/1TB/claude-hooks-shared/hooks/intelligence/session_start_tracker.py",
+            "timeout": 3
+          },
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/intelligence/ci_status_injector.py",
             "timeout": 3
           },
           {
