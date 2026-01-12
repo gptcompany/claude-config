@@ -102,6 +102,22 @@ infrastructure:
         9100: node_exporter
         9256: process_exporter
         8484: cadvisor
+  notifications:
+    discord:
+      webhook_env: DISCORD_WEBHOOK_URL
+      enabled: true
+    email:
+      smtp_host_env: SMTP_HOST  # e.g., smtp.gmail.com
+      smtp_port: 587
+      smtp_user_env: SMTP_USER
+      smtp_password_env: SMTP_PASSWORD  # Use app password for Gmail
+      smtp_from_env: SMTP_FROM  # e.g., alerts@claudecode.local
+      recipients_env: ALERT_EMAIL  # Comma-separated for multiple
+      enabled: true
+      triggers:
+        on_critical: true  # Always email for critical severity issues
+        on_discord_failure: true  # Fallback when Discord fails
+        on_health_score_below: 70  # Email if score drops below threshold
 repositories:
   nautilus_dev:
     path: /media/sam/1TB/nautilus_dev
@@ -160,6 +176,9 @@ global:
   - audit
   - new-project
   - tips
+  - auto-resolve
+  - research
+  - research-papers
   skills:
   - pytest-test-generator
   - pydantic-model-generator
@@ -198,8 +217,22 @@ global:
       checks: [duplicates, missing_files, settings_drift, obsolete, ports, services, containers, cron]
     weekly_health_report:
       path: ~/.claude/scripts/weekly-health-report.sh
-      description: Send health report to Discord
+      description: Send health report to Discord + email fallback
       schedule: "0 8 * * 1"  # Every Monday 8:00 AM
+    daily_health_report:
+      path: ~/.claude/scripts/daily-health-report.sh
+      description: Conditional daily health check (only if issues)
+      schedule: "0 8 * * *"  # Every day 8:00 AM
+    issue_resolver:
+      path: ~/.claude/scripts/issue-resolver.py
+      description: Auto-resolution pipeline for drift issues
+      usage: --json | --dry-run | --create-issues | --execute ISSUE_ID
+    n8n_research_trigger:
+      path: ~/.claude/scripts/trigger-n8n-research.sh
+      description: Trigger N8N academic research pipeline
+      webhook: https://n8nubuntu.princyx.xyz/webhook/779dcea3-a780-4c67-a092-4785d5df68f0
+      auth_header: X-N8N-Auth-Token
+      usage: "<query>" | --status
     system_state_snapshot:
       path: ~/.claude/scripts/system-state-snapshot.sh
       description: Capture system configuration for disaster recovery

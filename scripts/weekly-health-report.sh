@@ -16,6 +16,60 @@ DRIFT_DETECTOR="${SCRIPT_DIR}/drift-detector.py"
 DISCORD_WEBHOOK="${DISCORD_WEBHOOK_URL:-}"
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
 
+# Email configuration (fallback)
+SMTP_HOST="${SMTP_HOST:-}"
+SMTP_PORT="${SMTP_PORT:-587}"
+SMTP_USER="${SMTP_USER:-}"
+SMTP_PASSWORD="${SMTP_PASSWORD:-}"
+SMTP_FROM="${SMTP_FROM:-alerts@claudecode.local}"
+ALERT_EMAIL="${ALERT_EMAIL:-}"
+
+# Email fallback function
+send_email_fallback() {
+    local subject="$1"
+    local body="$2"
+
+    if [[ -z "$SMTP_HOST" ]] || [[ -z "$ALERT_EMAIL" ]]; then
+        echo "Email not configured (SMTP_HOST or ALERT_EMAIL missing)" >&2
+        return 1
+    fi
+
+    # Convert Discord markdown to plain text for email
+    local plain_body
+    plain_body=$(echo "$body" | sed 's/\*\*//g' | sed 's/:white_check_mark:/[OK]/g' | sed 's/:warning:/[WARN]/g' | sed 's/:x:/[FAIL]/g')
+
+    if command -v mail &> /dev/null && [[ -n "$SMTP_USER" ]]; then
+        echo "$plain_body" | mail -s "$subject" \
+            -S smtp="$SMTP_HOST:$SMTP_PORT" \
+            -S smtp-use-starttls \
+            -S smtp-auth=login \
+            -S smtp-auth-user="$SMTP_USER" \
+            -S smtp-auth-password="$SMTP_PASSWORD" \
+            -S from="$SMTP_FROM" \
+            "$ALERT_EMAIL" 2>/dev/null && return 0
+    fi
+
+    # Fallback to sendmail if available
+    if command -v sendmail &> /dev/null; then
+        {
+            echo "From: $SMTP_FROM"
+            echo "To: $ALERT_EMAIL"
+            echo "Subject: $subject"
+            echo "Content-Type: text/plain; charset=utf-8"
+            echo ""
+            echo "$plain_body"
+        } | sendmail -t 2>/dev/null && return 0
+    fi
+
+    # Last resort: msmtp
+    if command -v msmtp &> /dev/null; then
+        echo "$plain_body" | msmtp --from="$SMTP_FROM" "$ALERT_EMAIL" 2>/dev/null && return 0
+    fi
+
+    echo "No mail command available (mail, sendmail, or msmtp required)" >&2
+    return 1
+}
+
 # Check if drift-detector exists
 if [[ ! -f "$DRIFT_DETECTOR" ]]; then
     echo "Error: drift-detector.py not found at $DRIFT_DETECTOR" >&2
@@ -70,6 +124,10 @@ ${TOP_ISSUES:-No issues found}
 ---
 Run \`/health\` for detailed analysis."
 
+# Track notification status
+DISCORD_SUCCESS=false
+EMAIL_SUCCESS=false
+
 # Send to Discord if webhook is configured
 if [[ -n "$DISCORD_WEBHOOK" ]]; then
     PAYLOAD=$(jq -n --arg content "$MESSAGE" '{content: $content}')
@@ -81,11 +139,43 @@ if [[ -n "$DISCORD_WEBHOOK" ]]; then
 
     if [[ "$HTTP_CODE" == "204" || "$HTTP_CODE" == "200" ]]; then
         echo "Weekly health report sent to Discord successfully"
+        DISCORD_SUCCESS=true
     else
         echo "Failed to send to Discord (HTTP $HTTP_CODE)" >&2
     fi
 else
-    echo "DISCORD_WEBHOOK_URL not set, printing report to stdout:"
+    echo "DISCORD_WEBHOOK_URL not set"
+fi
+
+# Email fallback: Send if Discord failed OR if there are critical issues
+EMAIL_SUBJECT="[Claude Code] Weekly Health Report - Score: ${HEALTH_SCORE}/100"
+if [[ "$CRITICAL" -gt 0 ]]; then
+    EMAIL_SUBJECT="[CRITICAL] Claude Code Health Alert - Score: ${HEALTH_SCORE}/100"
+fi
+
+SHOULD_EMAIL=false
+if [[ "$DISCORD_SUCCESS" == "false" ]]; then
+    echo "Discord failed, attempting email fallback..."
+    SHOULD_EMAIL=true
+fi
+if [[ "$CRITICAL" -gt 0 ]]; then
+    echo "Critical issues detected ($CRITICAL), sending email alert..."
+    SHOULD_EMAIL=true
+fi
+
+if [[ "$SHOULD_EMAIL" == "true" ]]; then
+    if send_email_fallback "$EMAIL_SUBJECT" "$MESSAGE"; then
+        echo "Email fallback sent successfully"
+        EMAIL_SUCCESS=true
+    else
+        echo "Email fallback failed" >&2
+    fi
+fi
+
+# If both Discord and email not configured, print to stdout
+if [[ "$DISCORD_SUCCESS" == "false" ]] && [[ "$EMAIL_SUCCESS" == "false" ]] && [[ -z "$DISCORD_WEBHOOK" ]]; then
+    echo ""
+    echo "No notification channels configured. Report:"
     echo ""
     echo "$MESSAGE"
 fi
