@@ -104,6 +104,41 @@ Then trigger research:
 
 **If not beneficial**: Skip and proceed to Step 4.
 
+### Step 3.5: PMW Validation (Prove Me Wrong)
+
+> **"Cerca attivamente disconferme, non conferme"**
+
+**Purpose**: Before implementation, actively search for counter-evidence that could invalidate the approach.
+
+**PMW Protocol** (run if research was triggered):
+
+1. **Counter-Evidence Search**:
+   ```
+   # Instead of "{topic} works", search:
+   "{topic} failure", "{topic} limitations", "{topic} poor performance"
+   ```
+
+2. **SWOT Assessment**:
+   ```markdown
+   **Strengths**: What actually works well?
+   **Weaknesses**: Where are we vulnerable?
+   **Opportunities**: What could we improve?
+   **Threats**: What could make us fail?
+   ```
+
+3. **Mitigations Check**:
+   - For each threat/weakness, verify spec addresses it
+   - Document unaddressed risks
+
+4. **Verdict**:
+   - **GO**: Proceed (solid foundation)
+   - **WAIT**: Fix issues before proceeding
+   - **STOP**: Rethink approach entirely
+
+**Output**: Add PMW section to `research.md` with findings and verdict.
+
+**If not research-triggered**: Skip PMW and proceed to Step 4.
+
 ### Step 4: Implementation Plan
 ```
 /speckit:plan
@@ -124,6 +159,61 @@ The orchestrator will:
 1. Extract technologies from spec.md
 2. Fetch docs via Context7 for each
 3. Include relevant docs in plan context
+
+### Step 4.5: Project-Specific Validation (optional)
+
+**Purpose**: Run project-specific validation if defined.
+
+**Check for project validators**:
+```python
+# Check for project validation config
+validators = []
+
+if exists(".claude/validation/config.json"):
+    config = load(".claude/validation/config.json")
+    validators = config.get("validators", [])
+
+# Or check for individual validator commands
+if exists(".claude/commands/validate-plan.md"):
+    validators.append("/validate-plan")
+
+if exists(".claude/commands/validate-tasks.md"):
+    # Will run after Step 5
+    pass
+
+# Run all validators
+for validator in validators:
+    run(validator)
+```
+
+**Project Validation Config** (`.claude/validation/config.json`):
+```json
+{
+  "domain": "trading",
+  "validators": ["/validate-plan", "/validate-tasks"],
+  "specialist_agent": "nautilus-docs-specialist",
+  "anti_patterns": [
+    {"pattern": "df.iterrows", "severity": "high", "fix": "Use vectorized operations"},
+    {"pattern": "pd.read_csv.*large", "severity": "medium", "fix": "Use chunked reading"}
+  ],
+  "research_keywords": {
+    "trigger": ["adaptive", "regime", "optimization", "backtest"],
+    "skip": ["config", "logging", "cli", "docker"]
+  },
+  "compatibility_check": {
+    "library": "nautilustrader",
+    "version_source": "context7"
+  }
+}
+```
+
+**Each project defines its own**:
+- Domain-specific anti-patterns
+- Research trigger keywords
+- Specialist agents (if any)
+- Library compatibility checks
+
+**Template**: `~/.claude/templates/validation-config.json`
 
 ### Step 5: Task Generation
 ```

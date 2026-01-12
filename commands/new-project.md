@@ -34,7 +34,9 @@ Initialize a new repository with Claude Code skeleton based on canonical.yaml.
 ├── settings.local.json       # Local settings (inherits global hooks)
 ├── agents/                   # Project-specific agents (empty)
 ├── commands/                 # Project-specific commands (empty)
-└── skills/                   # Project-specific skills (empty)
+├── skills/                   # Project-specific skills (empty)
+└── validation/
+    └── config.json           # Project validation config (for /spec-pipeline)
 ```
 
 ## CLAUDE.md Template
@@ -86,7 +88,7 @@ Note: Hooks are inherited from `~/.claude/settings.json` (global).
 
 2. **Create structure**:
    ```bash
-   mkdir -p .claude/{agents,commands,skills}
+   mkdir -p .claude/{agents,commands,skills,validation}
    ```
 
 3. **Generate CLAUDE.md**:
@@ -97,7 +99,15 @@ Note: Hooks are inherited from `~/.claude/settings.json` (global).
    - Copy env vars from canonical.yaml
    - No hooks (inherited from global)
 
-5. **Update canonical.yaml**:
+5. **Create validation/config.json**:
+   ```bash
+   cp ~/.claude/templates/validation-config.json .claude/validation/config.json
+   ```
+   - Update `domain` field based on project type
+   - Add language-specific anti-patterns (Python: iterrows, requests.get)
+   - Add framework-specific keywords
+
+6. **Update canonical.yaml**:
    - Add new repo to repositories section
    - Run drift-detector to verify
 

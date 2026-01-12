@@ -31,6 +31,42 @@ from enum import Enum
 from functools import wraps
 from pathlib import Path
 from typing import Callable, Optional
+from contextlib import contextmanager
+
+# OpenTelemetry tracing (optional, graceful fallback)
+try:
+    from opentelemetry import trace
+    from opentelemetry.sdk.trace import TracerProvider
+    from opentelemetry.sdk.trace.export import SimpleSpanProcessor, ConsoleSpanExporter
+    from opentelemetry.sdk.resources import Resource
+
+    # Setup tracer
+    resource = Resource.create({"service.name": "spec-pipeline"})
+    provider = TracerProvider(resource=resource)
+    provider.add_span_processor(SimpleSpanProcessor(ConsoleSpanExporter()))
+    trace.set_tracer_provider(provider)
+    TRACER = trace.get_tracer("spec-pipeline")
+    OTEL_ENABLED = True
+except ImportError:
+    TRACER = None
+    OTEL_ENABLED = False
+
+
+@contextmanager
+def trace_step(name: str, attributes: dict = None):
+    """Context manager for tracing pipeline steps. Graceful fallback if no OpenTelemetry."""
+    if OTEL_ENABLED and TRACER:
+        with TRACER.start_as_current_span(name, attributes=attributes or {}) as span:
+            try:
+                yield span
+            except Exception as e:
+                span.set_attribute("error", True)
+                span.set_attribute("error.message", str(e))
+                raise
+    else:
+        # Fallback: just yield None, no tracing
+        yield None
+
 
 # Load environment
 ENV_FILE = Path.home() / ".claude" / ".env"
@@ -344,6 +380,63 @@ def log_pipeline_metric(
     except (socket.error, OSError) as e:
         _reset_questdb_socket()
         CIRCUITS["questdb"].record_failure(str(e))
+        return False
+
+
+# =============================================================================
+# Discord Alerting
+# =============================================================================
+
+DISCORD_WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
+
+
+def send_pipeline_alert(
+    run_id: str,
+    project: str,
+    step_name: str,
+    error_message: str,
+    severity: str = "error",
+) -> bool:
+    """Send pipeline failure alert to Discord."""
+    if not DISCORD_WEBHOOK_URL:
+        return False
+
+    import urllib.request
+    import urllib.error
+
+    color = 0xDC3545 if severity == "error" else 0xFFC107  # Red or Yellow
+
+    payload = {
+        "embeds": [
+            {
+                "title": f"{'🔴' if severity == 'error' else '⚠️'} Spec Pipeline {severity.upper()}",
+                "color": color,
+                "fields": [
+                    {"name": "Project", "value": project, "inline": True},
+                    {"name": "Step", "value": step_name, "inline": True},
+                    {"name": "Run ID", "value": f"`{run_id[:8]}...`", "inline": True},
+                    {
+                        "name": "Error",
+                        "value": f"```{error_message[:500]}```",
+                        "inline": False,
+                    },
+                ],
+                "footer": {"text": "Spec Pipeline Orchestrator"},
+                "timestamp": datetime.utcnow().isoformat() + "Z",
+            }
+        ]
+    }
+
+    try:
+        req = urllib.request.Request(
+            DISCORD_WEBHOOK_URL,
+            data=json.dumps(payload).encode("utf-8"),
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=5) as resp:
+            return resp.status == 204
+    except (urllib.error.URLError, OSError):
         return False
 
 
@@ -1072,19 +1165,32 @@ class SpecPipelineOrchestrator:
             print(f"\n[{state.value}] Starting...")
             start_time = time.time()
 
-            try:
-                result = self._execute_step_with_retry(executor, run, state)
-            except Exception as e:
-                duration_ms = int((time.time() - start_time) * 1000)
-                log_pipeline_metric(
-                    run.run_id,
-                    run.project,
-                    state.value,
-                    duration_ms,
-                    "failed",
-                    error_type=type(e).__name__,
-                )
-                raise
+            # Wrap step execution with tracing
+            with trace_step(
+                f"pipeline.{state.value}",
+                {"run_id": run.run_id, "project": run.project},
+            ):
+                try:
+                    result = self._execute_step_with_retry(executor, run, state)
+                except Exception as e:
+                    duration_ms = int((time.time() - start_time) * 1000)
+                    log_pipeline_metric(
+                        run.run_id,
+                        run.project,
+                        state.value,
+                        duration_ms,
+                        "failed",
+                        error_type=type(e).__name__,
+                    )
+                    # Send alert for unhandled exceptions
+                    send_pipeline_alert(
+                        run.run_id,
+                        run.project,
+                        state.value,
+                        str(e),
+                        severity="error",
+                    )
+                    raise
 
             duration_ms = int((time.time() - start_time) * 1000)
 
@@ -1118,15 +1224,31 @@ class SpecPipelineOrchestrator:
             }
             self.checkpoint.save(run)
 
-            # Handle failure (only for required steps)
-            if (
-                not result.success
-                and not result.skipped
-                and state not in OPTIONAL_STEPS
-            ):
-                run.current_state = PipelineState.FAILED
-                self.checkpoint.save(run)
-                raise FatalError(f"Required step {state.value} failed: {result.error}")
+            # Handle failure
+            if not result.success and not result.skipped:
+                if state not in OPTIONAL_STEPS:
+                    # Required step failed - send error alert
+                    send_pipeline_alert(
+                        run.run_id,
+                        run.project,
+                        state.value,
+                        result.error or "Unknown error",
+                        severity="error",
+                    )
+                    run.current_state = PipelineState.FAILED
+                    self.checkpoint.save(run)
+                    raise FatalError(
+                        f"Required step {state.value} failed: {result.error}"
+                    )
+                else:
+                    # Optional step failed - send warning alert
+                    send_pipeline_alert(
+                        run.run_id,
+                        run.project,
+                        state.value,
+                        result.error or "Unknown error",
+                        severity="warning",
+                    )
 
         # Pipeline completed
         run.current_state = PipelineState.COMPLETED

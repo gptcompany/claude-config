@@ -59,3 +59,45 @@ def test_complete_flow_with_real_data():
     # Esegui il flusso completo
     # Verifica risultati
 ```
+
+## Project Validation System
+
+**Ogni progetto DEVE avere una validation config** per `/spec-pipeline`.
+
+### Setup (una tantum per progetto)
+
+```bash
+# Crea struttura validation
+mkdir -p .claude/validation
+
+# Copia template e personalizza
+cp ~/.claude/templates/validation-config.json .claude/validation/config.json
+```
+
+### File richiesti
+
+```
+{progetto}/
+└── .claude/
+    └── validation/
+        └── config.json    # OBBLIGATORIO per /spec-pipeline
+```
+
+### Config minima
+
+```json
+{
+  "domain": "your-domain",
+  "anti_patterns": [],
+  "research_keywords": {
+    "trigger": [],
+    "skip": []
+  }
+}
+```
+
+### Riferimenti
+
+- **Template**: `~/.claude/templates/validation-config.json`
+- **Esempi**: nautilus_dev, UTXOracle, N8N_dev
+- **Comando**: `/new-project` per scaffold completo
