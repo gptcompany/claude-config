@@ -11,8 +11,14 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(dirname "$(realpath "$0")")"
-N8N_WEBHOOK="${N8N_RESEARCH_WEBHOOK:-https://n8nubuntu.princyx.xyz/webhook/779dcea3-a780-4c67-a092-4785d5df68f0}"
-N8N_AUTH_TOKEN="${N8N_AUTH_TOKEN:-Admin123!}"
+# Load secrets from .env if exists
+if [[ -f "$HOME/.claude/.env" ]]; then
+    source "$HOME/.claude/.env"
+fi
+
+N8N_WEBHOOK="${N8N_RESEARCH_WEBHOOK:-http://localhost:5678/webhook/779dcea3-a780-4c67-a092-4785d5df68f0}"
+N8N_AUTH_HEADER="${N8N_AUTH_HEADER:?N8N_AUTH_HEADER not set - add to ~/.claude/.env}"
+N8N_AUTH_TOKEN="${N8N_AUTH_TOKEN:?N8N_AUTH_TOKEN not set - add to ~/.claude/.env}"
 DISCORD_WEBHOOK="${DISCORD_WEBHOOK_URL:-}"
 LOG_FILE="/tmp/research_triggers.log"
 TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
@@ -77,7 +83,7 @@ trigger_research() {
     http_code=$(curl -s -o /dev/null -w "%{http_code}" \
         -X POST "$N8N_WEBHOOK" \
         -H "Content-Type: application/json" \
-        -H "X-N8N-Auth-Token: $N8N_AUTH_TOKEN" \
+        -H "${N8N_AUTH_HEADER}: ${N8N_AUTH_TOKEN}" \
         -d "$payload" \
         --connect-timeout 10 \
         --max-time 30 2>/dev/null) || http_code="000"

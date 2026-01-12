@@ -38,3 +38,4 @@ tdd-guard/
 
 # Nested .claude folder (created by context-monitor)
 .claude/
+.env
