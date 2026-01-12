@@ -138,6 +138,11 @@ from questdb_client import get_multi_window_stats
 stats = get_multi_window_stats(project)
 ```
 
+**Windows are dynamic percentages of total sessions:**
+- all_time: 100% of sessions (baseline)
+- recent: 80% of sessions
+- trend: 50% of sessions
+
 Display the trend analysis BEFORE the tips:
 
 ```markdown
@@ -145,11 +150,11 @@ Display the trend analysis BEFORE the tips:
 
 **Total**: {total_sessions} sessions | Source: {data_source}
 
-| Window | Error Rate | Rework Rate |
-|--------|------------|-------------|
-| All time | {all_time.avg_error_rate}% ± {stddev}% | {all_time.avg_rework_rate}% |
-| Last 50 | {recent.avg_error_rate}% | {recent.avg_rework_rate}% |
-| Last 20 | {trend.avg_error_rate}% | {trend.avg_rework_rate}% |
+| Window | Sessions | Error Rate | Rework Rate |
+|--------|----------|------------|-------------|
+| 100% (all) | {all_time.session_count} | {avg_error_rate}% ± {stddev}% | {avg_rework_rate}% ± {stddev}% |
+| 80% (recent) | {recent.session_count} | {avg_error_rate}% ± {stddev}% | {avg_rework_rate}% ± {stddev}% |
+| 50% (trend) | {trend.session_count} | {avg_error_rate}% ± {stddev}% | {avg_rework_rate}% ± {stddev}% |
 
 **Trend**: Error rate {error_rate_trend} ({error_rate_delta:+.1%})
 ```
@@ -166,11 +171,11 @@ Trend indicators:
 
 **Total**: 400 sessions | Source: project
 
-| Window | Error Rate | Rework Rate |
-|--------|------------|-------------|
-| All time | 32% ± 5% | 15% ± 8% |
-| Last 50 | 28% ± 4% | 12% ± 6% |
-| Last 20 | 22% ± 3% | 10% ± 5% |
+| Window | Sessions | Error Rate | Rework Rate |
+|--------|----------|------------|-------------|
+| 100% (all) | 400 | 32% ± 5% | 15% ± 8% |
+| 80% (recent) | 320 | 28% ± 4% | 13% ± 6% |
+| 50% (trend) | 200 | 22% ± 3% | 10% ± 4% |
 
 **Trend**: Error rate improving ↓ (-10%)
 
