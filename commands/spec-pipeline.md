@@ -11,12 +11,33 @@ handoffs:
 
 Orchestrates the complete SpecKit workflow from feature description to implementation-ready tasks, maintaining sync between tasks.md AND GitHub Issues.
 
+**Production-Ready Features:**
+- State persistence (PostgreSQL checkpoints)
+- Step tracking (QuestDB metrics)
+- Circuit breaker for external services
+- Retry with exponential backoff
+- Resume from failure capability
+
 ## Usage
 
 ```
 /spec-pipeline "Feature description"     # Full pipeline
 /spec-pipeline --sync                    # Sync existing tasks.md to Issues
 /spec-pipeline --verify                  # Verify and update task status
+/spec-pipeline --resume <run_id>         # Resume from checkpoint
+/spec-pipeline --dry-run "Feature"       # Preview steps without executing
+/spec-pipeline --status <run_id>         # Check run status
+```
+
+## Python Orchestrator
+
+The pipeline is powered by a Python orchestrator for production-grade reliability:
+
+```bash
+# Direct invocation (for debugging)
+python ~/.claude/scripts/spec_pipeline.py "Feature description"
+python ~/.claude/scripts/spec_pipeline.py --resume <run_id>
+python ~/.claude/scripts/spec_pipeline.py --status <run_id>
 ```
 
 ## Philosophy: Dual Tracking
@@ -90,6 +111,20 @@ Then trigger research:
 Creates plan.md with architecture, tech stack, file structure.
 **Now informed by academic papers** (if research was triggered).
 
+**Context7 Documentation Fetch:**
+Before creating the plan, fetch technical documentation for identified technologies:
+
+```
+# Use Context7 MCP to get library documentation
+# For each technology in the spec (e.g., React, PostgreSQL, FastAPI):
+mcp__context7__get-library-docs(library_name="<technology>")
+```
+
+The orchestrator will:
+1. Extract technologies from spec.md
+2. Fetch docs via Context7 for each
+3. Include relevant docs in plan context
+
 ### Step 5: Task Generation
 ```
 /speckit:tasks
@@ -141,14 +176,35 @@ If it doesn't exist, create it with the following logic:
 
 ## Execution
 
-When user runs `/spec-pipeline`, execute steps 1-8 in sequence.
-- Step 3 (research) is conditional based on smart evaluation.
+**IMPORTANT: Use the Python orchestrator for all executions.**
 
-For `--sync` flag: Execute only steps 7-9 (sync existing tasks).
+When user runs `/spec-pipeline "Feature"`:
 
-For `--verify` flag: Execute only step 8 (verify implementations).
+```bash
+# Execute via orchestrator
+python ~/.claude/scripts/spec_pipeline.py "$ARGUMENTS"
+```
 
-For `--research` flag: Force research even if not suggested.
+The orchestrator handles:
+- State machine transitions
+- Checkpoint persistence (PostgreSQL/file fallback)
+- Circuit breaker for external services (GitHub, N8N)
+- Retry with exponential backoff
+- QuestDB metrics logging
+
+**Flags:**
+- `--sync`: Execute only steps 7-9 (sync existing tasks)
+- `--verify`: Execute only step 8 (verify implementations)
+- `--research`: Force research even if not suggested
+- `--resume <run_id>`: Resume from checkpoint
+- `--dry-run`: Preview steps without executing
+- `--status <run_id>`: Check run status
+
+**Resume after failure:**
+```bash
+# Get the run_id from previous execution
+python ~/.claude/scripts/spec_pipeline.py --resume <run_id>
+```
 
 ## Task ID to Issue Mapping
 
