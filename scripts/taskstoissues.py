@@ -1,0 +1,552 @@
+#!/usr/bin/env python3
+"""Unified tasks.md <-> GitHub Issues management.
+
+Features:
+- Create GitHub issues from tasks.md with milestones
+- Bidirectional sync (completed tasks <-> closed issues)
+
+Usage:
+    # Create issues from tasks.md
+    python taskstoissues.py --tasks-file specs/034/tasks.md
+
+    # Bidirectional sync (close issues for [X] tasks, mark [X] for closed issues)
+    python taskstoissues.py --sync specs/034
+
+    # Sync all specs
+    python taskstoissues.py --sync-all
+
+    # Dry run (preview without changes)
+    python taskstoissues.py --tasks-file specs/034/tasks.md --dry-run
+    python taskstoissues.py --sync specs/034 --dry-run
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import subprocess
+import sys
+from dataclasses import dataclass, field
+from pathlib import Path
+
+# =============================================================================
+# Data Classes
+# =============================================================================
+
+
+@dataclass
+class Task:
+    """Represents a single task from tasks.md."""
+
+    id: str
+    story: str
+    description: str
+    status: str  # "pending" or "completed"
+    priority: str = "P2"
+    markers: list[str] = field(default_factory=list)
+    files: list[str] = field(default_factory=list)
+    line_number: int = 0
+    line_text: str = ""  # Original line for sync
+
+
+@dataclass
+class UserStory:
+    """Represents a user story section."""
+
+    id: str
+    title: str
+    description: str
+    tasks: list[Task] = field(default_factory=list)
+
+
+@dataclass
+class SyncResult:
+    """Results from sync operation."""
+
+    milestones_created: int = 0
+    milestones_existing: int = 0
+    issues_created: int = 0
+    issues_existing: int = 0
+    issues_closed: int = 0
+    tasks_marked_complete: int = 0
+    errors: list[str] = field(default_factory=list)
+
+
+# =============================================================================
+# GitHub CLI Helpers
+# =============================================================================
+
+
+def run_gh_command(args: list[str], check: bool = True) -> tuple[int, str, str]:
+    """Run a gh CLI command and return result."""
+    try:
+        result = subprocess.run(
+            ["gh"] + args,
+            capture_output=True,
+            text=True,
+            check=check,
+        )
+        return result.returncode, result.stdout, result.stderr
+    except subprocess.CalledProcessError as e:
+        return e.returncode, e.stdout, e.stderr
+    except FileNotFoundError:
+        return 1, "", "gh CLI not found"
+
+
+def get_existing_milestones() -> dict[str, int]:
+    """Get existing milestones and their numbers."""
+    code, stdout, _ = run_gh_command(
+        ["api", "repos/{owner}/{repo}/milestones", "-q", ".[].title,.number"],
+        check=False,
+    )
+    if code != 0:
+        return {}
+
+    milestones = {}
+    lines = stdout.strip().split("\n")
+    for i in range(0, len(lines) - 1, 2):
+        if lines[i] and lines[i + 1]:
+            milestones[lines[i]] = int(lines[i + 1])
+    return milestones
+
+
+def get_existing_issues(spec_label: str | None = None) -> dict[str, dict]:
+    """Get existing issues with task IDs in title."""
+    query = "is:issue"
+    if spec_label:
+        query += f" label:{spec_label}"
+
+    code, stdout, _ = run_gh_command(
+        [
+            "issue",
+            "list",
+            "--search",
+            query,
+            "--state",
+            "all",
+            "--limit",
+            "500",
+            "--json",
+            "number,title,state",
+        ],
+        check=False,
+    )
+    if code != 0:
+        return {}
+
+    issues = {}
+    try:
+        data = json.loads(stdout) if stdout else []
+        for issue in data:
+            match = re.search(r"(T\d+)", issue.get("title", ""))
+            if match:
+                issues[match.group(1)] = {
+                    "number": issue["number"],
+                    "state": issue["state"],
+                    "title": issue["title"],
+                }
+    except json.JSONDecodeError:
+        pass
+    return issues
+
+
+# =============================================================================
+# Parsing
+# =============================================================================
+
+
+def parse_tasks_file(file_path: Path) -> tuple[list[UserStory], list[Task]]:
+    """Parse tasks.md and extract user stories and tasks."""
+    content = file_path.read_text()
+    lines = content.split("\n")
+
+    user_stories: list[UserStory] = []
+    all_tasks: list[Task] = []
+    current_story: UserStory | None = None
+
+    story_pattern = re.compile(r"^###?\s*(US\d+)[:\s]+(.+)$")
+    task_pattern = re.compile(
+        r"^\s*-\s*\[([ xX])\]\s*(T\d+)\s*(\[US\d+\])?\s*((?:\[[^\]]+\]\s*)*)\s*(.+)$"
+    )
+    file_pattern = re.compile(r"^\s+-\s*File:\s*`(.+)`$")
+
+    for i, line in enumerate(lines, 1):
+        story_match = story_pattern.match(line)
+        if story_match:
+            story_id = story_match.group(1)
+            story_title = story_match.group(2).strip()
+            description = ""
+            for j in range(i, min(i + 5, len(lines))):
+                next_line = lines[j].strip()
+                if next_line and not next_line.startswith("#") and not next_line.startswith("-"):
+                    description = next_line
+                    break
+            current_story = UserStory(id=story_id, title=story_title, description=description)
+            user_stories.append(current_story)
+            continue
+
+        task_match = task_pattern.match(line)
+        if task_match:
+            status = "completed" if task_match.group(1).upper() == "X" else "pending"
+            task_id = task_match.group(2)
+            story_ref = task_match.group(3) or ""
+            markers_str = task_match.group(4) or ""
+            description = task_match.group(5).strip()
+
+            markers = re.findall(r"\[([^\]]+)\]", markers_str)
+            priority = "P2"
+            for marker in markers:
+                if marker.startswith("P") and marker[1:].isdigit():
+                    priority = marker
+                    break
+
+            story_id = ""
+            if story_ref:
+                story_id = story_ref.strip("[]")
+            elif current_story:
+                story_id = current_story.id
+
+            task = Task(
+                id=task_id,
+                story=story_id,
+                description=description,
+                status=status,
+                priority=priority,
+                markers=markers,
+                line_number=i,
+                line_text=line,
+            )
+            all_tasks.append(task)
+            if current_story:
+                current_story.tasks.append(task)
+            continue
+
+        file_match = file_pattern.match(line)
+        if file_match and all_tasks:
+            all_tasks[-1].files.append(file_match.group(1))
+
+    return user_stories, all_tasks
+
+
+# =============================================================================
+# Issue Creation
+# =============================================================================
+
+
+def create_milestone(story: UserStory, spec_dir: str, dry_run: bool = False) -> int | None:
+    """Create a GitHub milestone for a user story."""
+    title = f"{story.id}: {story.title}"
+    description = f"{story.description}\n\nSpec: {spec_dir}"
+
+    if dry_run:
+        print(f"[DRY RUN] Would create milestone: {title}")
+        return None
+
+    code, stdout, _ = run_gh_command(
+        [
+            "api",
+            "repos/{owner}/{repo}/milestones",
+            "--method",
+            "POST",
+            "-f",
+            f"title={title}",
+            "-f",
+            "state=open",
+            "-f",
+            f"description={description}",
+            "-q",
+            ".number",
+        ],
+        check=False,
+    )
+    return int(stdout.strip()) if code == 0 and stdout else None
+
+
+def create_issue(
+    task: Task,
+    spec_dir: str,
+    milestone_num: int | None,
+    spec_label: str | None,
+    dry_run: bool = False,
+) -> int | None:
+    """Create a GitHub issue for a task."""
+    title = f"[{task.id}] {task.description}"
+
+    body_parts = [
+        "## Task Details",
+        "",
+        f"**Task ID**: {task.id}",
+        f"**User Story**: {task.story}",
+        f"**Priority**: {task.priority}",
+        "",
+    ]
+    if task.markers:
+        body_parts.extend([f"**Markers**: {', '.join(task.markers)}", ""])
+    if task.files:
+        body_parts.append("### Files")
+        body_parts.extend([f"- `{f}`" for f in task.files])
+        body_parts.append("")
+    body_parts.extend(
+        [
+            "### Source",
+            f"- Spec: `{spec_dir}/spec.md`",
+            f"- Tasks: `{spec_dir}/tasks.md` (line {task.line_number})",
+            "",
+            "---",
+            "*Auto-generated by SpecKit pipeline*",
+        ]
+    )
+    body = "\n".join(body_parts)
+
+    labels = ["auto-generated", f"priority-{task.priority.lower()}"]
+    if spec_label:
+        labels.append(spec_label)
+    if "E" in task.markers:
+        labels.append("evolve")
+    if "P" in task.markers:
+        labels.append("parallelizable")
+
+    if dry_run:
+        print(f"[DRY RUN] Would create issue: {title}")
+        return None
+
+    cmd = ["issue", "create", "--title", title, "--body", body]
+    for label in labels:
+        cmd.extend(["--label", label])
+    if milestone_num:
+        cmd.extend(["--milestone", str(milestone_num)])
+
+    code, stdout, stderr = run_gh_command(cmd, check=False)
+    if code == 0:
+        match = re.search(r"/issues/(\d+)", stdout)
+        if match:
+            return int(match.group(1))
+    else:
+        print(f"Failed to create issue for {task.id}: {stderr}")
+    return None
+
+
+# =============================================================================
+# Sync Operations
+# =============================================================================
+
+
+def sync_create_issues(
+    stories: list[UserStory], tasks: list[Task], spec_dir: str, dry_run: bool = False
+) -> SyncResult:
+    """Create issues for pending tasks."""
+    result = SyncResult()
+
+    # Extract spec label from dir
+    spec_match = re.search(r"(\d{3})-", spec_dir)
+    spec_label = f"spec-{spec_match.group(1)}" if spec_match else None
+
+    existing_milestones = get_existing_milestones()
+    existing_issues = get_existing_issues(spec_label)
+    milestone_map: dict[str, int | None] = {}
+
+    # Create milestones
+    for story in stories:
+        milestone_title = f"{story.id}: {story.title}"
+        if milestone_title in existing_milestones:
+            milestone_map[story.id] = existing_milestones[milestone_title]
+            result.milestones_existing += 1
+            print(f"Milestone exists: {milestone_title}")
+        else:
+            milestone_num = create_milestone(story, spec_dir, dry_run)
+            milestone_map[story.id] = milestone_num
+            if milestone_num or dry_run:
+                result.milestones_created += 1
+                print(f"Created milestone: {milestone_title}")
+
+    # Create issues
+    for task in tasks:
+        if task.status == "completed":
+            continue
+        if task.id in existing_issues:
+            result.issues_existing += 1
+            print(f"Issue exists for {task.id}: #{existing_issues[task.id]['number']}")
+            continue
+
+        milestone_num = milestone_map.get(task.story)
+        issue_num = create_issue(task, spec_dir, milestone_num, spec_label, dry_run)
+        if issue_num or dry_run:
+            result.issues_created += 1
+            print(f"Created issue for {task.id}: #{issue_num}")
+
+    return result
+
+
+def sync_bidirectional(spec_dir: Path, dry_run: bool = False) -> SyncResult:
+    """Bidirectional sync: completed tasks <-> closed issues."""
+    result = SyncResult()
+    tasks_path = spec_dir / "tasks.md"
+
+    if not tasks_path.exists():
+        result.errors.append(f"No tasks.md in {spec_dir}")
+        return result
+
+    # Get spec label
+    spec_match = re.search(r"(\d{3})-", spec_dir.name)
+    spec_label = f"spec-{spec_match.group(1)}" if spec_match else None
+
+    # Parse tasks and get issues
+    _, tasks = parse_tasks_file(tasks_path)
+    existing_issues = get_existing_issues(spec_label)
+
+    # Build lookup
+    tasks_by_id = {t.id: t for t in tasks}
+
+    # Completed tasks -> Close issues
+    for task in tasks:
+        if task.status == "completed" and task.id in existing_issues:
+            issue = existing_issues[task.id]
+            if issue["state"] == "OPEN":
+                if not dry_run:
+                    run_gh_command(["issue", "close", str(issue["number"])], check=False)
+                result.issues_closed += 1
+                print(f"Closed issue #{issue['number']} ({task.id})")
+
+    # Closed issues -> Mark tasks [X]
+    content = tasks_path.read_text()
+    modified = False
+
+    for task_id, issue in existing_issues.items():
+        if issue["state"] == "CLOSED" and task_id in tasks_by_id:
+            task = tasks_by_id[task_id]
+            if task.status != "completed":
+                old_line = task.line_text
+                new_line = old_line.replace("- [ ]", "- [X]").replace("- [ ]", "- [X]")
+                if old_line in content:
+                    content = content.replace(old_line, new_line)
+                    result.tasks_marked_complete += 1
+                    modified = True
+                    print(f"Marked [X]: {task_id}")
+
+    if modified and not dry_run:
+        tasks_path.write_text(content)
+
+    return result
+
+
+# =============================================================================
+# Main
+# =============================================================================
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser(
+        description="Unified tasks.md <-> GitHub Issues management",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Create issues from tasks.md
+  python taskstoissues.py --tasks-file specs/034/tasks.md
+
+  # Bidirectional sync for a spec
+  python taskstoissues.py --sync specs/034-kelly-criterion
+
+  # Sync all specs in specs/ directory
+  python taskstoissues.py --sync-all
+
+  # Preview changes
+  python taskstoissues.py --tasks-file specs/034/tasks.md --dry-run
+        """,
+    )
+
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument("--tasks-file", type=Path, help="Create issues from tasks.md file")
+    group.add_argument("--sync", type=Path, help="Bidirectional sync for spec directory")
+    group.add_argument("--sync-all", action="store_true", help="Sync all specs in specs/")
+
+    parser.add_argument(
+        "--spec-dir", type=str, help="Spec directory (defaults to tasks-file parent)"
+    )
+    parser.add_argument("--dry-run", action="store_true", help="Preview without changes")
+    parser.add_argument("--output-json", type=Path, help="Write results to JSON file")
+
+    args = parser.parse_args()
+
+    result = SyncResult()
+
+    if args.tasks_file:
+        # Create issues mode
+        if not args.tasks_file.exists():
+            print(f"Error: tasks file not found: {args.tasks_file}")
+            sys.exit(1)
+
+        spec_dir = args.spec_dir or str(args.tasks_file.parent)
+        print(f"Creating issues from: {args.tasks_file}")
+        print(f"Spec dir: {spec_dir}")
+        print(f"Dry run: {args.dry_run}\n")
+
+        stories, tasks = parse_tasks_file(args.tasks_file)
+        print(f"Found {len(stories)} user stories and {len(tasks)} tasks\n")
+        result = sync_create_issues(stories, tasks, spec_dir, args.dry_run)
+
+    elif args.sync:
+        # Bidirectional sync mode
+        if not args.sync.exists():
+            print(f"Error: spec directory not found: {args.sync}")
+            sys.exit(1)
+
+        print(f"Bidirectional sync: {args.sync}")
+        print(f"Dry run: {args.dry_run}\n")
+        result = sync_bidirectional(args.sync, args.dry_run)
+
+    elif args.sync_all:
+        # Sync all specs
+        specs_dir = Path("specs")
+        if not specs_dir.exists():
+            print("Error: specs/ directory not found")
+            sys.exit(1)
+
+        spec_dirs = [d for d in specs_dir.iterdir() if d.is_dir() and re.match(r"\d{3}-", d.name)]
+
+        print(f"{'[DRY RUN] ' if args.dry_run else ''}Syncing {len(spec_dirs)} specs...\n")
+
+        for spec_dir in sorted(spec_dirs):
+            print(f"\n### {spec_dir.name}")
+            r = sync_bidirectional(spec_dir, args.dry_run)
+            result.issues_closed += r.issues_closed
+            result.tasks_marked_complete += r.tasks_marked_complete
+            result.errors.extend(r.errors)
+
+    # Print summary
+    print("\n=== Summary ===")
+    if args.tasks_file:
+        print(f"Milestones created: {result.milestones_created}")
+        print(f"Milestones existing: {result.milestones_existing}")
+        print(f"Issues created: {result.issues_created}")
+        print(f"Issues existing: {result.issues_existing}")
+    else:
+        print(f"Issues closed: {result.issues_closed}")
+        print(f"Tasks marked [X]: {result.tasks_marked_complete}")
+
+    if result.errors:
+        print(f"Errors: {len(result.errors)}")
+        for err in result.errors:
+            print(f"  - {err}")
+
+    if args.dry_run:
+        print("\n[DRY RUN] No changes applied.")
+
+    # JSON output
+    if args.output_json:
+        output = {
+            "milestones_created": result.milestones_created,
+            "milestones_existing": result.milestones_existing,
+            "issues_created": result.issues_created,
+            "issues_existing": result.issues_existing,
+            "issues_closed": result.issues_closed,
+            "tasks_marked_complete": result.tasks_marked_complete,
+            "errors": result.errors,
+        }
+        args.output_json.parent.mkdir(parents=True, exist_ok=True)
+        args.output_json.write_text(json.dumps(output, indent=2))
+        print(f"\nResults: {args.output_json}")
+
+
+if __name__ == "__main__":
+    main()

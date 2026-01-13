@@ -97,47 +97,23 @@ Then trigger research:
 /research --academic "{derived_query}"
 ```
 
-**Papers are saved to:**
+**`/research --academic` automatically:**
+1. Runs CoAT iterative research
+2. Runs PMW (Prove Me Wrong) validation with SWOT + verdict
+3. Triggers N8N academic pipeline for papers
+4. **Auto-saves to `$SPEC_DIR/research.md`**
+
+**Output locations:**
+- Research + PMW: `specs/XXX/research.md` (auto-saved)
 - PDFs: `/media/sam/1TB/N8N_dev/papers/`
 - Metadata: PostgreSQL `finance_papers.papers`
-- Accessible via RAG for subsequent steps
+
+**PMW Verdict in research.md:**
+- **GO**: Proceed (solid foundation)
+- **WAIT**: Fix issues before proceeding
+- **STOP**: Rethink approach entirely
 
 **If not beneficial**: Skip and proceed to Step 4.
-
-### Step 3.5: PMW Validation (Prove Me Wrong)
-
-> **"Cerca attivamente disconferme, non conferme"**
-
-**Purpose**: Before implementation, actively search for counter-evidence that could invalidate the approach.
-
-**PMW Protocol** (run if research was triggered):
-
-1. **Counter-Evidence Search**:
-   ```
-   # Instead of "{topic} works", search:
-   "{topic} failure", "{topic} limitations", "{topic} poor performance"
-   ```
-
-2. **SWOT Assessment**:
-   ```markdown
-   **Strengths**: What actually works well?
-   **Weaknesses**: Where are we vulnerable?
-   **Opportunities**: What could we improve?
-   **Threats**: What could make us fail?
-   ```
-
-3. **Mitigations Check**:
-   - For each threat/weakness, verify spec addresses it
-   - Document unaddressed risks
-
-4. **Verdict**:
-   - **GO**: Proceed (solid foundation)
-   - **WAIT**: Fix issues before proceeding
-   - **STOP**: Rethink approach entirely
-
-**Output**: Add PMW section to `research.md` with findings and verdict.
-
-**If not research-triggered**: Skip PMW and proceed to Step 4.
 
 ### Step 4: Implementation Plan
 ```
@@ -236,11 +212,13 @@ Checks for:
 - Plan/task alignment
 - Academic backing for critical decisions
 
-### Step 7: GitHub Issues Sync
+### Step 7: GitHub Issues Creation
 ```
 /speckit:taskstoissues
 ```
-Creates GitHub Issues for each pending task in tasks.md.
+Creates GitHub Issues with milestones for each pending task in tasks.md.
+
+Uses global script: `~/.claude/scripts/taskstoissues.py`
 
 ### Step 8: Verification
 ```
@@ -248,21 +226,19 @@ Creates GitHub Issues for each pending task in tasks.md.
 ```
 Verifies implementations exist, updates [X] checkboxes.
 
-### Step 9: Issue Sync
-Run sync script to close completed issues:
+### Step 9: Bidirectional Sync
+Run global sync script:
 ```bash
-python scripts/sync_tasks_issues.py
+# Sync specific spec
+python ~/.claude/scripts/taskstoissues.py --sync specs/034-kelly-criterion
+
+# Sync all specs
+python ~/.claude/scripts/taskstoissues.py --sync-all
 ```
 
-## Sync Script Location
-
-The sync script should be at: `scripts/sync_tasks_issues.py`
-
-If it doesn't exist, create it with the following logic:
-1. Parse tasks.md for completed tasks [X]
-2. Find matching GitHub Issues by task ID
-3. Close issues for completed tasks
-4. For closed issues not in tasks.md as [X], update tasks.md
+**What it does:**
+- Completed tasks [X] → Close matching GitHub Issues
+- Closed GitHub Issues → Mark [X] in tasks.md
 
 ## Execution
 

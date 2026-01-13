@@ -64,6 +64,7 @@ The generated CLAUDE.md includes:
 - `/health` - Check system health
 - `/tdd:cycle` - TDD workflow
 - `/undo:checkpoint` - Create rollback point
+- `/speckit:taskstoissues` - Create GitHub Issues from tasks.md
 ```
 
 ## settings.local.json Template
@@ -119,6 +120,28 @@ After running `/new-project`:
 2. Add project-specific rules
 3. Run `/health` to verify integration
 4. Commit `.claude/` directory
+
+## Global Scripts Available
+
+Projects automatically have access to these global scripts via `/spec-pipeline`:
+
+| Script | Purpose |
+|--------|---------|
+| `~/.claude/scripts/taskstoissues.py` | Create GitHub Issues from tasks.md with milestones |
+| `~/.claude/scripts/spec_pipeline.py` | Full SpecKit pipeline orchestrator |
+| `~/.claude/scripts/trigger-n8n-research.sh` | Trigger academic research pipeline |
+
+**Tasks ↔ Issues Sync**:
+```bash
+# Create issues from tasks.md
+python ~/.claude/scripts/taskstoissues.py --tasks-file specs/XXX/tasks.md --spec-dir specs/XXX
+
+# Bidirectional sync (closed issues ↔ [X] tasks)
+python ~/.claude/scripts/taskstoissues.py --sync specs/XXX
+
+# Sync all specs
+python ~/.claude/scripts/taskstoissues.py --sync-all
+```
 
 ## Integration with Canonical
 

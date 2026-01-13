@@ -1,0 +1,28 @@
+{
+  "$schema": "validation-config-v1",
+  "domain": "generic",
+  "description": "Project validation configuration template",
+  
+  "validators": [],
+  
+  "specialist_agent": null,
+  
+  "anti_patterns": [
+    {"pattern": "TODO|FIXME|HACK", "severity": "low", "fix": "Address before merge"},
+    {"pattern": "password.*=.*['\"]", "severity": "critical", "fix": "Use environment variables"},
+    {"pattern": "print\\(", "severity": "low", "fix": "Use proper logging"}
+  ],
+  
+  "research_keywords": {
+    "trigger": ["algorithm", "optimization", "ml", "ai", "statistical"],
+    "skip": ["config", "setup", "cli", "docker", "ci", "test"]
+  },
+  
+  "compatibility_check": null,
+  
+  "file_patterns": {
+    "source": ["src/**/*.py", "lib/**/*.py"],
+    "tests": ["tests/**/*.py"],
+    "config": ["config/**/*", "*.yaml", "*.toml"]
+  }
+}
