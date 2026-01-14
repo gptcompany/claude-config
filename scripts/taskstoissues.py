@@ -10,8 +10,11 @@ Usage:
     # Create issues from tasks.md
     python taskstoissues.py --tasks-file specs/034/tasks.md
 
-    # Create issues and link to Project board
+    # Create issues and link to Project board (explicit name)
     python taskstoissues.py --tasks-file specs/034/tasks.md --project "My Project Board"
+
+    # Create issues and link to auto-derived Project board ("{repo_name} Development")
+    python taskstoissues.py --tasks-file specs/034/tasks.md --auto-project
 
     # Bidirectional sync (close issues for [X] tasks, mark [X] for closed issues)
     python taskstoissues.py --sync specs/034
@@ -96,6 +99,21 @@ def run_gh_command(args: list[str], check: bool = True) -> tuple[int, str, str]:
         return e.returncode, e.stdout, e.stderr
     except FileNotFoundError:
         return 1, "", "gh CLI not found"
+
+
+def get_repo_name() -> str | None:
+    """Get current repository name from git."""
+    code, stdout, _ = run_gh_command(
+        ["repo", "view", "--json", "name", "-q", ".name"],
+        check=False,
+    )
+    return stdout.strip() if code == 0 and stdout else None
+
+
+def get_default_project_name() -> str | None:
+    """Get default project board name based on repo name."""
+    repo_name = get_repo_name()
+    return f"{repo_name} Development" if repo_name else None
 
 
 def get_existing_milestones() -> dict[str, int]:
@@ -498,11 +516,23 @@ Examples:
         help="GitHub Project board to link issues to (e.g., 'nautilus_dev Development')",
     )
     parser.add_argument(
+        "--auto-project",
+        action="store_true",
+        help="Auto-derive project name from repo ('{repo_name} Development')",
+    )
+    parser.add_argument(
         "--dry-run", action="store_true", help="Preview without changes"
     )
     parser.add_argument("--output-json", type=Path, help="Write results to JSON file")
 
     args = parser.parse_args()
+
+    # Resolve project name
+    project_name = args.project
+    if args.auto_project and not project_name:
+        project_name = get_default_project_name()
+        if not project_name:
+            print("Warning: Could not auto-detect project name (not in a git repo?)")
 
     result = SyncResult()
 
@@ -519,10 +549,10 @@ Examples:
 
         stories, tasks = parse_tasks_file(args.tasks_file)
         print(f"Found {len(stories)} user stories and {len(tasks)} tasks\n")
-        if args.project:
-            print(f"Project board: {args.project}\n")
+        if project_name:
+            print(f"Project board: {project_name}\n")
         result = sync_create_issues(
-            stories, tasks, spec_dir, args.project, args.dry_run
+            stories, tasks, spec_dir, project_name, args.dry_run
         )
 
     elif args.sync:
