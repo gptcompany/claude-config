@@ -1,18 +1,73 @@
-# /research-papers - View Academic Research Results
+# /research-papers - Query Academic Papers Knowledge Base
 
-Display academic papers and validated formulas from the N8N research pipeline.
+Query processed academic papers using RAG (semantic search + knowledge graph).
 
 ## Usage
 
 ```
-/research-papers                    # Show recent results
-/research-papers --query "kelly"    # Filter by query
-/research-papers --status pending   # Show pending research
+/research-papers "query"              # Semantic search (hybrid mode)
+/research-papers --local "query"      # Local context search
+/research-papers --global "query"     # Global summary search
+/research-papers --db                 # Show DB records (PostgreSQL)
+/research-papers --list               # List indexed papers
 ```
 
-## Instructions
+## User Input
 
-Query the PostgreSQL database for research results:
+```text
+$ARGUMENTS
+```
+
+## Execution
+
+### Parse Flags
+
+```python
+args = "$ARGUMENTS"
+if "--db" in args:
+    MODE = "database"
+elif "--list" in args:
+    MODE = "list"
+elif "--local" in args:
+    MODE = "local"
+    QUERY = args.replace("--local", "").strip()
+elif "--global" in args:
+    MODE = "global"
+    QUERY = args.replace("--global", "").strip()
+else:
+    MODE = "hybrid"
+    QUERY = args.strip().strip('"').strip("'")
+```
+
+### RAG Query (Default)
+
+For MODE in ["hybrid", "local", "global"]:
+
+```bash
+curl -s -X POST http://localhost:8767/query \
+  -H "Content-Type: application/json" \
+  -d '{"query": "QUERY", "mode": "MODE"}'
+```
+
+**Output:**
+
+```markdown
+## Research Papers Query
+
+**Query**: {query}
+**Mode**: {mode}
+
+### Answer
+
+{answer from RAG knowledge graph}
+
+---
+*Processed via RAGAnything v3.0*
+```
+
+### Database Query (--db)
+
+If `MODE == "database"`, query PostgreSQL for paper records:
 
 ```sql
 -- Connection: postgres://user:pass@localhost:5432/n8n_dev

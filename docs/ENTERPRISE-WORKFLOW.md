@@ -112,6 +112,9 @@ gh issue edit ISSUE_NUMBER --add-project "nautilus_dev Development"
 # Create issues from tasks.md
 python taskstoissues.py --tasks-file specs/034/tasks.md
 
+# Create issues and link to Project board
+python taskstoissues.py --tasks-file specs/034/tasks.md --project "nautilus_dev Development"
+
 # Bidirectional sync (completed tasks <-> closed issues)
 python taskstoissues.py --sync specs/034-kelly-criterion
 

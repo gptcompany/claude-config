@@ -254,18 +254,18 @@ def setup_project(repo_path: Path, language: str = None, framework: str = None):
         project_name = repo_path.name
         content = generate_claude_md(project_name, language, framework, commands)
         claude_md_path.write_text(content)
-        print(f"Generated: .claude/CLAUDE.md")
+        print("Generated: .claude/CLAUDE.md")
     else:
-        print(f"Skipped: .claude/CLAUDE.md (already exists)")
+        print("Skipped: .claude/CLAUDE.md (already exists)")
 
     # Generate settings.local.json
     settings_path = claude_dir / "settings.local.json"
     if not settings_path.exists():
         settings = generate_settings_local(canonical)
         settings_path.write_text(json.dumps(settings, indent=2))
-        print(f"Generated: .claude/settings.local.json")
+        print("Generated: .claude/settings.local.json")
     else:
-        print(f"Skipped: .claude/settings.local.json (already exists)")
+        print("Skipped: .claude/settings.local.json (already exists)")
 
     # Update canonical.yaml
     print()

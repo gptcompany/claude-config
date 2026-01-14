@@ -3,11 +3,15 @@
 
 Features:
 - Create GitHub issues from tasks.md with milestones
+- Link issues to GitHub Project boards
 - Bidirectional sync (completed tasks <-> closed issues)
 
 Usage:
     # Create issues from tasks.md
     python taskstoissues.py --tasks-file specs/034/tasks.md
+
+    # Create issues and link to Project board
+    python taskstoissues.py --tasks-file specs/034/tasks.md --project "My Project Board"
 
     # Bidirectional sync (close issues for [X] tasks, mark [X] for closed issues)
     python taskstoissues.py --sync specs/034
@@ -179,10 +183,16 @@ def parse_tasks_file(file_path: Path) -> tuple[list[UserStory], list[Task]]:
             description = ""
             for j in range(i, min(i + 5, len(lines))):
                 next_line = lines[j].strip()
-                if next_line and not next_line.startswith("#") and not next_line.startswith("-"):
+                if (
+                    next_line
+                    and not next_line.startswith("#")
+                    and not next_line.startswith("-")
+                ):
                     description = next_line
                     break
-            current_story = UserStory(id=story_id, title=story_title, description=description)
+            current_story = UserStory(
+                id=story_id, title=story_title, description=description
+            )
             user_stories.append(current_story)
             continue
 
@@ -234,7 +244,9 @@ def parse_tasks_file(file_path: Path) -> tuple[list[UserStory], list[Task]]:
 # =============================================================================
 
 
-def create_milestone(story: UserStory, spec_dir: str, dry_run: bool = False) -> int | None:
+def create_milestone(
+    story: UserStory, spec_dir: str, dry_run: bool = False
+) -> int | None:
     """Create a GitHub milestone for a user story."""
     title = f"{story.id}: {story.title}"
     description = f"{story.description}\n\nSpec: {spec_dir}"
@@ -268,6 +280,7 @@ def create_issue(
     spec_dir: str,
     milestone_num: int | None,
     spec_label: str | None,
+    project_name: str | None = None,
     dry_run: bool = False,
 ) -> int | None:
     """Create a GitHub issue for a task."""
@@ -316,6 +329,8 @@ def create_issue(
         cmd.extend(["--label", label])
     if milestone_num:
         cmd.extend(["--milestone", str(milestone_num)])
+    if project_name:
+        cmd.extend(["--project", project_name])
 
     code, stdout, stderr = run_gh_command(cmd, check=False)
     if code == 0:
@@ -333,7 +348,11 @@ def create_issue(
 
 
 def sync_create_issues(
-    stories: list[UserStory], tasks: list[Task], spec_dir: str, dry_run: bool = False
+    stories: list[UserStory],
+    tasks: list[Task],
+    spec_dir: str,
+    project_name: str | None = None,
+    dry_run: bool = False,
 ) -> SyncResult:
     """Create issues for pending tasks."""
     result = SyncResult()
@@ -370,7 +389,9 @@ def sync_create_issues(
             continue
 
         milestone_num = milestone_map.get(task.story)
-        issue_num = create_issue(task, spec_dir, milestone_num, spec_label, dry_run)
+        issue_num = create_issue(
+            task, spec_dir, milestone_num, spec_label, project_name, dry_run
+        )
         if issue_num or dry_run:
             result.issues_created += 1
             print(f"Created issue for {task.id}: #{issue_num}")
@@ -404,7 +425,9 @@ def sync_bidirectional(spec_dir: Path, dry_run: bool = False) -> SyncResult:
             issue = existing_issues[task.id]
             if issue["state"] == "OPEN":
                 if not dry_run:
-                    run_gh_command(["issue", "close", str(issue["number"])], check=False)
+                    run_gh_command(
+                        ["issue", "close", str(issue["number"])], check=False
+                    )
                 result.issues_closed += 1
                 print(f"Closed issue #{issue['number']} ({task.id})")
 
@@ -456,14 +479,27 @@ Examples:
     )
 
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument("--tasks-file", type=Path, help="Create issues from tasks.md file")
-    group.add_argument("--sync", type=Path, help="Bidirectional sync for spec directory")
-    group.add_argument("--sync-all", action="store_true", help="Sync all specs in specs/")
+    group.add_argument(
+        "--tasks-file", type=Path, help="Create issues from tasks.md file"
+    )
+    group.add_argument(
+        "--sync", type=Path, help="Bidirectional sync for spec directory"
+    )
+    group.add_argument(
+        "--sync-all", action="store_true", help="Sync all specs in specs/"
+    )
 
     parser.add_argument(
         "--spec-dir", type=str, help="Spec directory (defaults to tasks-file parent)"
     )
-    parser.add_argument("--dry-run", action="store_true", help="Preview without changes")
+    parser.add_argument(
+        "--project",
+        type=str,
+        help="GitHub Project board to link issues to (e.g., 'nautilus_dev Development')",
+    )
+    parser.add_argument(
+        "--dry-run", action="store_true", help="Preview without changes"
+    )
     parser.add_argument("--output-json", type=Path, help="Write results to JSON file")
 
     args = parser.parse_args()
@@ -483,7 +519,11 @@ Examples:
 
         stories, tasks = parse_tasks_file(args.tasks_file)
         print(f"Found {len(stories)} user stories and {len(tasks)} tasks\n")
-        result = sync_create_issues(stories, tasks, spec_dir, args.dry_run)
+        if args.project:
+            print(f"Project board: {args.project}\n")
+        result = sync_create_issues(
+            stories, tasks, spec_dir, args.project, args.dry_run
+        )
 
     elif args.sync:
         # Bidirectional sync mode
@@ -502,9 +542,13 @@ Examples:
             print("Error: specs/ directory not found")
             sys.exit(1)
 
-        spec_dirs = [d for d in specs_dir.iterdir() if d.is_dir() and re.match(r"\d{3}-", d.name)]
+        spec_dirs = [
+            d for d in specs_dir.iterdir() if d.is_dir() and re.match(r"\d{3}-", d.name)
+        ]
 
-        print(f"{'[DRY RUN] ' if args.dry_run else ''}Syncing {len(spec_dirs)} specs...\n")
+        print(
+            f"{'[DRY RUN] ' if args.dry_run else ''}Syncing {len(spec_dirs)} specs...\n"
+        )
 
         for spec_dir in sorted(spec_dirs):
             print(f"\n### {spec_dir.name}")
