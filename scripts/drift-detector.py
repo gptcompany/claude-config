@@ -551,9 +551,66 @@ def check_cron(canonical: dict) -> list[Issue]:
     return issues
 
 
+def check_env_duplicates(canonical: dict) -> list[Issue]:
+    """Check for duplicate env vars across SSOT files."""
+    issues = []
+    env_config = canonical.get("environment", {})
+
+    # Collect all keys and their SSOT files
+    key_sources: dict[str, list[str]] = {}
+
+    for section_name, section in env_config.items():
+        if not isinstance(section, dict) or "file" not in section:
+            continue
+
+        ssot_file = Path(section["file"]).expanduser()
+        keys = section.get("keys", [])
+
+        for key in keys:
+            key_sources.setdefault(key, []).append(str(ssot_file))
+
+    # Check each .env file for keys that shouldn't be there
+    env_files = [
+        Path("~/.claude/.env").expanduser(),
+        Path("/media/sam/1TB/nautilus_dev/.env"),
+        Path("/media/sam/1TB/N8N_dev/.env"),
+    ]
+
+    for env_file in env_files:
+        if not env_file.exists():
+            continue
+
+        try:
+            content = env_file.read_text()
+            for line in content.splitlines():
+                if "=" not in line or line.startswith("#"):
+                    continue
+                key = line.split("=")[0].strip()
+
+                # Check if this key has a defined SSOT
+                if key in key_sources:
+                    ssot_files = key_sources[key]
+                    if str(env_file) not in ssot_files:
+                        issues.append(
+                            Issue(
+                                severity="high",
+                                category="env_duplicate",
+                                repo="config",
+                                path=str(env_file),
+                                message=f"'{key}' should only be in {ssot_files[0]}, not {env_file}",
+                                fix_available=True,
+                                fix_command=f"sed -i '/^{key}=/d' {env_file}",
+                            )
+                        )
+        except (OSError, PermissionError):
+            pass
+
+    return issues
+
+
 def generate_report(report: HealthReport, canonical: dict) -> str:
     """Generate markdown report."""
-    repos = canonical.get("repositories", {})
+    _ = canonical  # Available for future use
 
     lines = [
         "# Claude Code Health Report",
@@ -697,6 +754,7 @@ def main():
     all_issues.extend(check_services(canonical))
     all_issues.extend(check_containers(canonical))
     all_issues.extend(check_cron(canonical))
+    all_issues.extend(check_env_duplicates(canonical))
 
     # Create report
     report = HealthReport(

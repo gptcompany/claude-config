@@ -339,7 +339,7 @@ class TestOrchestratorDryRun:
         orchestrator = SpecPipelineOrchestrator(project="test", dry_run=True)
         orchestrator.checkpoint = manager
 
-        result = orchestrator.run(None, run_id="test-resume")
+        _result = orchestrator.run(None, run_id="test-resume")
 
         captured = capsys.readouterr()
         assert "plan_created" in captured.out.lower()
