@@ -1,0 +1,202 @@
+# Universal Repo Template for SpecKit + ClaudeFlow + Backstage
+# Used by Backstage Software Templates to scaffold new repos
+
+apiVersion: scaffolder.backstage.io/v1beta3
+kind: Template
+metadata:
+  name: speckit-repo-template
+  title: SpecKit-Ready Repository
+  description: Standard repo structure with Claude Code, SpecKit, and ClaudeFlow integration
+  tags:
+    - python
+    - typescript
+    - speckit
+    - claudeflow
+spec:
+  owner: gptprojectmanager
+  type: service
+
+  parameters:
+    - title: Repository Info
+      required:
+        - name
+        - description
+      properties:
+        name:
+          title: Name
+          type: string
+          description: Repository name (lowercase, hyphens)
+          pattern: '^[a-z][a-z0-9-]*$'
+        description:
+          title: Description
+          type: string
+        language:
+          title: Language
+          type: string
+          enum: [python, typescript, rust, go]
+          default: python
+        framework:
+          title: Framework
+          type: string
+          enum: [fastapi, nextjs, actix, none]
+          default: none
+
+    - title: Features
+      properties:
+        enable_claudeflow:
+          title: Enable ClaudeFlow orchestration
+          type: boolean
+          default: true
+        enable_tdd:
+          title: Enable TDD workflow
+          type: boolean
+          default: true
+        enable_github_project:
+          title: Create GitHub Project board
+          type: boolean
+          default: true
+
+  steps:
+    # 1. Fetch base template
+    - id: fetch-base
+      name: Fetch Base Template
+      action: fetch:template
+      input:
+        url: ./skeleton
+        values:
+          name: ${{ parameters.name }}
+          description: ${{ parameters.description }}
+          language: ${{ parameters.language }}
+          framework: ${{ parameters.framework }}
+
+    # 2. Create .claude directory structure
+    - id: create-claude
+      name: Create Claude Code Structure
+      action: fs:append
+      input:
+        files:
+          - path: .claude/CLAUDE.md
+            content: |
+              # CLAUDE.md
+
+              ## Project Overview
+              **${{ parameters.name }}** - ${{ parameters.language }} project.
+
+              ## Tech Stack
+              - **Language**: ${{ parameters.language }}
+              - **Framework**: ${{ parameters.framework }}
+
+              ## Development Workflow
+              1. `/speckit.specify` - Create feature spec
+              2. `/speckit.plan` - Plan implementation
+              3. `/speckit.tasks` - Generate tasks
+              4. `/speckit.implement` - Execute tasks
+
+              ## Commands
+              | Command | Purpose |
+              |---------|---------|
+              | `/health` | System health check |
+              | `/tdd:cycle` | TDD workflow |
+              | `/spec-pipeline` | Full SpecKit pipeline |
+
+          - path: .claude/settings.local.json
+            content: |
+              {
+                "permissions": {
+                  "allow": ["Bash(*)", "Read", "Write", "Edit"]
+                }
+              }
+
+    # 3. Create .specify structure (SpecKit)
+    - id: create-specify
+      name: Create SpecKit Structure
+      action: fs:append
+      input:
+        files:
+          - path: .specify/memory/constitution.md
+            content: |
+              # Project Constitution
+
+              ## Core Principles
+              1. **KISS** - Keep It Simple
+              2. **YAGNI** - Don't over-engineer
+              3. **TDD** - Test-driven when possible
+
+              ## Quality Gates
+              - All tests must pass before merge
+              - Code coverage > 80% for critical paths
+              - No secrets in code
+
+          - path: .specify/templates/spec-template.md
+            content: |
+              # Feature: {feature_name}
+
+              ## Overview
+              {brief_description}
+
+              ## User Stories
+              - US1: As a {user}, I want {goal} so that {benefit}
+
+              ## Requirements
+              ### Functional
+              - FR1: {requirement}
+
+              ### Non-Functional
+              - NFR1: {requirement}
+
+    # 4. Create catalog-info.yaml (Backstage)
+    - id: create-catalog
+      name: Create Backstage Catalog
+      action: fs:append
+      input:
+        files:
+          - path: catalog-info.yaml
+            content: |
+              apiVersion: backstage.io/v1alpha1
+              kind: Component
+              metadata:
+                name: ${{ parameters.name }}
+                description: ${{ parameters.description }}
+                annotations:
+                  github.com/project-slug: gptprojectmanager/${{ parameters.name }}
+                  backstage.io/techdocs-ref: dir:.
+              spec:
+                type: service
+                lifecycle: experimental
+                owner: gptprojectmanager
+
+    # 5. Publish to GitHub
+    - id: publish
+      name: Publish to GitHub
+      action: publish:github
+      input:
+        allowedHosts: ['github.com']
+        repoUrl: github.com?owner=gptprojectmanager&repo=${{ parameters.name }}
+        description: ${{ parameters.description }}
+        defaultBranch: main
+
+    # 6. Create GitHub labels
+    - id: github-labels
+      name: Create SpecKit Labels
+      action: github:actions:dispatch
+      input:
+        repoUrl: github.com?owner=gptprojectmanager&repo=${{ parameters.name }}
+        workflowId: setup-labels.yml
+        branchOrTagName: main
+
+    # 7. Create Project Board (if enabled)
+    - id: create-project
+      name: Create GitHub Project
+      if: ${{ parameters.enable_github_project }}
+      action: github:actions:dispatch
+      input:
+        repoUrl: github.com?owner=gptprojectmanager&repo=${{ parameters.name }}
+        workflowId: setup-project.yml
+        branchOrTagName: main
+
+  output:
+    links:
+      - title: Repository
+        url: ${{ steps.publish.output.remoteUrl }}
+      - title: Backstage Catalog
+        url: /catalog/default/component/${{ parameters.name }}
