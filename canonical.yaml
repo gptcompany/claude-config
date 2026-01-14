@@ -1,6 +1,72 @@
-version: '1.1'
-updated: '2026-01-10'
+version: '1.2'
+updated: '2026-01-14'
+
+# =============================================================================
+# ENVIRONMENT VARIABLES - SSOT Registry
+# =============================================================================
+# Ogni variabile ha UN SOLO file autoritativo. NO duplicati.
+# Drift detector verifica che non ci siano duplicati.
+# =============================================================================
+environment:
+  # SSOT per API keys e secrets (Claude/MCP related)
+  claude_secrets:
+    file: ~/.claude/.env
+    keys:
+      - LINEAR_API_KEY        # Linear issue tracking
+      - DISCORD_WEBHOOK_URL   # Notifications (UNICA COPIA)
+      - N8N_AUTH_TOKEN        # N8N automation
+      - N8N_AUTH_HEADER       # N8N auth header
+      - SENTRY_AUTH_TOKEN     # Error tracking token
+
+  # SSOT per infrastruttura locale
+  infra_config:
+    file: /media/sam/1TB/nautilus_dev/.env
+    keys:
+      - QUESTDB_HOST          # Database host
+      - QUESTDB_ILP_PORT      # Database port
+      - SENTRY_DSN            # Sentry DSN (non token)
+      - SENTRY_ORG            # Sentry org
+      - SENTRY_PROJECT        # Sentry project
+
+  # SSOT per AI/ML tools
+  ai_tools:
+    file: /media/sam/1TB/N8N_dev/.env
+    keys:
+      - GOOGLE_CLOUD_PROJECT  # GCP project (futuro GSM)
+      - LANGSMITH_API_KEY     # LangSmith tracing
+      - BRAVE_API_KEY         # Brave search
+
+  # GSM (Google Secret Manager) - ATTIVO
+  gsm:
+    enabled: true
+    project: ${GOOGLE_CLOUD_PROJECT}  # From N8N_dev/.env
+    secrets:
+      - GITHUB_TOKEN
+      - LINEAR_API_KEY
+      - SENTRY_AUTH_TOKEN
+      - DISCORD_WEBHOOK_URL
+    usage: "gcloud secrets versions access latest --secret=SECRET_NAME"
+
+  # Caricamento automatico via ~/.bashrc
+
 infrastructure:
+  backstage:
+    path: /media/sam/1TB/backstage-portal
+    frontend_port: 3002
+    backend_port: 7007
+    database: postgresql  # Reuses n8n PostgreSQL
+    catalog:
+      system: catalog/system.yaml
+      mcp_profiles: catalog/mcp-profiles.yaml
+      repos:
+        - /media/sam/1TB/nautilus_dev/catalog-info.yaml
+        - /media/sam/1TB/N8N_dev/catalog-info.yaml
+        - /media/sam/1TB/UTXOracle/catalog-info.yaml
+        - /media/sam/1TB/LiquidationHeatmap/catalog-info.yaml
+    plugins:
+      - grafana
+      - github-actions
+      - github-pull-requests
   questdb:
     host: localhost
     http_port: 9000
@@ -45,6 +111,8 @@ infrastructure:
         - name: nautilus-redis
           ports: [6379]
       important:
+        - name: backstage-portal
+          ports: [7007]
         - name: n8n-n8n-1
           ports: [5678]
         - name: neo4j-research
@@ -91,6 +159,7 @@ infrastructure:
         9090: prometheus
         8333: bitcoind
       important:
+        7007: backstage
         5678: n8n
         7474: neo4j-http
         7687: neo4j-bolt
@@ -215,6 +284,11 @@ global:
       path: ~/.claude/scripts/drift-detector.py
       description: Check for config drift across repositories
       checks: [duplicates, missing_files, settings_drift, obsolete, ports, services, containers, cron]
+    drift_to_questdb:
+      path: ~/.claude/scripts/drift-to-questdb.py
+      description: Send drift metrics to QuestDB for Grafana visualization
+      schedule: "*/30 * * * *"  # Every 30 minutes
+      dashboard: config-drift
     weekly_health_report:
       path: ~/.claude/scripts/weekly-health-report.sh
       description: Send health report to Discord + email fallback
@@ -232,7 +306,7 @@ global:
       description: Trigger N8N academic research pipeline
       webhook: https://n8nubuntu.princyx.xyz/webhook/779dcea3-a780-4c67-a092-4785d5df68f0
       auth_header: X-N8N-Auth-Token
-      usage: "<query>" | --status
+      usage: '"<query>" or --status'
     system_state_snapshot:
       path: ~/.claude/scripts/system-state-snapshot.sh
       description: Capture system configuration for disaster recovery
@@ -326,6 +400,39 @@ features:
     enabled: true
     tips_file: ~/.claude/metrics/last_session_tips.json
     command: /tips  # Manual command, user decides when to view/use
+claudeflow:
+  enabled: true  # DEFAULT ON (Claude Max 20x = unlimited budget)
+  mode: orchestrator  # Full orchestration, not just on-demand
+  install_path: /media/sam/1TB/claude-flow
+  speckit_integration:
+    checkpoints:
+      - phase: specify
+        validator: truth_score
+        threshold: 0.7
+      - phase: plan
+        validator: feasibility_check
+        threshold: 0.7
+      - phase: implement
+        validator: tests_pass
+    worktrees:
+      enabled: true
+      base_dir: /tmp/claude-worktrees
+      cleanup_on_merge: true
+  self_healing:
+    circuit_breaker:
+      max_failures: 3
+      cooldown_seconds: 300
+    rollback:
+      mode: partial  # strict|partial|recovery
+      auto_on_failure: true
+  hooks_integration:
+    external_hooks:
+      enabled: true
+      python_hooks_path: /media/sam/1TB/claude-hooks-shared/hooks
+      timeout_ms: 5000
+    session_sync:
+      provider: questdb
+      sync_interval_ms: 30000
 sync:
   # NOTE: Commands speckit/tdd/undo are GLOBAL ONLY (no longer synced to repos)
   # Repos use the global versions directly via ~/.claude/commands/
