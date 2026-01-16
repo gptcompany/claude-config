@@ -1,6 +1,6 @@
 # Infrastructure Map - SSOT
 
-**Ultimo aggiornamento:** 2026-01-14
+**Ultimo aggiornamento:** 2026-01-15
 
 ## Quick Reference
 
@@ -159,13 +159,42 @@ alias ccbrowser="claude --mcp-config .mcp.browser.json"
 
 ## 5. Services
 
+### Monitoring Stack
+
 | Service | Port | Purpose | Status |
 |---------|------|---------|--------|
 | Grafana | 3000 | Dashboards | `systemctl status grafana-server` |
-| Prometheus | 9090 | Metrics | Docker |
-| QuestDB | 9000/9009 | Time-series DB | Docker |
-| PostgreSQL | 5433 | N8N DB | Docker |
+| Prometheus | 9090 | Metrics scraping | `systemctl status prometheus` |
+| Alertmanager | 9093 | Alert routing → Discord | `systemctl status alertmanager` |
+| Loki | 3100 | Log aggregation | Docker |
+| Promtail | - | Log collector | Docker |
+| Auto-remediation | 9095 | Webhook auto-fix | `systemctl status auto-remediation` |
+
+### Data Storage
+
+| Service | Port | Purpose | Status |
+|---------|------|---------|--------|
+| QuestDB | 9000/9009 | Time-series (Claude metrics) | Docker |
+| InfluxDB | 8086 | Bitcoin historical data | Docker |
+| PostgreSQL | 5433 | N8N + Backstage DB | Docker |
 | Redis | 6379 | Cache | Docker |
+
+### Platform Services
+
+| Service | Port | Purpose | Status |
+|---------|------|---------|--------|
+| Backstage | 7007 | Developer Portal | Docker |
+| N8N | 5678 | Workflow Automation | Docker |
+| Phoenix | 6006 | LLM Observability | Docker |
+
+### Production Apps (2TB-NVMe)
+
+| App | Path | Docker Container |
+|-----|------|------------------|
+| QuestDB | `/media/sam/2TB-NVMe/prod/apps/questdb` | nautilus-questdb |
+| Nautilus | `/media/sam/2TB-NVMe/prod/apps/nautilus` | - |
+| Mempool | `/media/sam/2TB-NVMe/prod/apps/mempool-stack` | mempool-* |
+| InfluxDB | `/media/sam/2TB-NVMe/prod/services/influxdb` | influxdb-production |
 
 ---
 
@@ -228,25 +257,74 @@ Stop
 
 ---
 
-## 8. Health Checks
+## 8. Scheduled Automation (Cron)
+
+| Schedule | Script | Purpose |
+|----------|--------|---------|
+| `*/30 * * * *` | drift-to-questdb.py | Save drift metrics |
+| `0 * * * *` | drift-detector.py | Hourly drift detection |
+| `0 4 * * 0` | repo-cleanup.py --all | Weekly repo cleanup |
+| `0 6 * * *` | repo-compliance.py --all | Daily compliance check |
+| `0 */2 * * *` | sync-to-backstage.py | Sync catalog to Backstage |
+| `0 8 * * 1` | weekly-health-report.sh | Monday Discord report |
+
+**Logs:** `/tmp/{script-name}.log`
+
+---
+
+## 9. Health Checks
 
 ```bash
 # Full drift check
 python3 ~/.claude/scripts/drift-detector.py
 
 # Quick service check
-systemctl status grafana-server prometheus
+systemctl status grafana-server prometheus alertmanager auto-remediation
 
 # Docker services
 docker ps --format "table {{.Names}}\t{{.Status}}"
 
-# MCP test
-npx -y claude-flow@alpha --version
+# Prometheus targets
+curl -s http://localhost:9090/api/v1/targets | jq '.data.activeTargets[].health'
+
+# Loki health
+curl -s http://localhost:3100/ready
+
+# QuestDB tables
+curl -s "http://localhost:9000/exec?query=SHOW%20TABLES" | jq '.dataset[][0]'
 ```
 
 ---
 
-## 9. Troubleshooting
+## 10. Alerting & Auto-Remediation
+
+### Alertmanager Configuration
+- **Config:** `/etc/alertmanager/alertmanager.yml`
+- **Discord Webhook:** Alerts sent to Discord channel
+- **Auto-fix:** Critical alerts trigger auto-remediation
+
+### Prometheus Alert Rules
+- **Location:** `/etc/prometheus/rules/`
+- **Files:** `backstage.yml`, `system-alerts.yml`
+
+### Auto-Remediation Actions
+| Alert | Action |
+|-------|--------|
+| BackstageDown | `docker restart backstage-portal` |
+| N8NDown | `docker restart n8n-n8n-1` |
+| LokiDown | `docker restart loki` |
+| QuestDBDown | `docker restart nautilus-questdb` |
+
+### Runbooks
+- **Location:** `~/.claude/runbooks/`
+- grafana-down.md
+- backstage-down.md
+- questdb-issues.md
+- disk-space-low.md
+
+---
+
+## 11. Troubleshooting
 
 | Problema | Soluzione |
 |----------|-----------|
@@ -258,7 +336,7 @@ npx -y claude-flow@alpha --version
 
 ---
 
-## 10. Backstage Developer Portal
+## 12. Backstage Developer Portal
 
 **URL**: http://localhost:3002 (frontend) | http://localhost:7007 (backend API)
 **Location**: `/media/sam/1TB/backstage-portal/`
@@ -309,7 +387,7 @@ alias backstage-start-simple='cd /media/sam/1TB/backstage-portal && source .env 
 
 ---
 
-## 11. Google Secret Manager (GSM)
+## 13. Google Secret Manager (GSM)
 
 **Project**: `$GOOGLE_CLOUD_PROJECT` (from N8N_dev/.env)
 
@@ -337,7 +415,7 @@ export GITHUB_TOKEN=$(gcloud secrets versions access latest --secret=GITHUB_TOKE
 
 ---
 
-## 12. Next Steps (Roadmap)
+## 14. Next Steps (Roadmap)
 
 - [x] Backstage IDP deployment
 - [x] Grafana integration configured

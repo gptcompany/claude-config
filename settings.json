@@ -132,6 +132,11 @@
             "type": "command",
             "command": "/media/sam/1TB/claude-hooks-shared/hooks/safety/ci-batch-check.py",
             "timeout": 3
+          },
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/safety/port-conflict-check.py",
+            "timeout": 3
           }
         ]
       },
@@ -321,6 +326,11 @@
           {
             "type": "command",
             "command": "/media/sam/1TB/claude-hooks-shared/hooks/ux/verbalized_sampling.py",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/productivity/repo-health-notify.py",
             "timeout": 5
           }
         ]
