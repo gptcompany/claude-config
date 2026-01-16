@@ -1,0 +1,29 @@
+# Backstage Catalog Info Template v1.0
+# Maintained at: ~/.claude/templates/catalog-info.yaml
+# Replace ${VARIABLES} before deploying
+
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: ${PROJECT_NAME}
+  description: ${DESCRIPTION}
+  annotations:
+    # Required for Backstage features
+    backstage.io/techdocs-ref: dir:.
+    github.com/project-slug: gptcompany/${PROJECT_NAME}
+    github.com/workflows-folder: .github/workflows
+    # Monitoring integration (optional - uncomment if using)
+    # grafana/dashboard-selector: "service=${PROJECT_NAME}"
+    # prometheus/alert-rule-selector: "app=${PROJECT_NAME}"
+  tags:
+    - ${LANGUAGE}
+    - ${DOMAIN}
+  links:
+    - url: https://github.com/gptcompany/${PROJECT_NAME}
+      title: GitHub
+      icon: github
+spec:
+  type: ${TYPE}
+  lifecycle: ${LIFECYCLE}
+  owner: user:default/sam
+  system: claude-infrastructure

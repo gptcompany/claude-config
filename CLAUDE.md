@@ -32,6 +32,29 @@
 - Non over-engineerare
 - Preferisci modifiche minimali e incrementali
 
+## Security: Secret Management (MANDATORY)
+
+**MAI esporre secrets nell'output della chat:**
+
+1. **Verifica silenziosa**: Usa `grep -q` per verificare esistenza senza mostrare il valore
+   ```bash
+   # CORRETTO
+   sops -d file.enc 2>/dev/null | grep -q "SECRET_NAME" && echo "Exists"
+
+   # SBAGLIATO - espone il valore
+   sops -d file.enc | grep "SECRET_NAME"
+   ```
+
+2. **SOPS/age per tutti i secrets**:
+   - Credenziali Discord, API keys, tokens -> `.env.enc`
+   - MAI credenziali inline in crontab
+   - Script devono caricare da SOPS: `eval "$(sops -d .env.enc)"`
+
+3. **Locations**:
+   - Secrets cifrati: `/media/sam/1TB/<repo>/.env.enc`
+   - Age keys: `~/.config/sops/age/keys.txt`
+   - SOPS config: `/media/sam/1TB/.sops.yaml`
+
 ## Testing Requirements (MANDATORY)
 
 **Ogni implementazione deve includere test:**
