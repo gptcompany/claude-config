@@ -526,10 +526,9 @@ def sync_roadmap_to_github(
             owner, _ = repo_info
             if create_project:
                 project_info = ensure_project_exists(owner, project_name, dry_run)
-            elif get_project_by_name:
-                project_info = get_project_by_name(owner, project_name)
             else:
-                project_info = None
+                # Try to find existing project (don't create)
+                project_info = get_project_by_name(owner, project_name)
 
             if project_info:
                 project_id = project_info.id
