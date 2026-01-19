@@ -1,0 +1,49 @@
+# Smoke Tests Workflow - Generated from validation-framework template
+# Project: {{ project_name }}
+# Generated for domain: {{ domain }}
+#
+# Purpose: Fast pre-merge validation - critical imports, config parsing, service connectivity
+
+name: Smoke Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  PYTHON_VERSION: '{{ ci.python_version | default("3.12") }}'
+
+jobs:
+  smoke:
+    name: "Smoke Tests"
+    runs-on: ubuntu-latest
+    timeout-minutes: {{ ci.smoke_timeout_minutes | default(5) }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ '{{' }} env.PYTHON_VERSION {{ '}}' }}
+
+      - name: Install UV
+        run: pip install uv
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+      - name: Run smoke tests
+        run: |
+          uv run pytest tests/smoke -v -m smoke --timeout=120 --junitxml=smoke-results.xml
+
+      - name: Upload smoke test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: smoke-test-results
+          path: smoke-results.xml
+          retention-days: 7
