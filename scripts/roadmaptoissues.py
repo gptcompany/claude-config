@@ -48,12 +48,10 @@ try:
         get_existing_milestones,
         get_existing_issues,
         close_issue,
+        set_issue_status,
+        get_issue_status,
+        get_project_by_name,
     )
-
-    try:
-        from github_sync_core import get_project_by_name
-    except ImportError:
-        get_project_by_name = None
 except ImportError:
     print("Error: github_sync_core.py not found. Ensure it's in the same directory.")
     sys.exit(1)
@@ -620,8 +618,15 @@ def sync_roadmap_to_github(
     return result
 
 
-def sync_bidirectional(planning_dir: Path, dry_run: bool = False) -> SyncResult:
-    """Bidirectional sync: completed plans <-> closed issues."""
+def sync_bidirectional(
+    planning_dir: Path, project_id: str | None = None, dry_run: bool = False
+) -> SyncResult:
+    """Bidirectional sync: completed plans <-> closed issues.
+
+    Also syncs Kanban status:
+    - Completed plans -> Close issue + move to Done
+    - Issue in Done status -> Mark plan [x]
+    """
     result = SyncResult()
     roadmap_path = planning_dir / "ROADMAP.md"
 
@@ -636,32 +641,45 @@ def sync_bidirectional(planning_dir: Path, dry_run: bool = False) -> SyncResult:
     # Build lookup
     plans_by_id = {f"Plan-{p.id}": p for p in plans}
 
-    # Completed plans -> Close issues
+    # Completed plans -> Close issues AND move to Done
     for plan in plans:
         issue_key = f"Plan-{plan.id}"
         if plan.status == "completed" and issue_key in existing_issues:
             issue = existing_issues[issue_key]
             if issue["state"] == "OPEN":
                 if not dry_run:
-                    close_issue(issue["number"], dry_run)
+                    close_issue(issue["number"], project_id, dry_run)
                 result.issues_closed += 1
-                print(f"Closed issue #{issue['number']} (Plan-{plan.id})")
+                print(f"Closed issue #{issue['number']} (Plan-{plan.id}) -> Done")
 
-    # Closed issues -> Mark plans complete
+    # Closed issues OR Done status -> Mark plans complete
     content = roadmap_path.read_text()
     modified = False
 
     for issue_key, issue in existing_issues.items():
-        if issue["state"] == "CLOSED" and issue_key in plans_by_id:
-            plan = plans_by_id[issue_key]
-            if plan.status != "completed":
-                old_line = plan.line_text
-                new_line = old_line.replace("- [ ]", "- [x]", 1)
-                if old_line in content:
-                    content = content.replace(old_line, new_line)
-                    result.plans_marked_complete += 1
-                    modified = True
-                    print(f"Marked [x]: Plan-{plan.id}")
+        if issue_key not in plans_by_id:
+            continue
+        plan = plans_by_id[issue_key]
+        if plan.status == "completed":
+            continue
+
+        # Check if closed OR in Done status on Kanban
+        is_done = issue["state"] == "CLOSED"
+        if not is_done and project_id:
+            status = get_issue_status(project_id, issue["number"])
+            is_done = status == "Done"
+
+        if is_done:
+            old_line = plan.line_text
+            new_line = old_line.replace("- [ ]", "- [x]", 1)
+            if old_line in content:
+                content = content.replace(old_line, new_line)
+                result.plans_marked_complete += 1
+                modified = True
+                print(
+                    f"Marked [x]: Plan-{plan.id}"
+                    + (" (from Kanban Done)" if issue["state"] == "OPEN" else "")
+                )
 
     if modified and not dry_run:
         roadmap_path.write_text(content)
@@ -725,12 +743,19 @@ Examples:
     parser.add_argument(
         "--auto-project",
         action="store_true",
-        help="Auto-derive project name from repo ('{repo_name} Development')",
+        default=True,
+        help="Auto-derive project name from repo (default: True)",
+    )
+    parser.add_argument(
+        "--no-project",
+        action="store_true",
+        help="Don't link issues to a project board",
     )
     parser.add_argument(
         "--create-project",
         action="store_true",
-        help="Create the project board if it doesn't exist",
+        default=True,
+        help="Create the project board if it doesn't exist (default: True)",
     )
     parser.add_argument(
         "--sync-todos",
@@ -744,11 +769,15 @@ Examples:
     args = parser.parse_args()
 
     # Resolve project name
-    project_name = args.project
-    if args.auto_project and not project_name:
-        project_name = get_default_project_name()
-        if not project_name:
-            print("Warning: Could not auto-detect project name (not in a git repo?)")
+    project_name = None
+    if not args.no_project:
+        project_name = args.project
+        if args.auto_project and not project_name:
+            project_name = get_default_project_name()
+            if not project_name:
+                print(
+                    "Warning: Could not auto-detect project name (not in a git repo?)"
+                )
 
     result = SyncResult()
 
@@ -782,8 +811,20 @@ Examples:
             sys.exit(1)
 
         print(f"Bidirectional sync: {args.sync}")
-        print(f"Dry run: {args.dry_run}\n")
-        result = sync_bidirectional(args.sync, args.dry_run)
+        print(f"Dry run: {args.dry_run}")
+
+        # Get project_id for Kanban status sync
+        project_id = None
+        if project_name:
+            print(f"Project board: {project_name}")
+            repo_info = get_repo_info()
+            if repo_info:
+                owner, _ = repo_info
+                project = get_project_by_name(owner, project_name)
+                if project:
+                    project_id = project.id
+        print()
+        result = sync_bidirectional(args.sync, project_id, args.dry_run)
 
     # Print summary
     print("\n=== Summary ===")

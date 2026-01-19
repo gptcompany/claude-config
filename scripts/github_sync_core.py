@@ -436,10 +436,94 @@ def ensure_project_exists(
     return create_project(owner, project_name, dry_run)
 
 
+def _get_status_field_info(project_id: str) -> tuple[str, str] | None:
+    """Get Status field ID and Backlog option ID for a project.
+
+    Returns:
+        Tuple of (field_id, backlog_option_id) or None if not found
+    """
+    query = """
+    query($projectId: ID!) {
+      node(id: $projectId) {
+        ... on ProjectV2 {
+          field(name: "Status") {
+            ... on ProjectV2SingleSelectField {
+              id
+              options {
+                id
+                name
+              }
+            }
+          }
+        }
+      }
+    }
+    """
+    result = run_graphql_query(query, {"projectId": project_id})
+    if not result:
+        return None
+
+    field = result.get("data", {}).get("node", {}).get("field")
+    if not field:
+        return None
+
+    field_id = field.get("id")
+    options = field.get("options", [])
+
+    # Find "Backlog" option
+    backlog_option_id = None
+    for opt in options:
+        if opt.get("name") == "Backlog":
+            backlog_option_id = opt.get("id")
+            break
+
+    if field_id and backlog_option_id:
+        return (field_id, backlog_option_id)
+    return None
+
+
+def _set_item_status(
+    project_id: str, item_id: str, field_id: str, option_id: str
+) -> bool:
+    """Set the Status field for a project item.
+
+    Returns:
+        True if successful, False otherwise
+    """
+    mutation = """
+    mutation($projectId: ID!, $itemId: ID!, $fieldId: ID!, $optionId: String!) {
+      updateProjectV2ItemFieldValue(input: {
+        projectId: $projectId
+        itemId: $itemId
+        fieldId: $fieldId
+        value: {singleSelectOptionId: $optionId}
+      }) {
+        projectV2Item {
+          id
+        }
+      }
+    }
+    """
+    result = run_graphql_query(
+        mutation,
+        {
+            "projectId": project_id,
+            "itemId": item_id,
+            "fieldId": field_id,
+            "optionId": option_id,
+        },
+    )
+    return result is not None and "errors" not in result
+
+
+# Cache for status field info (project_id -> (field_id, backlog_option_id))
+_status_field_cache: dict[str, tuple[str, str]] = {}
+
+
 def add_issue_to_project(
     project_id: str, issue_node_id: str, dry_run: bool = False
 ) -> str | None:
-    """Add an issue to a ProjectV2 using GraphQL.
+    """Add an issue to a ProjectV2 using GraphQL and set status to Backlog.
 
     Args:
         project_id: GraphQL node ID of the project
@@ -450,7 +534,7 @@ def add_issue_to_project(
         Item ID if successful, None otherwise
     """
     if dry_run:
-        print("[DRY RUN] Would add issue to project")
+        print("[DRY RUN] Would add issue to project (Backlog)")
         return None
 
     mutation = """
@@ -470,7 +554,22 @@ def add_issue_to_project(
         return None
 
     item_data = result.get("data", {}).get("addProjectV2ItemById", {}).get("item")
-    return item_data.get("id") if item_data else None
+    item_id = item_data.get("id") if item_data else None
+
+    if not item_id:
+        return None
+
+    # Set status to Backlog
+    if project_id not in _status_field_cache:
+        field_info = _get_status_field_info(project_id)
+        if field_info:
+            _status_field_cache[project_id] = field_info
+
+    if project_id in _status_field_cache:
+        field_id, backlog_option_id = _status_field_cache[project_id]
+        _set_item_status(project_id, item_id, field_id, backlog_option_id)
+
+    return item_id
 
 
 def get_issue_node_id(issue_number: int) -> str | None:
@@ -623,17 +722,175 @@ def create_issue(
     return issue_num
 
 
-def close_issue(issue_number: int, dry_run: bool = False) -> bool:
-    """Close a GitHub issue.
+def _get_status_option_id(project_id: str, status_name: str) -> str | None:
+    """Get the option ID for a status value (e.g., 'Done', 'In Progress')."""
+    query = """
+    query($projectId: ID!) {
+      node(id: $projectId) {
+        ... on ProjectV2 {
+          field(name: "Status") {
+            ... on ProjectV2SingleSelectField {
+              id
+              options {
+                id
+                name
+              }
+            }
+          }
+        }
+      }
+    }
+    """
+    result = run_graphql_query(query, {"projectId": project_id})
+    if not result:
+        return None
+
+    field = result.get("data", {}).get("node", {}).get("field")
+    if not field:
+        return None
+
+    for opt in field.get("options", []):
+        if opt.get("name") == status_name:
+            return opt.get("id")
+    return None
+
+
+def _get_project_item_id(project_id: str, issue_number: int) -> str | None:
+    """Get the project item ID for an issue in a project."""
+    query = """
+    query($projectId: ID!) {
+      node(id: $projectId) {
+        ... on ProjectV2 {
+          items(first: 100) {
+            nodes {
+              id
+              content {
+                ... on Issue {
+                  number
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    """
+    result = run_graphql_query(query, {"projectId": project_id})
+    if not result:
+        return None
+
+    items = result.get("data", {}).get("node", {}).get("items", {}).get("nodes", [])
+    for item in items:
+        content = item.get("content", {})
+        if content and content.get("number") == issue_number:
+            return item.get("id")
+    return None
+
+
+def set_issue_status(
+    project_id: str, issue_number: int, status: str, dry_run: bool = False
+) -> bool:
+    """Set the Status field for an issue in a project.
+
+    Args:
+        project_id: GraphQL node ID of the project
+        issue_number: Issue number
+        status: Status name (e.g., "Done", "In Progress", "Backlog")
+        dry_run: If True, don't make changes
+
+    Returns:
+        True if successful
+    """
+    if dry_run:
+        print(f"[DRY RUN] Would set issue #{issue_number} status to {status}")
+        return True
+
+    # Get the item ID
+    item_id = _get_project_item_id(project_id, issue_number)
+    if not item_id:
+        return False
+
+    # Get field ID and option ID
+    field_info = _get_status_field_info(project_id)
+    if not field_info:
+        return False
+    field_id = field_info[0]
+
+    # Get the option ID for the desired status
+    option_id = _get_status_option_id(project_id, status)
+    if not option_id:
+        return False
+
+    return _set_item_status(project_id, item_id, field_id, option_id)
+
+
+def get_issue_status(project_id: str, issue_number: int) -> str | None:
+    """Get the current Status of an issue in a project.
+
+    Returns:
+        Status name (e.g., "Done", "Backlog") or None if not found
+    """
+    query = """
+    query($projectId: ID!) {
+      node(id: $projectId) {
+        ... on ProjectV2 {
+          items(first: 100) {
+            nodes {
+              content {
+                ... on Issue {
+                  number
+                }
+              }
+              fieldValueByName(name: "Status") {
+                ... on ProjectV2ItemFieldSingleSelectValue {
+                  name
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    """
+    result = run_graphql_query(query, {"projectId": project_id})
+    if not result:
+        return None
+
+    items = result.get("data", {}).get("node", {}).get("items", {}).get("nodes", [])
+    for item in items:
+        content = item.get("content", {})
+        if content and content.get("number") == issue_number:
+            field_value = item.get("fieldValueByName")
+            if field_value:
+                return field_value.get("name")
+    return None
+
+
+def close_issue(
+    issue_number: int, project_id: str | None = None, dry_run: bool = False
+) -> bool:
+    """Close a GitHub issue and optionally move to Done on project board.
+
+    Args:
+        issue_number: Issue number to close
+        project_id: If provided, also move to Done status
+        dry_run: If True, don't make changes
 
     Returns:
         True if successful
     """
     if dry_run:
         print(f"[DRY RUN] Would close issue #{issue_number}")
+        if project_id:
+            print(f"[DRY RUN] Would move #{issue_number} to Done")
         return True
 
     code, _, _ = run_gh_command(["issue", "close", str(issue_number)], check=False)
+
+    # Move to Done on project board if project_id provided
+    if code == 0 and project_id:
+        set_issue_status(project_id, issue_number, "Done", dry_run=False)
+
     return code == 0
 
 

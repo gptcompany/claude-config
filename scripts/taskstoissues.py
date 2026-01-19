@@ -52,6 +52,9 @@ try:
         get_issue_node_id,
         get_existing_milestones,
         get_existing_issues as core_get_existing_issues,
+        set_issue_status,
+        get_issue_status,
+        get_project_by_name,
     )
 except ImportError:
     # Fallback for standalone usage - define minimal versions
@@ -116,6 +119,18 @@ except ImportError:
 
     def core_get_existing_issues(label_filter: str | None = None) -> dict[str, dict]:
         return {}
+
+    def set_issue_status(
+        project_id: str, issue_number: int, status: str, dry_run: bool = False
+    ) -> bool:
+        return False  # Fallback does nothing
+
+    def get_issue_status(project_id: str, issue_number: int) -> str | None:
+        return None  # Fallback does nothing
+
+    def get_project_by_name(owner: str, name: str):
+        return None  # Fallback does nothing
+
 
 # =============================================================================
 # Data Classes
@@ -540,8 +555,15 @@ def sync_create_issues(
     return result
 
 
-def sync_bidirectional(spec_dir: Path, dry_run: bool = False) -> SyncResult:
-    """Bidirectional sync: completed tasks <-> closed issues."""
+def sync_bidirectional(
+    spec_dir: Path, project_id: str | None = None, dry_run: bool = False
+) -> SyncResult:
+    """Bidirectional sync: completed tasks <-> closed issues.
+
+    Also syncs Kanban status:
+    - Completed tasks -> Close issue + move to Done
+    - Issue in Done status -> Mark task [X]
+    """
     result = SyncResult()
     tasks_path = spec_dir / "tasks.md"
 
@@ -560,7 +582,7 @@ def sync_bidirectional(spec_dir: Path, dry_run: bool = False) -> SyncResult:
     # Build lookup
     tasks_by_id = {t.id: t for t in tasks}
 
-    # Completed tasks -> Close issues
+    # Completed tasks -> Close issues AND move to Done
     for task in tasks:
         if task.status == "completed" and task.id in existing_issues:
             issue = existing_issues[task.id]
@@ -569,24 +591,40 @@ def sync_bidirectional(spec_dir: Path, dry_run: bool = False) -> SyncResult:
                     run_gh_command(
                         ["issue", "close", str(issue["number"])], check=False
                     )
+                    # Also move to Done on Kanban
+                    if project_id:
+                        set_issue_status(project_id, issue["number"], "Done")
                 result.issues_closed += 1
-                print(f"Closed issue #{issue['number']} ({task.id})")
+                print(f"Closed issue #{issue['number']} ({task.id}) -> Done")
 
-    # Closed issues -> Mark tasks [X]
+    # Closed issues OR Done status -> Mark tasks [X]
     content = tasks_path.read_text()
     modified = False
 
     for task_id, issue in existing_issues.items():
-        if issue["state"] == "CLOSED" and task_id in tasks_by_id:
-            task = tasks_by_id[task_id]
-            if task.status != "completed":
-                old_line = task.line_text
-                new_line = old_line.replace("- [ ]", "- [X]", 1)
-                if old_line in content:
-                    content = content.replace(old_line, new_line)
-                    result.tasks_marked_complete += 1
-                    modified = True
-                    print(f"Marked [X]: {task_id}")
+        if task_id not in tasks_by_id:
+            continue
+        task = tasks_by_id[task_id]
+        if task.status == "completed":
+            continue
+
+        # Check if closed OR in Done status on Kanban
+        is_done = issue["state"] == "CLOSED"
+        if not is_done and project_id:
+            status = get_issue_status(project_id, issue["number"])
+            is_done = status == "Done"
+
+        if is_done:
+            old_line = task.line_text
+            new_line = old_line.replace("- [ ]", "- [X]", 1)
+            if old_line in content:
+                content = content.replace(old_line, new_line)
+                result.tasks_marked_complete += 1
+                modified = True
+                print(
+                    f"Marked [X]: {task_id}"
+                    + (" (from Kanban Done)" if issue["state"] == "OPEN" else "")
+                )
 
     if modified and not dry_run:
         tasks_path.write_text(content)
@@ -647,12 +685,19 @@ Examples:
     parser.add_argument(
         "--auto-project",
         action="store_true",
-        help="Auto-derive project name from repo ('{repo_name} Development')",
+        default=True,
+        help="Auto-derive project name from repo (default: True)",
+    )
+    parser.add_argument(
+        "--no-project",
+        action="store_true",
+        help="Don't link issues to a project board",
     )
     parser.add_argument(
         "--create-project",
         action="store_true",
-        help="Create the project board if it doesn't exist (requires --project or --auto-project)",
+        default=True,
+        help="Create the project board if it doesn't exist (default: True)",
     )
     parser.add_argument(
         "--dry-run", action="store_true", help="Preview without changes"
@@ -662,11 +707,15 @@ Examples:
     args = parser.parse_args()
 
     # Resolve project name
-    project_name = args.project
-    if args.auto_project and not project_name:
-        project_name = get_default_project_name()
-        if not project_name:
-            print("Warning: Could not auto-detect project name (not in a git repo?)")
+    project_name = None
+    if not args.no_project:
+        project_name = args.project
+        if args.auto_project and not project_name:
+            project_name = get_default_project_name()
+            if not project_name:
+                print(
+                    "Warning: Could not auto-detect project name (not in a git repo?)"
+                )
 
     result = SyncResult()
 
@@ -699,8 +748,20 @@ Examples:
             sys.exit(1)
 
         print(f"Bidirectional sync: {args.sync}")
-        print(f"Dry run: {args.dry_run}\n")
-        result = sync_bidirectional(args.sync, args.dry_run)
+        print(f"Dry run: {args.dry_run}")
+
+        # Get project_id for Kanban status sync
+        project_id = None
+        if project_name:
+            print(f"Project board: {project_name}")
+            repo_info = get_repo_info()
+            if repo_info:
+                owner, _ = repo_info
+                project = get_project_by_name(owner, project_name)
+                if project:
+                    project_id = project.id
+        print()
+        result = sync_bidirectional(args.sync, project_id, args.dry_run)
 
     elif args.sync_all:
         # Sync all specs
@@ -708,6 +769,17 @@ Examples:
         if not specs_dir.exists():
             print("Error: specs/ directory not found")
             sys.exit(1)
+
+        # Get project_id for Kanban status sync
+        project_id = None
+        if project_name:
+            repo_info = get_repo_info()
+            if repo_info:
+                owner, _ = repo_info
+                project = get_project_by_name(owner, project_name)
+                if project:
+                    project_id = project.id
+                    print(f"Project board: {project_name}\n")
 
         spec_dirs = [
             d for d in specs_dir.iterdir() if d.is_dir() and re.match(r"\d{3}-", d.name)
@@ -719,7 +791,7 @@ Examples:
 
         for spec_dir in sorted(spec_dirs):
             print(f"\n### {spec_dir.name}")
-            r = sync_bidirectional(spec_dir, args.dry_run)
+            r = sync_bidirectional(spec_dir, project_id, args.dry_run)
             result.issues_closed += r.issues_closed
             result.tasks_marked_complete += r.tasks_marked_complete
             result.errors.extend(r.errors)
