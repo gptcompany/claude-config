@@ -316,48 +316,48 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/ux/tips-auto-inject.py",
-            "timeout": 10
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/core/run_safe.py /media/sam/1TB/claude-hooks-shared/hooks/ux/tips-auto-inject.py",
+            "timeout": 12
           },
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/intelligence/session_start_tracker.py",
-            "timeout": 10
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/core/run_safe.py /media/sam/1TB/claude-hooks-shared/hooks/intelligence/session_start_tracker.py",
+            "timeout": 12
           },
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/intelligence/ci_status_injector.py",
-            "timeout": 10
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/core/run_safe.py /media/sam/1TB/claude-hooks-shared/hooks/intelligence/ci_status_injector.py",
+            "timeout": 12
           },
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/productivity/task-classifier-v2.py",
-            "timeout": 10
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/core/run_safe.py /media/sam/1TB/claude-hooks-shared/hooks/productivity/task-classifier-v2.py",
+            "timeout": 12
           },
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/session/ssot_check.py",
-            "timeout": 10
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/core/run_safe.py /media/sam/1TB/claude-hooks-shared/hooks/session/ssot_check.py",
+            "timeout": 12
           },
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/session/ralph-resume.py",
-            "timeout": 10
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/core/run_safe.py /media/sam/1TB/claude-hooks-shared/hooks/session/ralph-resume.py",
+            "timeout": 12
           },
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/ux/verbalized_sampling.py",
-            "timeout": 10
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/core/run_safe.py /media/sam/1TB/claude-hooks-shared/hooks/ux/verbalized_sampling.py",
+            "timeout": 12
           },
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/productivity/repo-health-notify.py",
-            "timeout": 10
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/core/run_safe.py /media/sam/1TB/claude-hooks-shared/hooks/productivity/repo-health-notify.py",
+            "timeout": 12
           },
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/intelligence/framework-detector.py",
-            "timeout": 10
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/core/run_safe.py /media/sam/1TB/claude-hooks-shared/hooks/intelligence/framework-detector.py",
+            "timeout": 12
           }
         ]
       }
