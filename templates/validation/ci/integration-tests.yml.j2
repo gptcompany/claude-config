@@ -1,0 +1,97 @@
+# Integration Tests Workflow - Generated from validation-framework template
+# Project: {{ project_name }}
+# Generated for domain: {{ domain }}
+#
+# Purpose: Component integration validation with domain-specific service dependencies
+
+name: Integration Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+env:
+  PYTHON_VERSION: '{{ ci.python_version | default("3.12") }}'
+
+jobs:
+  integration:
+    name: "Integration Tests"
+    runs-on: ubuntu-latest
+    timeout-minutes: {{ ci.test_timeout_minutes | default(10) }}
+
+{% if domain == "trading" %}
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+{% elif domain == "data" %}
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: test_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+{% endif %}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ '{{' }} env.PYTHON_VERSION {{ '}}' }}
+
+      - name: Install UV
+        run: pip install uv
+
+      - name: Install dependencies
+        run: uv sync --frozen
+
+{% if domain == "trading" %}
+      - name: Verify Redis connectivity
+        run: |
+          redis-cli -h localhost -p 6379 ping
+{% elif domain == "data" %}
+      - name: Verify Postgres connectivity
+        run: |
+          pg_isready -h localhost -p 5432 -U test
+        env:
+          PGPASSWORD: test
+{% endif %}
+
+      - name: Run integration tests
+        run: |
+          uv run pytest tests/integration -v --timeout=300 --junitxml=integration-results.xml
+{% if domain == "trading" %}
+        env:
+          REDIS_HOST: localhost
+          REDIS_PORT: 6379
+{% elif domain == "data" %}
+        env:
+          DATABASE_URL: postgresql://test:test@localhost:5432/test_db
+{% endif %}
+
+      - name: Upload integration test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: integration-results.xml
+          retention-days: 7
