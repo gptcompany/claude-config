@@ -52,7 +52,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 03-01: Create k3d cluster templates
+- [x] 03-01: Create k3d cluster templates
 - [ ] 03-02: Create Argo Rollouts and mock Prometheus templates
 
 ### Phase 4: Trading Extension
@@ -84,6 +84,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Core Framework | 2/2 | Complete | 2026-01-19 |
 | 2. CI Workflows | 1/1 | Complete | 2026-01-19 |
-| 3. Local K8s | 0/2 | Not started | - |
+| 3. Local K8s | 1/2 | In progress | - |
 | 4. Trading Extension | 0/1 | Not started | - |
 | 5. Other Extensions | 0/1 | Not started | - |

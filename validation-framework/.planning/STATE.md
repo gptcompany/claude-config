@@ -5,16 +5,28 @@
 See: .planning/PROJECT.md (updated 2026-01-19)
 
 **Core value:** Every project gets production-grade validation with zero friction
-**Current focus:** Phase 2 — CI Workflows
+**Current focus:** Phase 3 — Local K8s
 
 ## Current Position
 
-Phase: 2 of 5 (CI Workflows)
-Plan: 1 of 1 in current phase
-Status: Phase complete
-Last activity: 2026-01-19 — Completed 02-01-PLAN.md
+Phase: 3 of 5 (Local K8s)
+Plan: 1 of 2 in current phase
+Status: In progress
+Last activity: 2026-01-19 — Completed 03-01-PLAN.md
 
-Progress: ████░░░░░░ 40% (2/5 phases)
+Progress: █████░░░░░ 50% (3/6 plans complete)
+
+## Phase 3 In Progress
+
+| Plan | Description | Status |
+|------|-------------|--------|
+| 03-01 | k3d cluster templates | Complete |
+| 03-02 | Argo Rollouts and mock Prometheus | Pending |
+
+**Deliverables (03-01):**
+- `~/.claude/templates/validation/k8s/k3d-config.yaml.j2`
+- `~/.claude/templates/validation/k8s/setup-local-cluster.sh.j2`
+- `~/.claude/templates/validation/k8s/teardown.sh.j2`
 
 ## Phase 2 Complete
 
@@ -42,19 +54,21 @@ Progress: ████░░░░░░ 40% (2/5 phases)
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 1
-- Average duration: 1 min
-- Total execution time: 1 min
+- Total plans completed: 4
+- Average duration: ~2 min
+- Total execution time: ~5 min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
+| 01 | 2 | ~2 min | ~1 min |
 | 02 | 1 | 1 min | 1 min |
+| 03 | 1 | 2 min | 2 min |
 
 **Recent Trend:**
-- Last 5 plans: 02-01 (1 min)
-- Trend: N/A (first measured plan)
+- Last 5 plans: 01-01, 01-02, 02-01 (1 min), 03-01 (2 min)
+- Trend: Stable
 
 ## Accumulated Context
 
@@ -68,6 +82,9 @@ Recent decisions affecting current work:
 - k3d over minikube/kind (lighter weight)
 - GitHub Actions variable escaping: `${{ '{{' }}` in Jinja2 templates
 - Domain-specific services: trading=Redis, data=PostgreSQL
+- K3s v1.28.5-k3s1 for stable K8s with security patches
+- Disabled Traefik in favor of nginx-ingress
+- Local registry on port 5000 for testing images
 
 ### Pending Todos
 
