@@ -5,16 +5,28 @@
 See: .planning/PROJECT.md (updated 2026-01-19)
 
 **Core value:** Every project gets production-grade validation with zero friction
-**Current focus:** Phase 4 — Trading Extension
+**Current focus:** Milestone Complete
 
 ## Current Position
 
-Phase: 4 of 5 (Trading Extension)
+Phase: 5 of 5 (Other Extensions)
 Plan: 1 of 1 in current phase
-Status: Phase complete
-Last activity: 2026-01-19 — Completed 04-01-PLAN.md
+Status: Milestone complete
+Last activity: 2026-01-19 - Completed 05-01-PLAN.md
 
-Progress: ██████████ 83% (5/6 plans complete)
+Progress: ██████████ 100% (6/6 plans complete)
+
+## Phase 5 Complete
+
+| Plan | Description | Status |
+|------|-------------|--------|
+| 05-01 | Workflow and data domain templates | Complete |
+
+**Deliverables (05-01):**
+- `~/.claude/templates/validation/extensions/workflow/test_workflow_execution.py.j2`
+- `~/.claude/templates/validation/extensions/workflow/test_node_connections.py.j2`
+- `~/.claude/templates/validation/extensions/data/test_data_integrity.py.j2`
+- `~/.claude/templates/validation/extensions/data/test_api_endpoints.py.j2`
 
 ## Phase 4 Complete
 
@@ -34,25 +46,11 @@ Progress: ██████████ 83% (5/6 plans complete)
 | 03-01 | k3d cluster templates | Complete |
 | 03-02 | Argo Rollouts and mock Prometheus | Complete |
 
-**Deliverables (03-01):**
-- `~/.claude/templates/validation/k8s/k3d-config.yaml.j2`
-- `~/.claude/templates/validation/k8s/setup-local-cluster.sh.j2`
-- `~/.claude/templates/validation/k8s/teardown.sh.j2`
-
-**Deliverables (03-02):**
-- `~/.claude/templates/validation/k8s/mock-prometheus.yaml.j2`
-- `~/.claude/templates/validation/k8s/test-rollout-local.sh.j2`
-- `~/.claude/templates/validation/ci/local-k8s-test.yml.j2`
-
 ## Phase 2 Complete
 
 | Plan | Description | Status |
 |------|-------------|--------|
 | 02-01 | CI workflow templates (smoke + integration) | Complete |
-
-**Deliverables:**
-- `~/.claude/templates/validation/ci/smoke-tests.yml.j2`
-- `~/.claude/templates/validation/ci/integration-tests.yml.j2`
 
 ## Phase 1 Complete
 
@@ -61,18 +59,12 @@ Progress: ██████████ 83% (5/6 plans complete)
 | 01-01 | JSON Schema and scaffold script | Complete |
 | 01-02 | Smoke test Jinja2 templates | Complete |
 
-**Deliverables:**
-- `~/.claude/templates/validation/config.schema.json`
-- `~/.claude/templates/validation/scaffold.sh`
-- `~/.claude/templates/validation/README.md`
-- `~/.claude/templates/validation/smoke/*.j2` (4 templates)
-
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
+- Total plans completed: 6
 - Average duration: ~2 min
-- Total execution time: ~9 min
+- Total execution time: ~12 min
 
 **By Phase:**
 
@@ -82,10 +74,7 @@ Progress: ██████████ 83% (5/6 plans complete)
 | 02 | 1 | 1 min | 1 min |
 | 03 | 2 | 4 min | 2 min |
 | 04 | 1 | 2 min | 2 min |
-
-**Recent Trend:**
-- Last 5 plans: 02-01 (1 min), 03-01 (2 min), 03-02 (2 min), 04-01 (2 min)
-- Trend: Stable
+| 05 | 1 | 3 min | 3 min |
 
 ## Accumulated Context
 
@@ -99,32 +88,32 @@ Recent decisions affecting current work:
 - k3d over minikube/kind (lighter weight)
 - GitHub Actions variable escaping: `${{ '{{' }}` in Jinja2 templates
 - Domain-specific services: trading=Redis, data=PostgreSQL
-- K3s v1.28.5-k3s1 for stable K8s with security patches
-- Disabled Traefik in favor of nginx-ingress
-- Local registry on port 5000 for testing images
-- @pytest.mark.trading decorator for trading tests
+- @pytest.mark.{domain} decorator pattern for all extensions
 - Conditional Jinja2 blocks for domain filtering
-
-### Pending Todos
-
-None yet.
 
 ### Blockers/Concerns
 
-None yet.
+None.
 
 ## Session Continuity
 
 Last session: 2026-01-19
-Stopped at: Phase 4 complete, ready for Phase 5
-Resume file: None (start Phase 5 planning)
+Stopped at: Milestone complete
+Resume file: None
 
-## Discovery Summary (Phase 1)
+## Milestone Summary
 
-**Existing resources checked:**
-- `~/.claude/templates/validation-config.json` — Spec-pipeline config (different purpose)
-- `~/.claude/templates/workflows/` — Reference workflow patterns
-- `/media/sam/1TB/nautilus_dev/tests/` — No smoke tests (gap confirmed)
-- `/media/sam/1TB/nautilus_dev/.github/workflows/ci-cd-pipeline.yml` — 6-stage reference
+All 5 phases complete. Universal Validation Framework ready for use:
 
-**Conclusion:** No existing smoke test templates or validation pipeline config. Full implementation completed.
+**Core deliverables:**
+- `~/.claude/templates/validation/config.schema.json`
+- `~/.claude/templates/validation/scaffold.sh`
+- `~/.claude/templates/validation/smoke/*.j2` (4 templates)
+- `~/.claude/templates/validation/ci/*.yml.j2` (3 templates)
+- `~/.claude/templates/validation/k8s/*.j2` (4 templates)
+- `~/.claude/templates/validation/extensions/trading/*.j2` (3 templates)
+- `~/.claude/templates/validation/extensions/workflow/*.j2` (2 templates)
+- `~/.claude/templates/validation/extensions/data/*.j2` (2 templates)
+
+**Total templates:** 18 Jinja2 templates
+**Domains supported:** trading, workflow, data, general
