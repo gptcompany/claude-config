@@ -120,8 +120,8 @@ Production-ready validation pipeline framework with domain-specific extensions.
 | SMOKE-02 | Phase 1 | Complete |
 | SMOKE-03 | Phase 1 | Complete |
 | SMOKE-04 | Phase 1 | Complete |
-| CI-01 | Phase 2 | Pending |
-| CI-02 | Phase 2 | Pending |
+| CI-01 | Phase 2 | Complete |
+| CI-02 | Phase 2 | Complete |
 | CI-03 | Phase 3 | Pending |
 | K8S-01 | Phase 3 | Pending |
 | K8S-02 | Phase 3 | Pending |
