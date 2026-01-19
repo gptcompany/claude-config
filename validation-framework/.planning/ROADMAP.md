@@ -16,7 +16,7 @@ Build a reusable validation pipeline framework starting with core templates, the
 
 - [x] **Phase 1: Core Framework** - Schema, scaffold script, base smoke tests
 - [x] **Phase 2: CI Workflows** - GitHub Actions templates for smoke and integration
-- [ ] **Phase 3: Local K8s** - k3d cluster setup, Argo Rollouts, mock Prometheus
+- [x] **Phase 3: Local K8s** - k3d cluster setup, Argo Rollouts, mock Prometheus
 - [ ] **Phase 4: Trading Extension** - Paper trading, risk limits, analysis templates
 - [ ] **Phase 5: Other Extensions** - Workflow and data domain templates
 
@@ -53,7 +53,7 @@ Plans:
 
 Plans:
 - [x] 03-01: Create k3d cluster templates
-- [ ] 03-02: Create Argo Rollouts and mock Prometheus templates
+- [x] 03-02: Create Argo Rollouts and mock Prometheus templates
 
 ### Phase 4: Trading Extension
 **Goal**: Create trading-specific validation templates
@@ -84,6 +84,6 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 |-------|----------------|--------|-----------|
 | 1. Core Framework | 2/2 | Complete | 2026-01-19 |
 | 2. CI Workflows | 1/1 | Complete | 2026-01-19 |
-| 3. Local K8s | 1/2 | In progress | - |
+| 3. Local K8s | 2/2 | Complete | 2026-01-19 |
 | 4. Trading Extension | 0/1 | Not started | - |
 | 5. Other Extensions | 0/1 | Not started | - |
