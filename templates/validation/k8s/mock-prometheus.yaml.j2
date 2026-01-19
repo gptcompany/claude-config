@@ -1,0 +1,163 @@
+# Mock Prometheus deployment for local K8s validation testing
+# Generated from: ~/.claude/templates/validation/k8s/mock-prometheus.yaml.j2
+#
+# Provides static metrics matching rollback_triggers for canary testing
+# without requiring a real Prometheus instance or live metrics.
+#
+# Usage: kubectl apply -f mock-prometheus.yaml -n monitoring
+
+---
+# Namespace for monitoring stack
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: monitoring
+---
+# ConfigMap with mock metrics in Prometheus exposition format
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mock-metrics
+  namespace: monitoring
+data:
+  metrics.txt: |
+    # HELP mock_metric Mock metrics for local testing
+    # TYPE mock_metric gauge
+    {% for trigger in rollback_triggers %}
+    # Mock metric for {{ trigger.metric }} - set to healthy value (half of threshold)
+    {{ trigger.metric }}{service="{{ project_name }}"} {{ (trigger.threshold * 0.5) | round(4) }}
+    {% endfor %}
+    # Default healthy baseline metrics
+    error_rate{service="{{ project_name }}"} 0.01
+    latency_p99_ms{service="{{ project_name }}"} 50
+    success_rate{service="{{ project_name }}"} 0.99
+    request_count{service="{{ project_name }}"} 1000
+---
+# Prometheus configuration
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prometheus-config
+  namespace: monitoring
+data:
+  prometheus.yml: |
+    global:
+      scrape_interval: 15s
+      evaluation_interval: 15s
+
+    scrape_configs:
+      # Scrape mock metrics from file
+      - job_name: 'mock-metrics'
+        static_configs:
+          - targets: ['localhost:9090']
+        metrics_path: /static/metrics.txt
+
+      # Self-monitoring
+      - job_name: 'prometheus'
+        static_configs:
+          - targets: ['localhost:9090']
+---
+# Deployment with nginx serving static metrics
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mock-prometheus
+  namespace: monitoring
+  labels:
+    app: mock-prometheus
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mock-prometheus
+  template:
+    metadata:
+      labels:
+        app: mock-prometheus
+    spec:
+      containers:
+        - name: prometheus
+          image: prom/prometheus:v2.48.0
+          args:
+            - --config.file=/etc/prometheus/prometheus.yml
+            - --storage.tsdb.path=/prometheus
+            - --web.enable-lifecycle
+            - --web.enable-admin-api
+          ports:
+            - containerPort: 9090
+              name: web
+          volumeMounts:
+            - name: prometheus-config
+              mountPath: /etc/prometheus/prometheus.yml
+              subPath: prometheus.yml
+            - name: prometheus-data
+              mountPath: /prometheus
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"
+        # Nginx sidecar to serve static metrics file
+        - name: metrics-server
+          image: nginx:alpine
+          ports:
+            - containerPort: 8080
+              name: metrics
+          volumeMounts:
+            - name: mock-metrics
+              mountPath: /usr/share/nginx/html/static
+          resources:
+            requests:
+              memory: "32Mi"
+              cpu: "10m"
+            limits:
+              memory: "64Mi"
+              cpu: "50m"
+      volumes:
+        - name: prometheus-config
+          configMap:
+            name: prometheus-config
+        - name: mock-metrics
+          configMap:
+            name: mock-metrics
+        - name: prometheus-data
+          emptyDir: {}
+---
+# ClusterIP service for internal access
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus
+  namespace: monitoring
+  labels:
+    app: mock-prometheus
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9090
+      targetPort: 9090
+      protocol: TCP
+      name: web
+  selector:
+    app: mock-prometheus
+---
+# NodePort service for local access from host
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-nodeport
+  namespace: monitoring
+  labels:
+    app: mock-prometheus
+spec:
+  type: NodePort
+  ports:
+    - port: 9090
+      targetPort: 9090
+      nodePort: 30090
+      protocol: TCP
+      name: web
+  selector:
+    app: mock-prometheus
