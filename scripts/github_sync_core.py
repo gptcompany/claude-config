@@ -586,11 +586,18 @@ def get_issue_node_id(issue_number: int) -> str | None:
 # =============================================================================
 
 
-def get_existing_milestones() -> dict[str, int]:
-    """Get existing milestones and their numbers."""
+def get_existing_milestones(include_closed: bool = False) -> dict[str, int]:
+    """Get existing milestones and their numbers.
+
+    Args:
+        include_closed: If True, include closed milestones too
+    """
     # Use proper jq to get interleaved title,number pairs
+    endpoint = "repos/{owner}/{repo}/milestones"
+    if include_closed:
+        endpoint += "?state=all"
     code, stdout, _ = run_gh_command(
-        ["api", "repos/{owner}/{repo}/milestones", "-q", ".[] | .title, .number"],
+        ["api", endpoint, "-q", ".[] | .title, .number"],
         check=False,
     )
     if code != 0:
@@ -606,6 +613,29 @@ def get_existing_milestones() -> dict[str, int]:
                 # If parsing fails, skip this milestone
                 continue
     return milestones
+
+
+def reopen_milestone(milestone_number: int) -> bool:
+    """Reopen a closed milestone.
+
+    Args:
+        milestone_number: The milestone number to reopen
+
+    Returns:
+        True if successful
+    """
+    code, _, _ = run_gh_command(
+        [
+            "api",
+            f"repos/{{owner}}/{{repo}}/milestones/{milestone_number}",
+            "--method",
+            "PATCH",
+            "-f",
+            "state=open",
+        ],
+        check=False,
+    )
+    return code == 0
 
 
 def create_milestone(
@@ -647,16 +677,31 @@ def create_milestone(
 def ensure_milestone_exists(
     title: str, description: str = "", dry_run: bool = False
 ) -> int | None:
-    """Ensure a milestone exists, creating if necessary.
+    """Ensure a milestone exists, creating or reopening if necessary.
 
     Returns:
         Milestone number
     """
+    # First check open milestones
     existing = get_existing_milestones()
     if title in existing:
         print(f"Milestone exists: {title} (#{existing[title]})")
         return existing[title]
 
+    # Check if there's a closed milestone with the same title
+    all_milestones = get_existing_milestones(include_closed=True)
+    if title in all_milestones:
+        milestone_num = all_milestones[title]
+        if dry_run:
+            print(f"[DRY RUN] Would reopen milestone: {title} (#{milestone_num})")
+            return milestone_num
+        if reopen_milestone(milestone_num):
+            print(f"Reopened milestone: {title} (#{milestone_num})")
+            return milestone_num
+        print(f"Failed to reopen milestone: {title}")
+        return None
+
+    # Create new milestone
     milestone_num = create_milestone(title, description, dry_run)
     if milestone_num:
         print(f"Created milestone: {title} (#{milestone_num})")
