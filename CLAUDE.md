@@ -169,3 +169,76 @@ cp ~/.claude/templates/validation-config.json .claude/validation/config.json
 - **Template**: `~/.claude/templates/validation-config.json`
 - **Esempi**: nautilus_dev, UTXOracle, N8N_dev
 - **Comando**: `/new-project` per scaffold completo
+
+## claude-flow Integration (GSD/Speckit)
+
+**Potenzia GSD e Speckit con persistenza e coordinamento via claude-flow MCP.**
+
+Gli agenti claude-flow sono pattern cognitivi/coordinatori — l'esecuzione effettiva (inclusi tutti gli MCP) resta su Claude Code.
+
+### Quando usare claude-flow
+
+Durante esecuzione di workflow GSD o Speckit:
+
+1. **State persistence** (cross-session):
+   ```
+   # Prima di spawning Task agents
+   mcp__claude-flow__memory_store key="gsd:state:{phase}" value={state_json}
+
+   # Task agents recuperano stato
+   mcp__claude-flow__memory_retrieve key="gsd:state:{phase}"
+   ```
+
+2. **Session resume** (crash recovery):
+   ```
+   # A ogni checkpoint o fine piano
+   mcp__claude-flow__session_save sessionId="gsd-{project}-{phase}"
+
+   # Per riprendere dopo interruzione
+   mcp__claude-flow__session_restore sessionId="gsd-{project}-{phase}"
+   ```
+
+3. **Coordination tracking**:
+   ```
+   # Traccia task distribuiti
+   mcp__claude-flow__task_create task="Execute plan 05-01"
+   mcp__claude-flow__task_status taskId={id}
+   ```
+
+### Pattern consigliato per /gsd:execute-phase
+
+```
+1. session_save all'inizio (checkpoint iniziale)
+2. memory_store per stato fase
+3. Spawn Task agents (esecuzione parallela)
+4. Ogni agent: memory_retrieve → esegui → memory_store risultato
+5. Orchestrator: memory_retrieve tutti i risultati
+6. session_save alla fine (checkpoint finale)
+```
+
+### Vantaggi
+
+- **Zero modifiche** a GSD/Speckit frameworks
+- **Crash recovery**: session_restore riprende da ultimo checkpoint
+- **Cross-session state**: memoria persiste tra /clear
+- **Audit trail**: tutto in ~/.claude-flow/
+
+### GitHub Sync Strategy
+
+Combinazione ottimale per tracking completo:
+
+1. **Durante esecuzione** (real-time, framework agnostic):
+   ```
+   mcp__claude-flow__github_issue_track action="create" title="Plan 05-01" labels=["gsd-plan"]
+   mcp__claude-flow__github_issue_track action="update" issueNumber={n} body="Progress: 2/4 tasks"
+   mcp__claude-flow__github_issue_track action="close" issueNumber={n}
+   ```
+
+2. **Fine milestone** (batch sync completo):
+   ```
+   /gsd:sync-github --create-project
+   ```
+   - Crea GitHub ProjectsV2 board
+   - Sincronizza Phases → Milestones
+   - Sincronizza Plans → Issues
+   - Applica labels standard
