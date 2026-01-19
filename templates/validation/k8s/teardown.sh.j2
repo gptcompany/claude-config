@@ -1,0 +1,42 @@
+#!/usr/bin/env bash
+# Teardown local K8s cluster and cleanup artifacts
+# Generated from: ~/.claude/templates/validation/k8s/teardown.sh.j2
+#
+# This script is idempotent - safe to run multiple times
+
+set -euo pipefail
+
+# Configuration
+CLUSTER_NAME="{{ project_name }}-local"
+
+echo "=== Tearing down local K8s cluster: ${CLUSTER_NAME} ==="
+
+# Check if cluster exists
+if ! k3d cluster list 2>/dev/null | grep -q "${CLUSTER_NAME}"; then
+    echo "Cluster ${CLUSTER_NAME} not found - nothing to tear down"
+    exit 0
+fi
+
+# Delete the cluster
+echo "Deleting cluster..."
+k3d cluster delete "${CLUSTER_NAME}"
+
+# Clean up local registry volume
+echo "Cleaning up registry volume..."
+docker volume rm "k3d-${CLUSTER_NAME}-images" 2>/dev/null || true
+
+# Remove kubeconfig context
+echo "Removing kubeconfig context..."
+kubectl config delete-context "k3d-${CLUSTER_NAME}" 2>/dev/null || true
+kubectl config delete-cluster "k3d-${CLUSTER_NAME}" 2>/dev/null || true
+
+# Clean up any orphaned registry containers
+echo "Cleaning up registry containers..."
+docker rm -f "k3d-${CLUSTER_NAME}-registry" 2>/dev/null || true
+
+echo ""
+echo "=== Cleanup Complete ==="
+echo "Cluster ${CLUSTER_NAME} has been removed"
+echo ""
+echo "To recreate:"
+echo "  ./setup-local-cluster.sh"
