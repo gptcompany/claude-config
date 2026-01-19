@@ -1,5 +1,54 @@
+# Global ruff configuration for Claude Code projects
+# Used by hooks in claude-hooks-shared
+
+exclude = [
+    # Non-Python files
+    "*.md",
+    "*.json",
+    "*.yaml",
+    "*.yml",
+    "*.j2",
+    # Python artifacts
+    "__pycache__",
+    "*.egg-info",
+    "dist",
+    "build",
+    "site-packages",
+    # Version control
+    ".git",
+    # Virtual environments
+    ".venv",
+    "venv",
+    # Package managers
+    "node_modules",
+    ".cache",
+    ".bun",
+    ".npm",
+    ".cargo",
+    ".rustup",
+    # IDE/Editor
+    ".vscode*",
+    ".idea",
+    # System directories
+    ".local",
+    ".config",
+    ".microsandbox",
+    "actions-runner",
+    # Other language directories
+    "go",
+    # User directories (not project code)
+    "Downloads",
+    "Documents",
+    "Desktop",
+    "Pictures",
+    "Videos",
+    "Music",
+    # Media storage
+    "/media",
+]
+
 [lint]
-exclude = ["*.md", "*.json", "*.yaml", "*.yml", "*.j2", "__pycache__"]
+# Additional lint-specific settings
 
 [lint.per-file-ignores]
 "scripts/*.py" = ["F401", "F841"]  # Allow unused imports/vars in scripts

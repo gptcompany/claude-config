@@ -48,7 +48,6 @@ try:
         get_existing_milestones,
         get_existing_issues,
         close_issue,
-        set_issue_status,
         get_issue_status,
         get_project_by_name,
         close_milestone,
@@ -604,8 +603,7 @@ def sync_roadmap_to_github(
             print(f"\nFound {len(todos)} pending todos\n")
 
             for todo in todos:
-                # Check for existing issue
-                todo_key = f"Todo-{todo.filename}"
+                # Check for existing issue by title
                 if any(
                     todo.title in issue.get("title", "")
                     for issue in existing_todo_issues.values()
