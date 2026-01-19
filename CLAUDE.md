@@ -170,58 +170,35 @@ cp ~/.claude/templates/validation-config.json .claude/validation/config.json
 - **Esempi**: nautilus_dev, UTXOracle, N8N_dev
 - **Comando**: `/new-project` per scaffold completo
 
-## claude-flow Integration (GSD/Speckit)
+## claude-flow Auto-Sync (OBBLIGATORIO per GSD/Speckit)
 
-**Potenzia GSD e Speckit con persistenza e coordinamento via claude-flow MCP.**
+**Quando esegui `/gsd:*` o `/speckit.*` con Task agents, DEVI:**
 
-Gli agenti claude-flow sono pattern cognitivi/coordinatori — l'esecuzione effettiva (inclusi tutti gli MCP) resta su Claude Code.
-
-### Quando usare claude-flow
-
-Durante esecuzione di workflow GSD o Speckit:
-
-1. **State persistence** (cross-session):
-   ```
-   # Prima di spawning Task agents
-   mcp__claude-flow__memory_store key="gsd:state:{phase}" value={state_json}
-
-   # Task agents recuperano stato
-   mcp__claude-flow__memory_retrieve key="gsd:state:{phase}"
-   ```
-
-2. **Session resume** (crash recovery):
-   ```
-   # A ogni checkpoint o fine piano
-   mcp__claude-flow__session_save sessionId="gsd-{project}-{phase}"
-
-   # Per riprendere dopo interruzione
-   mcp__claude-flow__session_restore sessionId="gsd-{project}-{phase}"
-   ```
-
-3. **Coordination tracking**:
-   ```
-   # Traccia task distribuiti
-   mcp__claude-flow__task_create task="Execute plan 05-01"
-   mcp__claude-flow__task_status taskId={id}
-   ```
-
-### Pattern consigliato per /gsd:execute-phase
-
+### 1. PRIMA di spawning Task agents
 ```
-1. session_save all'inizio (checkpoint iniziale)
-2. memory_store per stato fase
-3. Spawn Task agents (esecuzione parallela)
-4. Ogni agent: memory_retrieve → esegui → memory_store risultato
-5. Orchestrator: memory_retrieve tutti i risultati
-6. session_save alla fine (checkpoint finale)
+mcp__claude-flow__session_save sessionId="{project}-{phase}-start"
+mcp__claude-flow__memory_store key="gsd:{project}:{phase}" value={"status":"starting","plans":[...]}
 ```
 
-### Vantaggi
+### 2. DOPO completamento Task agents
+```
+mcp__claude-flow__memory_store key="gsd:{project}:{phase}" value={"status":"done","results":[...]}
+mcp__claude-flow__session_save sessionId="{project}-{phase}-done"
+```
 
-- **Zero modifiche** a GSD/Speckit frameworks
-- **Crash recovery**: session_restore riprende da ultimo checkpoint
-- **Cross-session state**: memoria persiste tra /clear
-- **Audit trail**: tutto in ~/.claude-flow/
+### 3. A INIZIO sessione (se riprendi lavoro)
+```
+mcp__claude-flow__memory_retrieve key="gsd:{project}:*"
+# Se trova stato precedente → mostra e chiedi se continuare
+```
+
+### Benefici
+- **Crash recovery**: `session_restore` riprende da ultimo checkpoint
+- **Cross-session**: stato persiste tra /clear e "Brewed"
+- **Metriche**: sync automatico a QuestDB via hook
+
+### Alternative con garanzia
+Usa `/gsd:execute-phase-sync` o `/speckit.implement-sync` per sync automatico garantito.
 
 ### GitHub Sync Strategy
 
