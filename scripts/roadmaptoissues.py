@@ -51,6 +51,8 @@ try:
         set_issue_status,
         get_issue_status,
         get_project_by_name,
+        close_milestone,
+        get_milestone_open_issues,
     )
 except ImportError:
     print("Error: github_sync_core.py not found. Ensure it's in the same directory.")
@@ -110,6 +112,7 @@ class SyncResult:
 
     milestones_created: int = 0
     milestones_existing: int = 0
+    milestones_closed: int = 0
     issues_created: int = 0
     issues_existing: int = 0
     issues_closed: int = 0
@@ -687,6 +690,25 @@ def sync_bidirectional(
     return result
 
 
+def close_completed_milestones(dry_run: bool = False) -> int:
+    """Close milestones that have no open issues.
+
+    Returns:
+        Number of milestones closed
+    """
+    closed_count = 0
+    existing = get_existing_milestones()
+
+    for title, number in existing.items():
+        open_issues = get_milestone_open_issues(number)
+        if open_issues == 0:
+            if close_milestone(number, dry_run):
+                closed_count += 1
+                print(f"Closed milestone: {title} (#{number})")
+
+    return closed_count
+
+
 # =============================================================================
 # Main
 # =============================================================================
@@ -804,6 +826,10 @@ Examples:
             args.dry_run,
         )
 
+        # Close milestones with no open issues
+        print("\nChecking for completed milestones...")
+        result.milestones_closed = close_completed_milestones(args.dry_run)
+
     elif args.sync:
         # Bidirectional sync mode
         if not args.sync.exists():
@@ -826,17 +852,23 @@ Examples:
         print()
         result = sync_bidirectional(args.sync, project_id, args.dry_run)
 
+        # Close milestones with no open issues
+        print("\nChecking for completed milestones...")
+        result.milestones_closed = close_completed_milestones(args.dry_run)
+
     # Print summary
     print("\n=== Summary ===")
     if args.roadmap:
         print(f"Milestones created: {result.milestones_created}")
         print(f"Milestones existing: {result.milestones_existing}")
+        print(f"Milestones closed: {result.milestones_closed}")
         print(f"Issues created: {result.issues_created}")
         print(f"Issues existing: {result.issues_existing}")
         if args.sync_todos:
             print(f"Todos synced: {result.todos_synced}")
     else:
         print(f"Issues closed: {result.issues_closed}")
+        print(f"Milestones closed: {result.milestones_closed}")
         print(f"Plans marked [x]: {result.plans_marked_complete}")
 
     if result.errors:

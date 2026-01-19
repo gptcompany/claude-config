@@ -663,6 +663,58 @@ def ensure_milestone_exists(
     return milestone_num
 
 
+def close_milestone(milestone_number: int, dry_run: bool = False) -> bool:
+    """Close a GitHub milestone.
+
+    Args:
+        milestone_number: The milestone number to close
+        dry_run: If True, don't actually close
+
+    Returns:
+        True if successful, False otherwise
+    """
+    if dry_run:
+        print(f"[DRY RUN] Would close milestone #{milestone_number}")
+        return True
+
+    cmd = [
+        "api",
+        f"repos/{{owner}}/{{repo}}/milestones/{milestone_number}",
+        "--method",
+        "PATCH",
+        "-f",
+        "state=closed",
+    ]
+
+    code, _, stderr = run_gh_command(cmd, check=False)
+    if code != 0:
+        print(f"Failed to close milestone #{milestone_number}: {stderr}")
+        return False
+    return True
+
+
+def get_milestone_open_issues(milestone_number: int) -> int:
+    """Get count of open issues in a milestone.
+
+    Returns:
+        Number of open issues, or -1 on error
+    """
+    cmd = [
+        "api",
+        f"repos/{{owner}}/{{repo}}/milestones/{milestone_number}",
+        "-q",
+        ".open_issues",
+    ]
+
+    code, stdout, _ = run_gh_command(cmd, check=False)
+    if code != 0 or not stdout.strip():
+        return -1
+    try:
+        return int(stdout.strip())
+    except ValueError:
+        return -1
+
+
 # =============================================================================
 # Issue Operations
 # =============================================================================
