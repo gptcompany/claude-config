@@ -45,6 +45,7 @@ try:
         add_issue_to_project,
         get_issue_node_id,
         ensure_milestone_exists,
+        get_existing_milestones,
         get_existing_issues,
         close_issue,
     )
@@ -355,7 +356,7 @@ def parse_todos(todos_dir: Path) -> list[Todo]:
 def create_plan_issue(
     plan: Plan,
     phase: Phase,
-    milestone_num: int | None,
+    milestone_title: str | None,
     project_id: str | None = None,
     dry_run: bool = False,
 ) -> int | None:
@@ -402,8 +403,8 @@ def create_plan_issue(
     cmd = ["issue", "create", "--title", title, "--body", body]
     for label in labels:
         cmd.extend(["--label", label])
-    if milestone_num:
-        cmd.extend(["--milestone", str(milestone_num)])
+    if milestone_title:
+        cmd.extend(["--milestone", milestone_title])
 
     code, stdout, stderr = run_gh_command(cmd, check=False)
     if code != 0:
@@ -543,19 +544,25 @@ def sync_roadmap_to_github(
     existing_todo_issues = get_existing_issues("todo")
 
     # Create milestones for phases
-    milestone_map: dict[str, int | None] = {}
+    # First get existing milestones to track created vs existing
+    existing_milestones = get_existing_milestones()
+    # Map phase.number -> milestone TITLE (gh cli requires title, not number)
+    milestone_map: dict[str, str | None] = {}
     for phase in phases:
         milestone_title = f"Phase {phase.number}: {phase.name}"
+        was_existing = milestone_title in existing_milestones
         milestone_num = ensure_milestone_exists(
             milestone_title,
             phase.goal or f"GSD Phase {phase.number}",
             dry_run,
         )
         if milestone_num:
-            milestone_map[phase.number] = milestone_num
-            result.milestones_created += 1
-        else:
-            result.milestones_existing += 1
+            milestone_map[phase.number] = milestone_title  # Store title, not number
+            if was_existing:
+                result.milestones_existing += 1
+            else:
+                result.milestones_created += 1
+        # Note: milestone_num being None means failure, not counted as existing
 
     print()
 
@@ -581,8 +588,8 @@ def sync_roadmap_to_github(
             result.errors.append(f"No phase found for plan {plan.id}")
             continue
 
-        milestone_num = milestone_map.get(phase.number)
-        issue_num = create_plan_issue(plan, phase, milestone_num, project_id, dry_run)
+        milestone_title = milestone_map.get(phase.number)
+        issue_num = create_plan_issue(plan, phase, milestone_title, project_id, dry_run)
 
         if issue_num or dry_run:
             result.issues_created += 1

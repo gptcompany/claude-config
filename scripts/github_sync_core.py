@@ -420,8 +420,9 @@ def get_issue_node_id(issue_number: int) -> str | None:
 
 def get_existing_milestones() -> dict[str, int]:
     """Get existing milestones and their numbers."""
+    # Use proper jq to get interleaved title,number pairs
     code, stdout, _ = run_gh_command(
-        ["api", "repos/{owner}/{repo}/milestones", "-q", ".[].title,.number"],
+        ["api", "repos/{owner}/{repo}/milestones", "-q", ".[] | .title, .number"],
         check=False,
     )
     if code != 0:
@@ -431,7 +432,11 @@ def get_existing_milestones() -> dict[str, int]:
     lines = stdout.strip().split("\n")
     for i in range(0, len(lines) - 1, 2):
         if lines[i] and lines[i + 1]:
-            milestones[lines[i]] = int(lines[i + 1])
+            try:
+                milestones[lines[i]] = int(lines[i + 1])
+            except ValueError:
+                # If parsing fails, skip this milestone
+                continue
     return milestones
 
 

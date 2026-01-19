@@ -338,7 +338,7 @@ def create_milestone(
 def create_issue(
     task: Task,
     spec_dir: str,
-    milestone_num: int | None,
+    milestone_title: str | None,
     spec_label: str | None,
     project_id: str | None = None,
     dry_run: bool = False,
@@ -348,7 +348,7 @@ def create_issue(
     Args:
         task: Task object with details
         spec_dir: Spec directory path
-        milestone_num: Milestone number to assign
+        milestone_title: Milestone title to assign (gh cli expects title not number)
         spec_label: Spec-specific label to add
         project_id: GraphQL node ID of ProjectV2 to link to
         dry_run: If True, don't actually create
@@ -399,8 +399,8 @@ def create_issue(
     cmd = ["issue", "create", "--title", title, "--body", body]
     for label in labels:
         cmd.extend(["--label", label])
-    if milestone_num:
-        cmd.extend(["--milestone", str(milestone_num)])
+    if milestone_title:
+        cmd.extend(["--milestone", milestone_title])
 
     code, stdout, stderr = run_gh_command(cmd, check=False)
     if code != 0:
@@ -503,19 +503,20 @@ def sync_create_issues(
 
     existing_milestones = get_existing_milestones()
     existing_issues = get_existing_issues(spec_label)
-    milestone_map: dict[str, int | None] = {}
+    # Map story.id -> milestone TITLE (gh cli requires title, not number)
+    milestone_map: dict[str, str | None] = {}
 
     # Create milestones
     for story in stories:
         milestone_title = f"{story.id}: {story.title}"
         if milestone_title in existing_milestones:
-            milestone_map[story.id] = existing_milestones[milestone_title]
+            milestone_map[story.id] = milestone_title  # Store title, not number
             result.milestones_existing += 1
             print(f"Milestone exists: {milestone_title}")
         else:
             milestone_num = create_milestone(story, spec_dir, dry_run)
-            milestone_map[story.id] = milestone_num
             if milestone_num or dry_run:
+                milestone_map[story.id] = milestone_title  # Store title
                 result.milestones_created += 1
                 print(f"Created milestone: {milestone_title}")
 
@@ -528,9 +529,9 @@ def sync_create_issues(
             print(f"Issue exists for {task.id}: #{existing_issues[task.id]['number']}")
             continue
 
-        milestone_num = milestone_map.get(task.story)
+        milestone_title = milestone_map.get(task.story)
         issue_num = create_issue(
-            task, spec_dir, milestone_num, spec_label, project_id, dry_run
+            task, spec_dir, milestone_title, spec_label, project_id, dry_run
         )
         if issue_num or dry_run:
             result.issues_created += 1
