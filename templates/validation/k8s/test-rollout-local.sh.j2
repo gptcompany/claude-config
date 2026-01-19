@@ -1,0 +1,199 @@
+#!/usr/bin/env bash
+# Test canary rollout progression in local K8s cluster
+# Generated from: ~/.claude/templates/validation/k8s/test-rollout-local.sh.j2
+#
+# Purpose: Validates Argo Rollouts canary deployment with 5% -> 25% -> 100% progression
+# Prerequisites:
+#   - kubectl with argo-rollouts plugin
+#   - k3d cluster running (use setup-local-cluster.sh)
+#   - Argo Rollouts controller installed
+#
+# Usage: ./test-rollout-local.sh
+
+set -euo pipefail
+
+# Configuration from project config.json
+NAMESPACE="{{ k8s.namespace | default('default') }}"
+ROLLOUT_NAME="{{ project_name }}-rollout"
+TIMEOUT="{{ k8s.rollout_timeout | default('10m') }}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Colors for output
+RED='\033[0;31m'
+GREEN='\033[0;32m'
+YELLOW='\033[1;33m'
+NC='\033[0m' # No Color
+
+echo -e "${GREEN}=== Canary Rollout Test ===${NC}"
+echo "Namespace: ${NAMESPACE}"
+echo "Rollout: ${ROLLOUT_NAME}"
+echo "Timeout: ${TIMEOUT}"
+echo ""
+
+# Pre-flight checks
+echo "Running pre-flight checks..."
+
+if ! kubectl argo rollouts version &> /dev/null; then
+    echo -e "${RED}ERROR: kubectl argo rollouts plugin not installed${NC}"
+    echo "Install: curl -LO https://github.com/argoproj/argo-rollouts/releases/latest/download/kubectl-argo-rollouts-linux-amd64"
+    echo "         chmod +x kubectl-argo-rollouts-linux-amd64"
+    echo "         sudo mv kubectl-argo-rollouts-linux-amd64 /usr/local/bin/kubectl-argo-rollouts"
+    exit 1
+fi
+
+if ! kubectl cluster-info &> /dev/null; then
+    echo -e "${RED}ERROR: Cannot connect to Kubernetes cluster${NC}"
+    echo "Ensure cluster is running: k3d cluster list"
+    exit 1
+fi
+
+# Check Argo Rollouts controller
+if ! kubectl get deployment argo-rollouts -n argo-rollouts &> /dev/null; then
+    echo -e "${RED}ERROR: Argo Rollouts controller not installed${NC}"
+    echo "Run setup-local-cluster.sh to install it"
+    exit 1
+fi
+
+echo -e "${GREEN}Pre-flight checks passed${NC}"
+echo ""
+
+# Ensure namespace exists
+kubectl create namespace "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply -f -
+
+# Check if test rollout exists, create if not
+if ! kubectl get rollout "${ROLLOUT_NAME}" -n "${NAMESPACE}" &> /dev/null; then
+    echo "Creating test rollout resource..."
+    cat <<ROLLOUT_EOF | kubectl apply -f -
+apiVersion: argoproj.io/v1alpha1
+kind: Rollout
+metadata:
+  name: ${ROLLOUT_NAME}
+  namespace: ${NAMESPACE}
+spec:
+  replicas: 4
+  strategy:
+    canary:
+      steps:
+        # 5% traffic to canary
+        - setWeight: 5
+        - pause: {duration: 10s}
+        # 25% traffic to canary
+        - setWeight: 25
+        - pause: {duration: 10s}
+        # Full rollout
+        - setWeight: 100
+      canaryService: ${ROLLOUT_NAME}-canary
+      stableService: ${ROLLOUT_NAME}-stable
+{% if rollback_triggers %}
+      analysis:
+        templates:
+          - templateName: {{ project_name }}-analysis
+        startingStep: 1
+{% endif %}
+  selector:
+    matchLabels:
+      app: ${ROLLOUT_NAME}
+  template:
+    metadata:
+      labels:
+        app: ${ROLLOUT_NAME}
+    spec:
+      containers:
+        - name: nginx
+          image: nginx:1.24-alpine
+          ports:
+            - containerPort: 80
+          resources:
+            requests:
+              memory: "32Mi"
+              cpu: "10m"
+            limits:
+              memory: "64Mi"
+              cpu: "50m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${ROLLOUT_NAME}-stable
+  namespace: ${NAMESPACE}
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: ${ROLLOUT_NAME}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: ${ROLLOUT_NAME}-canary
+  namespace: ${NAMESPACE}
+spec:
+  ports:
+    - port: 80
+      targetPort: 80
+  selector:
+    app: ${ROLLOUT_NAME}
+ROLLOUT_EOF
+    echo "Test rollout created"
+
+    # Wait for initial deployment
+    echo "Waiting for initial deployment to stabilize..."
+    kubectl argo rollouts status "${ROLLOUT_NAME}" -n "${NAMESPACE}" --timeout=2m || true
+fi
+
+# Trigger new rollout with updated image
+echo ""
+echo -e "${YELLOW}Triggering canary rollout...${NC}"
+kubectl argo rollouts set image "${ROLLOUT_NAME}" nginx=nginx:1.25-alpine -n "${NAMESPACE}"
+
+# Monitor rollout progression
+echo ""
+echo -e "${YELLOW}Monitoring rollout progression (5% -> 25% -> 100%)...${NC}"
+echo "Timeout: ${TIMEOUT}"
+echo ""
+
+# Watch rollout status with timeout
+if kubectl argo rollouts status "${ROLLOUT_NAME}" -n "${NAMESPACE}" --timeout="${TIMEOUT}" --watch; then
+    echo ""
+    echo -e "${GREEN}Rollout completed successfully!${NC}"
+else
+    echo ""
+    echo -e "${RED}Rollout failed or timed out${NC}"
+    echo ""
+    echo "Rollout status:"
+    kubectl argo rollouts get rollout "${ROLLOUT_NAME}" -n "${NAMESPACE}"
+    exit 1
+fi
+
+# Check for AnalysisRun results if analysis was configured
+{% if rollback_triggers %}
+echo ""
+echo "Checking AnalysisRun results..."
+ANALYSIS_RUNS=$(kubectl get analysisrun -n "${NAMESPACE}" -l "rollouts-pod-template-hash" --no-headers 2>/dev/null | wc -l || echo "0")
+if [ "${ANALYSIS_RUNS}" -gt 0 ]; then
+    echo "AnalysisRun resources found: ${ANALYSIS_RUNS}"
+    kubectl get analysisrun -n "${NAMESPACE}" -l "rollouts-pod-template-hash"
+else
+    echo "No AnalysisRun resources found (analysis may not have been triggered)"
+fi
+{% endif %}
+
+# Print final status
+echo ""
+echo "=== Final Rollout Status ==="
+kubectl argo rollouts get rollout "${ROLLOUT_NAME}" -n "${NAMESPACE}"
+
+echo ""
+echo "=== Pods ==="
+kubectl get pods -n "${NAMESPACE}" -l "app=${ROLLOUT_NAME}"
+
+echo ""
+echo -e "${GREEN}=== Test Complete ===${NC}"
+echo ""
+echo "To clean up test resources:"
+echo "  kubectl delete rollout ${ROLLOUT_NAME} -n ${NAMESPACE}"
+echo "  kubectl delete svc ${ROLLOUT_NAME}-stable ${ROLLOUT_NAME}-canary -n ${NAMESPACE}"
+echo ""
+echo "To tear down entire cluster:"
+echo "  ./teardown.sh"
