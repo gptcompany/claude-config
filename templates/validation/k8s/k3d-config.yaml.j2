@@ -1,0 +1,45 @@
+# k3d cluster configuration for local Kubernetes testing
+# Template variables from project config.json:
+#   - project_name: cluster naming prefix
+#   - k8s.namespace: target namespace (default: "default")
+#   - k8s.agents: number of worker nodes (default: 2)
+
+apiVersion: k3d.io/v1alpha5
+kind: Simple
+
+metadata:
+  name: {{ project_name }}-local
+
+# Cluster topology
+servers: 1  # Single control plane node
+agents: {{ k8s.agents | default(2) }}  # Worker nodes
+
+# K3s image - stable version with security patches
+image: rancher/k3s:v1.28.5-k3s1
+
+# Port mappings for ingress and monitoring
+ports:
+  - port: 80:80
+    nodeFilters:
+      - loadbalancer
+  - port: 443:443
+    nodeFilters:
+      - loadbalancer
+  - port: 9090:9090
+    nodeFilters:
+      - loadbalancer
+
+# K3s server options
+options:
+  k3s:
+    extraArgs:
+      - arg: --disable=traefik
+        nodeFilters:
+          - server:*
+
+# Local registry for testing images without pushing to remote
+registries:
+  create:
+    name: registry.localhost
+    host: "0.0.0.0"
+    hostPort: "5000"
