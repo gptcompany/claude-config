@@ -1,0 +1,96 @@
+#!/usr/bin/env bash
+# Setup local K8s cluster for validation testing
+# Generated from: ~/.claude/templates/validation/k8s/setup-local-cluster.sh.j2
+#
+# Prerequisites:
+#   - k3d: https://k3d.io/
+#   - kubectl: https://kubernetes.io/docs/tasks/tools/
+#   - helm: https://helm.sh/docs/intro/install/
+
+set -euo pipefail
+
+# Configuration
+CLUSTER_NAME="{{ project_name }}-local"
+NAMESPACE="{{ k8s.namespace | default('default') }}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+echo "=== Setting up local K8s cluster: ${CLUSTER_NAME} ==="
+
+# Pre-flight checks
+echo "Checking prerequisites..."
+
+if ! command -v k3d &> /dev/null; then
+    echo "ERROR: k3d is not installed"
+    echo "Install: curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash"
+    exit 1
+fi
+
+if ! command -v kubectl &> /dev/null; then
+    echo "ERROR: kubectl is not installed"
+    echo "Install: https://kubernetes.io/docs/tasks/tools/"
+    exit 1
+fi
+
+if ! command -v helm &> /dev/null; then
+    echo "ERROR: helm is not installed"
+    echo "Install: https://helm.sh/docs/intro/install/"
+    exit 1
+fi
+
+echo "All prerequisites satisfied"
+
+# Check if cluster already exists
+if k3d cluster list | grep -q "${CLUSTER_NAME}"; then
+    echo "Cluster ${CLUSTER_NAME} already exists"
+    echo "Use teardown.sh to remove it first, or connect with:"
+    echo "  kubectl config use-context k3d-${CLUSTER_NAME}"
+    exit 0
+fi
+
+# Create cluster from config
+echo "Creating cluster from k3d-config.yaml..."
+k3d cluster create --config "${SCRIPT_DIR}/k3d-config.yaml"
+
+# Wait for cluster to be ready
+echo "Waiting for nodes to be ready..."
+kubectl wait --for=condition=Ready nodes --all --timeout=120s
+
+# Install Argo Rollouts
+echo "Installing Argo Rollouts..."
+kubectl create namespace argo-rollouts --dry-run=client -o yaml | kubectl apply -f -
+kubectl apply -n argo-rollouts -f https://github.com/argoproj/argo-rollouts/releases/latest/download/install.yaml
+
+echo "Waiting for Argo Rollouts controller..."
+kubectl wait --for=condition=Available deployment/argo-rollouts -n argo-rollouts --timeout=120s
+
+# Create target namespace
+echo "Creating namespace: ${NAMESPACE}..."
+kubectl create namespace "${NAMESPACE}" --dry-run=client -o yaml | kubectl apply -f -
+
+# Apply mock Prometheus if available
+if [ -f "${SCRIPT_DIR}/mock-prometheus.yaml" ]; then
+    echo "Applying mock Prometheus for canary metrics..."
+    kubectl create namespace monitoring --dry-run=client -o yaml | kubectl apply -f -
+    kubectl apply -f "${SCRIPT_DIR}/mock-prometheus.yaml" -n monitoring
+fi
+
+# Print cluster info
+echo ""
+echo "=== Cluster Ready ==="
+echo "Cluster name: ${CLUSTER_NAME}"
+echo "Context: k3d-${CLUSTER_NAME}"
+echo "Namespace: ${NAMESPACE}"
+echo ""
+echo "Cluster nodes:"
+kubectl get nodes
+echo ""
+echo "Argo Rollouts status:"
+kubectl get deployment -n argo-rollouts
+echo ""
+echo "Local registry: localhost:5000"
+echo ""
+echo "To use this cluster:"
+echo "  kubectl config use-context k3d-${CLUSTER_NAME}"
+echo ""
+echo "To tear down:"
+echo "  ./teardown.sh"
