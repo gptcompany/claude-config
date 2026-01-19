@@ -1,0 +1,5 @@
+[lint]
+exclude = ["*.md", "*.json", "*.yaml", "*.yml", "*.j2", "__pycache__"]
+
+[lint.per-file-ignores]
+"scripts/*.py" = ["F401", "F841"]  # Allow unused imports/vars in scripts
