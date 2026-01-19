@@ -1,0 +1,943 @@
+{
+  "session_id": "eec8b192-3a6a-46dd-8d7b-1a9045c13b50",
+  "created_at": "2026-01-14T16:03:26.512926",
+  "operations": [
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:03:26.512949",
+      "command": "npm list -g claude-flow 2>/dev/null || echo \"Not globally installed\"",
+      "description": "Check global npm installation"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-14T16:03:48.813899",
+      "todo_count": 3
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:03:53.745916",
+      "command": "cd /media/sam/1TB/claude-flow && npm link 2>&1",
+      "description": "Link ClaudeFlow globally to avoid npx downloads"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:03:59.675631",
+      "command": "which claude-flow && claude-flow --version 2>&1 | head -5",
+      "description": "Verify ClaudeFlow is now in PATH"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:04:05.636703",
+      "command": "claude-flow mcp --help 2>&1 | head -20",
+      "description": "Check ClaudeFlow MCP options"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:04:11.201669",
+      "command": "cd /media/sam/1TB/claude-flow && npm install 2>&1 | tail -10",
+      "description": "Install ClaudeFlow dependencies"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:04:18.184963",
+      "command": "cd /media/sam/1TB/claude-flow && npm install --legacy-peer-deps 2>&1 | tail -15",
+      "description": "Install with legacy peer deps"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:05:22.901719",
+      "command": "npm unlink -g claude-flow 2>/dev/null; echo \"Unlinked local version\"",
+      "description": "Remove local link, use npx instead"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:05:29.717547",
+      "file_path": "/media/sam/1TB/nautilus_dev/.mcp.live.json"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:05:35.343226",
+      "command": "npx -y claude-flow@alpha mcp --help 2>&1 | head -20",
+      "description": "Check ClaudeFlow MCP server options"
+    },
+    {
+      "operation": "task",
+      "timestamp": "2026-01-14T16:06:23.950598",
+      "subagent_type": "Explore",
+      "prompt": "You are a FAANG-level engineer. Thoroughly analyze ClaudeFlow at /media/sam/1TB/claude-flow to under..."
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:06:26.823830",
+      "command": "ls -la /media/sam/1TB/claude-flow 2>/dev/null || echo \"Directory not found, checking alternative paths...\"",
+      "description": "Check if claude-flow directory exists"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:06:26.857142",
+      "command": "find /home/sam -type d -name \"*claude-flow*\" 2>/dev/null | head -20",
+      "description": "Search in home directory for claude-flow"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:07:44.654449",
+      "command": "find /media/sam/1TB/claude-flow/src -type f -name \"*mcp*\" | head -20",
+      "description": "Find MCP-related files in src"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:07:44.751076",
+      "file_path": "/media/sam/1TB/claude-flow/README.md"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:07:44.769610",
+      "file_path": "/media/sam/1TB/claude-flow/CLAUDE.md"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:07:44.782445",
+      "file_path": "/media/sam/1TB/claude-flow/package.json"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:07:48.482647",
+      "command": "ls -la /media/sam/1TB/claude-flow/.claude-flow/ | head -30",
+      "description": "List configuration directory"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:07:48.589949",
+      "file_path": "/media/sam/1TB/claude-flow/src/mcp/server-mcp-2025.ts"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:07:48.592706",
+      "file_path": "/media/sam/1TB/claude-flow/src/cli/commands/mcp.ts"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:07:48.621759",
+      "file_path": "/media/sam/1TB/claude-flow/src/mcp/mcp-server.js"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:07:52.678515",
+      "command": "find /media/sam/1TB/claude-flow -name \"*.md\" -path \"*docs*\" | grep -i \"memory\\|agentdb\\|integration\" | head -10",
+      "description": "Find relevant documentation files"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:07:52.681977",
+      "command": "ls -la /media/sam/1TB/claude-flow/src/memory/ 2>/dev/null | head -30",
+      "description": "List memory system files"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:07:52.777800",
+      "file_path": "/media/sam/1TB/claude-flow/.claude-flow/swarm-config.json"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:07:56.273956",
+      "command": "find /media/sam/1TB/claude-flow -path \"*hooks*\" -type f | head -20",
+      "description": "Find hooks files"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:07:56.404598",
+      "file_path": "/media/sam/1TB/claude-flow/src/memory/agentdb-adapter.js"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:07:56.416514",
+      "file_path": "/media/sam/1TB/claude-flow/src/memory/README-AGENTDB.md"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:08:00.294920",
+      "command": "find /media/sam/1TB/claude-flow -name \".env*\" -o -name \"*.env\" 2>/dev/null | head -10",
+      "description": "Find environment files"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:08:00.306122",
+      "command": "find /media/sam/1TB/claude-flow -name \"config*\" -o -name \"*config*\" -type f 2>/dev/null | grep -E \"(config\\.(ts|js|json)|\\.config)\" | head -15",
+      "description": "Find configuration files"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:08:00.402087",
+      "file_path": "/media/sam/1TB/claude-flow/hooks/bash-hook-hybrid.sh"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:08:06.956090",
+      "command": "grep -r \"stdin\\|process\\.stdin\" /media/sam/1TB/claude-flow/src --include=\"*.ts\" --include=\"*.js\" | head -20",
+      "description": "Search for stdin usage"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:08:10.695909",
+      "command": "find /media/sam/1TB/claude-flow/src -name \"*token*\" -type f 2>/dev/null | head -10",
+      "description": "Find token tracking files"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:08:10.715670",
+      "command": "grep -r \"token\\|Token\" /media/sam/1TB/claude-flow/src --include=\"*.ts\" --include=\"*.js\" -l | grep -E \"(usage|track|count)\" | head -15",
+      "description": "Find token tracking related files"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:08:10.800534",
+      "file_path": "/media/sam/1TB/claude-flow/src/hooks/index.ts"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:08:14.913551",
+      "command": "cat /media/sam/1TB/claude-flow/examples/01-configurations/advanced/production-config.json 2>/dev/null | head -100",
+      "description": "Check production configuration example"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:08:14.920998",
+      "command": "find /media/sam/1TB/claude-flow/src -name \"*.ts\" -o -name \"*.js\" | xargs grep -l \"stdio\\|transport\\|MCP\" 2>/dev/null | head -15",
+      "description": "Find MCP transport-related files"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:08:15.013885",
+      "file_path": "/media/sam/1TB/claude-flow/src/cli/simple-commands/token-tracker.js"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:08:18.568229",
+      "command": "find /media/sam/1TB/claude-flow/src -name \"*server-factory*\" -o -name \"*server.ts\" -o -name \"*server.js\" | head -10",
+      "description": "Find server factory files"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:08:18.572140",
+      "command": "ls -la /media/sam/1TB/claude-flow/src/mcp/",
+      "description": "List MCP directory contents"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:08:18.667981",
+      "file_path": "/media/sam/1TB/claude-flow/src/mcp/registry/mcp-registry-client-2025.ts"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:08:22.460143",
+      "command": "find /media/sam/1TB/claude-flow -name \"*.db\" -o -name \"*.sqlite\" 2>/dev/null | head -10",
+      "description": "Find database files"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:08:22.573302",
+      "file_path": "/media/sam/1TB/claude-flow/src/mcp/server-factory.ts"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:09:53.576341",
+      "command": "find /home/sam/.claude -name \".env*\" -o -name \"*.env\" 2>/dev/null | head -20",
+      "description": "Find all .env files in .claude"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:09:53.596559",
+      "command": "find /media/sam/1TB/nautilus_dev -name \".env*\" -o -name \"*.env\" 2>/dev/null | head -10",
+      "description": "Find .env files in nautilus_dev"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:09:55.742201",
+      "command": "grep -r \"LINEAR\" /home/sam/.claude/*.json /home/sam/.claude/.env* 2>/dev/null | head -10",
+      "description": "Check where LINEAR key is referenced"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:10:05.941935",
+      "command": "npm info linear-mcp 2>/dev/null | grep -A5 -i \"env\\|key\\|token\" || echo \"Checking package docs...\"",
+      "description": "Check Linear MCP env requirements"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:10:07.436737",
+      "file_path": "/media/sam/1TB/nautilus_dev/.mcp.live.json"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-14T16:10:19.289926",
+      "file_path": "/media/sam/1TB/nautilus_dev/.mcp.live.json",
+      "old_string": "    \"linear\": {\n      \"command\": \"npx\",\n      \"args\": [\"-y\", \"linear-mcp\"],\n      \"description\": \"Is..."
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:10:27.265302",
+      "command": "cat /home/sam/.claude/.env 2>/dev/null | grep -v \"^#\" | grep -v \"^$\"",
+      "description": "Check current .env content"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:10:33.700442",
+      "file_path": "/home/sam/.claude/canonical.yaml"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-14T16:10:44.137924",
+      "file_path": "/home/sam/.claude/canonical.yaml",
+      "old_string": "version: '1.1'\nupdated: '2026-01-10'\ninfrastructure:"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:10:49.992198",
+      "command": "grep -l \"\\.claude/.env\" ~/.bashrc ~/.zshrc ~/.profile 2>/dev/null || echo \"Not configured in shell profile\"",
+      "description": "Check if .env is loaded in shell"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:10:55.531799",
+      "command": "echo $SHELL && ls -la ~/.bashrc ~/.zshrc 2>/dev/null | head -5",
+      "description": "Check which shell is used"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:11:00.908145",
+      "command": "grep \"claude.*env\" ~/.bashrc 2>/dev/null || echo \"# Claude env vars loading not present\"",
+      "description": "Check if already configured"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:11:06.686970",
+      "command": "cat >> ~/.bashrc << 'EOF'\n\n# Claude Code - Load API keys from SSOT\nif [ -f ~/.claude/.env ]; then\n    set -a\n    source ~/.claude/.env\n    set +a\nfi\nEOF\necho \"Added to ~/.bashrc\"",
+      "description": "Add env loading to bashrc"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-14T16:11:13.255430",
+      "todo_count": 4
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-14T16:11:24.994404",
+      "file_path": "/media/sam/1TB/nautilus_dev/.mcp.live.json",
+      "old_string": "    \"matlab-server\": {\n      \"command\": \"node\",\n      \"args\": [\"/media/sam/1TB1/mcpservers/matlab-mc..."
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-14T16:11:33.840817",
+      "todo_count": 4
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:15:12.440231",
+      "command": "grep -r \"secret.*manager\\|GSM\\|gcloud.*secrets\\|google.*secret\" /home/sam/.claude/ /media/sam/1TB/nautilus_dev/.claude/ 2>/dev/null | head -20",
+      "description": "Find GSM references"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:15:12.459779",
+      "command": "grep -r \"secretmanager\\|gcloud\" /media/sam/1TB/nautilus_dev/.github/ /media/sam/1TB/nautilus_dev/scripts/ 2>/dev/null | head -20",
+      "description": "Find GSM in workflows/scripts"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:19:08.039944",
+      "command": "echo \"=== .env files ===\" && find /media/sam/1TB/nautilus_dev /media/sam/1TB/N8N_dev /home/sam/.claude -name \".env*\" -type f 2>/dev/null | head -20",
+      "description": "Find all .env files"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:19:14.566608",
+      "command": "echo \"=== GSM References ===\" && grep -r \"secret.*manager\\|gcloud.*secret\\|GOOGLE_APPLICATION\\|secretmanager\" /media/sam/1TB/nautilus_dev /media/sam/1TB/N8N_dev /home/sam/.claude 2>/dev/null | grep -v \".pyc\\|node_modules\\|__pycache__\" | head -20",
+      "description": "Find GSM references"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:19:34.047299",
+      "command": "echo \"=== ~/.claude/.env ===\" && cat /home/sam/.claude/.env | grep -v \"^#\" | cut -d'=' -f1 | sort\necho \"\"\necho \"=== nautilus_dev/.env ===\" && cat /media/sam/1TB/nautilus_dev/.env 2>/dev/null | grep -v \"^#\" | cut -d'=' -f1 | sort | head -20\necho \"\"\necho \"=== N8N_dev/.env ===\" && cat /media/sam/1TB/N8N_dev/.env 2>/dev/null | grep -v \"^#\" | cut -d'=' -f1 | sort | head -10",
+      "description": "Compare env vars across files"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:19:39.528891",
+      "command": "echo \"=== ~/.claude/.env ===\" && grep -v \"^#\" /home/sam/.claude/.env | grep -v \"^$\" | cut -d'=' -f1",
+      "description": "Check claude .env vars"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:19:44.914905",
+      "command": "echo \"=== nautilus_dev/.env ===\" && grep -v \"^#\" /media/sam/1TB/nautilus_dev/.env 2>/dev/null | grep -v \"^$\" | cut -d'=' -f1",
+      "description": "Check nautilus .env vars"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-14T16:19:55.480545",
+      "todo_count": 4
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:20:00.977067",
+      "command": "echo \"=== N8N_dev/.env ===\" && grep -v \"^#\" /media/sam/1TB/N8N_dev/.env 2>/dev/null | grep -v \"^$\" | cut -d'=' -f1",
+      "description": "Check N8N .env vars"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:20:20.269220",
+      "command": "grep \"DISCORD_WEBHOOK_URL\" /media/sam/1TB/nautilus_dev/.env",
+      "description": "Check duplicate value"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:20:26.425712",
+      "command": "sed -i '/^DISCORD_WEBHOOK_URL=/d' /media/sam/1TB/nautilus_dev/.env && echo \"Rimosso DISCORD_WEBHOOK_URL da nautilus_dev/.env (SSOT: ~/.claude/.env)\"",
+      "description": "Remove duplicate, keep SSOT in ~/.claude/.env"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:20:48.300160",
+      "file_path": "/home/sam/.claude/canonical.yaml"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-14T16:20:58.689167",
+      "file_path": "/home/sam/.claude/canonical.yaml",
+      "old_string": "# =============================================================================\n# ENVIRONMENT VARIAB..."
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-14T16:21:06.618714",
+      "todo_count": 5
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:21:12.364561",
+      "command": "grep -n \"def check_\" /home/sam/.claude/scripts/drift-detector.py | head -10",
+      "description": "Find check functions in drift-detector"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:21:17.810637",
+      "file_path": "/home/sam/.claude/scripts/drift-detector.py"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:21:23.181981",
+      "file_path": "/home/sam/.claude/scripts/drift-detector.py"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:21:28.358830",
+      "command": "grep -n \"def main\\|check_\" /home/sam/.claude/scripts/drift-detector.py | tail -30",
+      "description": "Find main function and all check functions"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:21:33.579281",
+      "file_path": "/home/sam/.claude/scripts/drift-detector.py"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:21:37.953007",
+      "file_path": "/home/sam/.claude/scripts/drift-detector.py"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-14T16:21:50.960621",
+      "file_path": "/home/sam/.claude/scripts/drift-detector.py",
+      "old_string": "    return issues\n\n\ndef generate_report(report: HealthReport, canonical: dict) -> str:\n    \"\"\"Genera..."
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:21:55.618483",
+      "file_path": "/home/sam/.claude/scripts/drift-detector.py"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-14T16:22:01.180731",
+      "file_path": "/home/sam/.claude/scripts/drift-detector.py",
+      "old_string": "    all_issues.extend(check_containers(canonical))\n    all_issues.extend(check_cron(canonical))\n\n   ..."
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:22:08.425530",
+      "command": "cd /home/sam/.claude && python3 scripts/drift-detector.py --json 2>&1 | python3 -c \"import sys,json; d=json.load(sys.stdin); print('Issues:', len(d.get('issues',[]))); [print(f\\\"  - {i['category']}: {i['message']}\\\") for i in d.get('issues',[]) if i.get('category')=='env_duplicate']\" 2>/dev/null || python3 scripts/drift-detector.py 2>&1 | head -20",
+      "description": "Test env duplicate check"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:22:14.699594",
+      "command": "cd /home/sam/.claude && python3 scripts/drift-detector.py 2>&1 | tail -30",
+      "description": "Run drift-detector to see output"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:22:20.174270",
+      "file_path": "/home/sam/.claude/canonical.yaml"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-14T16:22:27.795829",
+      "file_path": "/home/sam/.claude/canonical.yaml",
+      "old_string": "      usage: \"<query>\" | --status"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:22:33.193978",
+      "command": "cd /home/sam/.claude && python3 scripts/drift-detector.py 2>&1 | head -40",
+      "description": "Test drift-detector after YAML fix"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-14T16:22:40.876813",
+      "todo_count": 5
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:24:13.841012",
+      "command": "grep -A 10 '\"claude-flow\"' /media/sam/1TB/nautilus_dev/.mcp.live.json",
+      "description": "Check ClaudeFlow MCP config"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-14T16:24:24.649524",
+      "file_path": "/media/sam/1TB/nautilus_dev/.mcp.live.json",
+      "old_string": "\"claude-flow\": {\n      \"command\": \"npx\",\n      \"args\": [\"-y\", \"claude-flow@alpha\", \"mcp\", \"start\", \"..."
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:24:31.243042",
+      "command": "timeout 15 npx -y claude-flow@alpha mcp start --transport http --port 3001 2>&1 &\nsleep 8\ncurl -s http://127.0.0.1:3001/health 2>/dev/null || echo \"Server not responding\"\npkill -f \"claude-flow.*mcp.*3001\" 2>/dev/null\necho \"Test complete\"",
+      "description": "Test ClaudeFlow MCP server startup"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:25:41.286874",
+      "command": "ls -la ~/.claude/.mcp* 2>/dev/null || echo \"No global .mcp files\"\necho \"---\"\ncat ~/.claude/settings.json 2>/dev/null | grep -A 20 \"mcpServers\" | head -25 || echo \"No mcpServers in settings.json\"",
+      "description": "Check global MCP config"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:25:48.283597",
+      "command": "echo \"=== Global MCP files ===\" && ls -la ~/.claude/.mcp* 2>/dev/null || echo \"None\"\necho \"\"\necho \"=== settings.json MCP ===\" && python3 -c \"import json; d=json.load(open('/home/sam/.claude/settings.json')); print(json.dumps(d.get('mcpServers', {}), indent=2))\" 2>/dev/null || echo \"No mcpServers\"",
+      "description": "Check global MCP config"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:25:56.341747",
+      "file_path": "/home/sam/.claude/settings.json"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:26:05.497875",
+      "command": "grep -r \"ccfullbrowser\\|fullbrowser\" /media/sam/1TB/N8N_dev/.mcp* 2>/dev/null | head -10",
+      "description": "Find ccfullbrowser config"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:26:15.775480",
+      "command": "ls -la /media/sam/1TB/N8N_dev/.mcp* 2>/dev/null && cat /media/sam/1TB/N8N_dev/.mcp.json 2>/dev/null | head -50",
+      "description": "Check N8N_dev MCP configs"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:26:38.876427",
+      "command": "claude mcp list 2>/dev/null && echo \"---\" && ls -la ~/.config/claude-code/.mcp* ~/.claude/.mcp* 2>/dev/null || echo \"Checking mcp storage location...\"",
+      "description": "Find where claude mcp stores configs"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:26:47.865196",
+      "command": "claude mcp add --help 2>&1 | head -30",
+      "description": "Check mcp add options"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:26:57.048778",
+      "command": "claude mcp add --scope user context7 -- npx -y @upstash/context7-mcp 2>&1",
+      "description": "Add context7 MCP globally"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:27:08.543797",
+      "command": "claude mcp remove context7 --scope user 2>&1\ncat ~/.claude.json 2>/dev/null | head -20",
+      "description": "Remove and check structure"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:27:23.605421",
+      "command": "mkdir -p ~/.claude/mcp-profiles",
+      "description": "Create MCP profiles directory"
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-14T16:27:29.158210",
+      "file_path": "/home/sam/.claude/mcp-profiles/base.json",
+      "content_length": 173
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-14T16:27:38.424374",
+      "file_path": "/home/sam/.claude/mcp-profiles/live.json",
+      "content_length": 794
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:27:43.817809",
+      "file_path": "/home/sam/.claude/canonical.yaml"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:27:51.984831",
+      "command": "grep \"alias cc\" ~/.bashrc ~/.zshrc ~/.bash_aliases 2>/dev/null | head -20",
+      "description": "Check existing cc aliases"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:28:02.864004",
+      "command": "cat >> ~/.bashrc << 'EOF'\n\n# Claude Code - MCP Profile Aliases (SSOT: ~/.claude/mcp-profiles/)\nalias ccbase=\"claude --mcp-config ~/.claude/mcp-profiles/base.json\"\nalias ccfull=\"claude --mcp-config ~/.claude/mcp-profiles/live.json\"\n# Project-specific aliases keep using local .mcp.*.json for project additions\nEOF\necho \"Added global profile aliases\"",
+      "description": "Add global MCP profile aliases"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-14T16:28:21.269716",
+      "todo_count": 4
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:28:26.170615",
+      "command": "mkdir -p ~/.claude/specs/backstage-idp",
+      "description": "Create Backstage spec directory"
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-14T16:28:50.819515",
+      "file_path": "/home/sam/.claude/specs/backstage-idp/spec.md",
+      "content_length": 3896
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-14T16:29:34.642012",
+      "file_path": "/home/sam/.claude/INFRASTRUCTURE.md",
+      "content_length": 7437
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:29:42.205810",
+      "command": "echo \"=== 1. Verifico directory structure ===\" \nfor dir in ~/.claude/mcp-profiles ~/.claude/scripts ~/.claude/commands ~/.claude/skills ~/.claude/specs ~/.claude/metrics ~/.claude/templates; do\n    if [ -d \"$dir\" ]; then\n        echo \"✓ $dir\"\n    else\n        echo \"✗ $dir (MISSING)\"\n        mkdir -p \"$dir\"\n        echo \"  → Created\"\n    fi\ndone",
+      "description": "Verify and create directory structure"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:29:49.205236",
+      "command": "echo \"=== 2. Verifico file critici ===\" \nfor file in ~/.claude/canonical.yaml ~/.claude/.env ~/.claude/settings.json ~/.claude/INFRASTRUCTURE.md; do\n    if [ -f \"$file\" ]; then\n        echo \"✓ $file\"\n    else\n        echo \"✗ $file (MISSING)\"\n    fi\ndone\n\necho \"\"\necho \"=== 3. MCP Profiles ===\" \nls -la ~/.claude/mcp-profiles/\n\necho \"\"\necho \"=== 4. Env vars loaded ===\" \nsource ~/.bashrc 2>/dev/null\necho \"LINEAR_API_KEY: ${LINEAR_API_KEY:0:10}...\"\necho \"DISCORD_WEBHOOK: ${DISCORD_WEBHOOK_URL:0:30}...\"",
+      "description": "Verify critical files and env vars"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:29:56.744518",
+      "command": "echo \"=== 5. Aliases configurati ===\" \ngrep \"^alias cc\" ~/.bashrc | tail -10\n\necho \"\"\necho \"=== 6. Drift detector ===\" \ncd ~/.claude && python3 scripts/drift-detector.py 2>&1 | head -15",
+      "description": "Check aliases and run drift detector"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:30:01.814724",
+      "command": "echo \"=== 5. Aliases configurati ===\" \ngrep \"alias cc\" ~/.bashrc\n\necho \"\"\necho \"=== 6. Drift detector ===\" \ncd ~/.claude && python3 scripts/drift-detector.py 2>&1 | head -15",
+      "description": "Check aliases and run drift detector"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:30:06.646481",
+      "command": "grep \"alias cc\" /home/sam/.bashrc",
+      "description": "Check cc aliases"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:30:11.744666",
+      "command": "python3 /home/sam/.claude/scripts/drift-detector.py 2>&1 | head -20",
+      "description": "Run drift detector"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:30:16.984485",
+      "command": "python3 /home/sam/.claude/scripts/drift-detector.py --fix 2>&1",
+      "description": "Auto-fix drift issues"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:30:22.423527",
+      "command": "python3 /home/sam/.claude/scripts/drift-detector.py 2>&1",
+      "description": "Verify drift detector clean"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-14T16:30:28.980005",
+      "todo_count": 4
+    },
+    {
+      "operation": "skill",
+      "timestamp": "2026-01-14T16:34:03.794339",
+      "skill": "speckit.plan",
+      "args": "~/.claude/specs/backstage-idp"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:34:10.455261",
+      "command": "cd /home/sam/.claude && bash .specify/scripts/bash/setup-plan.sh --json ~/.claude/specs/backstage-idp 2>/dev/null || echo '{\"error\": \"setup script not found\"}'",
+      "description": "Run SpecKit setup script"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:34:15.746842",
+      "command": "ls -la /home/sam/.claude/.specify/ 2>/dev/null || echo \".specify not found\"\nls -la /home/sam/.specify/ 2>/dev/null || echo \"~/.specify not found\"",
+      "description": "Check .specify directory location"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:34:20.656491",
+      "command": "ls -la /home/sam/.claude/.specify/scripts/",
+      "description": "Check scripts directory"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:34:25.368434",
+      "command": "ls -la /home/sam/.claude/.specify/scripts/bash/",
+      "description": "Check bash scripts"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:34:30.155366",
+      "command": "cd /home/sam/.claude && bash .specify/scripts/bash/setup-plan.sh --json /home/sam/.claude/specs/backstage-idp 2>&1",
+      "description": "Run setup-plan.sh with correct path"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:34:41.663759",
+      "command": "ls -la /home/sam/.claude/.specify/templates/",
+      "description": "Check templates directory"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:34:46.561903",
+      "file_path": "/home/sam/.claude/.specify/templates/plan-template.md"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:34:51.863068",
+      "file_path": "/home/sam/.claude/.specify/memory/constitution.md"
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-14T16:35:23.378315",
+      "file_path": "/home/sam/.claude/specs/backstage-idp/plan.md",
+      "content_length": 5079
+    },
+    {
+      "operation": "skill",
+      "timestamp": "2026-01-14T16:35:29.108555",
+      "skill": "speckit.tasks",
+      "args": "~/.claude/specs/backstage-idp"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:35:34.577019",
+      "command": "cd /home/sam/.claude && bash .specify/scripts/bash/check-prerequisites.sh --json /home/sam/.claude/specs/backstage-idp 2>&1 || echo \"Script failed, proceeding manually\"",
+      "description": "Run prerequisite check script"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:35:40.840766",
+      "command": "ls -la /home/sam/.claude/specs/backstage-idp/",
+      "description": "Check available docs in feature dir"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:35:45.853224",
+      "file_path": "/home/sam/.claude/.specify/templates/tasks-template.md"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:35:50.752038",
+      "file_path": "/home/sam/.claude/specs/backstage-idp/spec.md"
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-14T16:36:37.437376",
+      "file_path": "/home/sam/.claude/specs/backstage-idp/tasks.md",
+      "content_length": 8308
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-14T16:38:03.172964",
+      "todo_count": 5
+    },
+    {
+      "operation": "skill",
+      "timestamp": "2026-01-14T16:38:09.237875",
+      "skill": "speckit.analyze",
+      "args": "~/.claude/specs/backstage-idp"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:38:15.071136",
+      "command": ".specify/scripts/bash/check-prerequisites.sh --json --require-tasks --include-tasks 2>/dev/null || echo '{\"error\": \"script not found\"}'",
+      "description": "Check SpecKit prerequisites for analyze"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:38:21.791323",
+      "file_path": "/home/sam/.claude/specs/backstage-idp/spec.md"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:38:21.815586",
+      "file_path": "/home/sam/.claude/specs/backstage-idp/plan.md"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-14T16:38:21.825188",
+      "file_path": "/home/sam/.claude/specs/backstage-idp/tasks.md"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-14T16:40:19.423064",
+      "todo_count": 6
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-14T16:40:28.437114",
+      "file_path": "/home/sam/.claude/specs/backstage-idp/spec.md",
+      "old_string": "## Overview\n\nDeploy Backstage as unified developer portal to track and manage:\n- Repository catalog ..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-14T16:40:35.669894",
+      "file_path": "/home/sam/.claude/specs/backstage-idp/spec.md",
+      "old_string": "## Goals\n\n1. **Single pane of glass** - All repos, configs, status in one UI\n2. **Config tracking** ..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-14T16:40:48.430333",
+      "file_path": "/home/sam/.claude/specs/backstage-idp/spec.md",
+      "old_string": "## Architecture\n\n```\n┌─────────────────────────────────────────────────────────────┐\n│              ..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-14T16:40:57.824288",
+      "file_path": "/home/sam/.claude/specs/backstage-idp/spec.md",
+      "old_string": "### Catalog Structure\n```yaml\n# Per ogni repo\napiVersion: backstage.io/v1alpha1\nkind: Component\nmeta..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-14T16:41:19.417738",
+      "file_path": "/home/sam/.claude/specs/backstage-idp/tasks.md",
+      "old_string": "## Phase 3: User Story 1 - Software Catalog (Priority: P1) 🎯 MVP\n\n**Goal**: All 4 repos visible in B..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-14T16:41:31.255316",
+      "file_path": "/home/sam/.claude/specs/backstage-idp/tasks.md",
+      "old_string": "## Phase 4: User Story 2 - Grafana Integration (Priority: P2)\n\n**Goal**: Embed Grafana dashboards in..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-14T16:41:39.966371",
+      "file_path": "/home/sam/.claude/specs/backstage-idp/tasks.md",
+      "old_string": "## Phase 5: User Story 3 - GitHub Integration (Priority: P3)\n\n**Goal**: Show PR status and GitHub Ac..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-14T16:41:48.578737",
+      "file_path": "/home/sam/.claude/specs/backstage-idp/tasks.md",
+      "old_string": "## Path Conventions\n\n- **Deployment**: `/media/sam/1TB/backstage-portal/`\n- **Catalog**: `/media/sam..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-14T16:41:58.974098",
+      "file_path": "/home/sam/.claude/specs/backstage-idp/tasks.md",
+      "old_string": "## Phase 2: Foundational (Blocking Prerequisites)\n\n**Purpose**: Core infrastructure that MUST be com..."
+    },
+    {
+      "operation": "websearch",
+      "timestamp": "2026-01-14T16:42:04.582573",
+      "query": "Backstage plugins catalog official 2025 community plugins list"
+    },
+    {
+      "operation": "webfetch",
+      "timestamp": "2026-01-14T16:42:39.054517",
+      "url": "https://backstage.io/docs/plugins/existing-plugins/",
+      "prompt": "List all the official and community plugins available for Backstage. Focus on: Grafana, GitHub, GitH..."
+    },
+    {
+      "operation": "webfetch",
+      "timestamp": "2026-01-14T16:42:46.590209",
+      "url": "https://backstage.io/plugins",
+      "prompt": "List all plugins for: Grafana, GitHub Actions, GitHub Pull Requests. Include their package names (@b..."
+    },
+    {
+      "operation": "webfetch",
+      "timestamp": "2026-01-14T16:42:55.997172",
+      "url": "https://github.com/backstage/community-plugins",
+      "prompt": "What is the npm package name for Grafana plugin and GitHub Actions plugin? What namespace do they us..."
+    },
+    {
+      "operation": "websearch",
+      "timestamp": "2026-01-14T16:43:04.659079",
+      "query": "@backstage-community/plugin-grafana npm package 2025"
+    },
+    {
+      "operation": "websearch",
+      "timestamp": "2026-01-14T16:43:33.366074",
+      "query": "@backstage-community/plugin-github-actions npm 2025"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-14T16:44:09.217701",
+      "file_path": "/home/sam/.claude/specs/backstage-idp/spec.md",
+      "old_string": "### Plugins Required\n- @backstage/plugin-catalog (built-in)\n- @backstage-community/plugin-grafana\n- ..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-14T16:44:15.458428",
+      "file_path": "/home/sam/.claude/specs/backstage-idp/plan.md",
+      "old_string": "**Primary Dependencies**: @backstage/core, @backstage-community/plugin-grafana, @backstage/plugin-gi..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-14T16:44:21.517213",
+      "file_path": "/home/sam/.claude/specs/backstage-idp/tasks.md",
+      "old_string": "- [ ] T016 [US2] Install @backstage-community/plugin-grafana in packages/app"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-14T16:44:26.832004",
+      "file_path": "/home/sam/.claude/specs/backstage-idp/tasks.md",
+      "old_string": "- [ ] T023 [US3] Install @backstage/plugin-github-actions in packages/app"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-14T16:44:34.124935",
+      "todo_count": 6
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:44:48.670080",
+      "command": "echo \"=== COHERENCE CHECK ===\" && echo \"\" && echo \"1. Spec Overview items:\" && grep -A 6 \"^## Overview\" /home/sam/.claude/specs/backstage-idp/spec.md | head -10 && echo \"\" && echo \"2. Tasks User Stories:\" && grep -c \"\\[US\" /home/sam/.claude/specs/backstage-idp/tasks.md && echo \"tasks with US labels\" && echo \"\" && echo \"3. Success Criteria:\" && grep -c \"^\\- \\[ \\]\" /home/sam/.claude/specs/backstage-idp/spec.md && echo \"success criteria items\" && echo \"\" && echo \"4. Package names check:\" && grep -o \"@backstage[^\\\"' ]*\" /home/sam/.claude/specs/backstage-idp/tasks.md | sort -u",
+      "description": "Verify spec coherence"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-14T16:44:57.040213",
+      "todo_count": 6
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-14T16:58:38.151484",
+      "command": "which gcloud && gcloud secrets list 2>/dev/null | head -10 || echo \"gcloud not configured or no secrets\"",
+      "description": "Check if GSM is actually in use"
+    }
+  ],
+  "last_updated": "2026-01-14T16:58:38.151509"
+}

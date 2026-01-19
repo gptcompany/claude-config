@@ -14,7 +14,7 @@ Build a reusable validation pipeline framework starting with core templates, the
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
 
-- [ ] **Phase 1: Core Framework** - Schema, scaffold script, base smoke tests
+- [x] **Phase 1: Core Framework** - Schema, scaffold script, base smoke tests
 - [ ] **Phase 2: CI Workflows** - GitHub Actions templates for smoke and integration
 - [ ] **Phase 3: Local K8s** - k3d cluster setup, Argo Rollouts, mock Prometheus
 - [ ] **Phase 4: Trading Extension** - Paper trading, risk limits, analysis templates
@@ -30,8 +30,8 @@ Build a reusable validation pipeline framework starting with core templates, the
 **Plans**: 2 plans
 
 Plans:
-- [ ] 01-01: Create JSON Schema and scaffold script
-- [ ] 01-02: Create smoke test Jinja2 templates
+- [x] 01-01: Create JSON Schema and scaffold script
+- [x] 01-02: Create smoke test Jinja2 templates
 
 ### Phase 2: CI Workflows
 **Goal**: Create GitHub Actions workflow templates
@@ -82,7 +82,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Core Framework | 0/2 | Not started | - |
+| 1. Core Framework | 2/2 | Complete | 2026-01-19 |
 | 2. CI Workflows | 0/1 | Not started | - |
 | 3. Local K8s | 0/2 | Not started | - |
 | 4. Trading Extension | 0/1 | Not started | - |

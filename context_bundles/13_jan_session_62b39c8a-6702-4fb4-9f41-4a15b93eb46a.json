@@ -1,0 +1,48 @@
+{
+  "session_id": "62b39c8a-6702-4fb4-9f41-4a15b93eb46a",
+  "created_at": "2026-01-13T22:18:03.883277",
+  "operations": [
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T22:18:03.883302",
+      "command": "echo \"Shell: $SHELL\" && echo \"---\" && ls -la ~/.bashrc ~/.zshrc ~/.profile 2>/dev/null || true",
+      "description": "Check shell and config files"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T22:18:04.224408",
+      "command": "cat ~/.bashrc 2>/dev/null | head -100",
+      "description": "Read bashrc first 100 lines"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T22:18:12.851267",
+      "command": "cat ~/.bashrc 2>/dev/null | tail -100",
+      "description": "Read bashrc last 100 lines"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T22:18:18.889586",
+      "command": "cat ~/.config/gsm/load-secrets.sh 2>/dev/null || echo \"File non trovato\"",
+      "description": "Read GSM load secrets script"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-13T22:18:29.715253",
+      "file_path": "/home/sam/.config/gsm/load-secrets.sh"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-13T22:18:36.143139",
+      "file_path": "/home/sam/.config/gsm/load-secrets.sh",
+      "old_string": "echo \"[GSM] Done. 10 secrets loaded.\""
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T22:24:56.693830",
+      "command": "find . -name \"check-prerequisites.sh\" -path \"*/.specify/*\" 2>/dev/null | head -5",
+      "description": "Find prerequisites script"
+    }
+  ],
+  "last_updated": "2026-01-13T22:24:56.693866"
+}

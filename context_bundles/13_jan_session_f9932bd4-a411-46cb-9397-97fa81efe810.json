@@ -1,0 +1,1372 @@
+{
+  "session_id": "f9932bd4-a411-46cb-9397-97fa81efe810",
+  "created_at": "2026-01-13T01:25:59.268133",
+  "operations": [
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:25:59.268159",
+      "command": "echo \"=== CPU ===\" && uptime && echo -e \"\\n=== MEMORY ===\" && free -h && echo -e \"\\n=== DISK ===\" && df -h / /media/sam/1TB 2>/dev/null | grep -v \"^Filesystem\" && echo -e \"\\n=== TOP PROCESSES ===\" && ps aux --sort=-%cpu | head -6",
+      "description": "Check system resources"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:27:34.479810",
+      "command": "sudo du -h --max-depth=1 / 2>/dev/null | sort -hr | head -15",
+      "description": "Find largest directories on root"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:29:40.653027",
+      "command": "sleep 5 && cat /tmp/claude/-home-sam/tasks/bcaebc0.output",
+      "description": "Read disk usage results"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:29:53.190956",
+      "command": "df -h / && echo -e \"\\n=== TOP DIRS ===\" && du -h --max-depth=1 /home 2>/dev/null | sort -hr | head -10",
+      "description": "Check /home usage"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:29:53.211014",
+      "command": "du -sh /var/log /var/cache /var/lib/docker /tmp /snap 2>/dev/null",
+      "description": "Check common large directories"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:30:09.629568",
+      "command": "du -sh /usr /opt /var 2>/dev/null",
+      "description": "Check /usr /opt /var"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:30:09.661393",
+      "command": "du -h --max-depth=1 /home/sam 2>/dev/null | sort -hr | head -15",
+      "description": "Check /home/sam breakdown"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:30:23.485673",
+      "command": "du -h --max-depth=1 /home/sam/.cache 2>/dev/null | sort -hr | head -15",
+      "description": "Check .cache breakdown"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:30:23.505690",
+      "command": "du -sh /var/lib/snapd 2>/dev/null; ls /snap 2>/dev/null | head -10",
+      "description": "Check snap usage"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:32:09.696171",
+      "command": "echo \"Before:\" && df -h / | tail -1 && echo -e \"\\nCleaning...\" && rm -rf ~/.cache/pip ~/.cache/uv ~/.cache/ms-playwright && echo -e \"\\nAfter:\" && df -h / | tail -1",
+      "description": "Clean caches and show result"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-13T01:36:37.541635",
+      "file_path": "/home/sam/.claude/commands/research.md"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:39:05.189563",
+      "command": "pip show raganything 2>/dev/null | grep -E \"^(Name|Version|Summary|Home)\" && echo -e \"\\n=== Capabilities ===\" && python3 -c \"import raganything; help(raganything)\" 2>/dev/null | head -50",
+      "description": "Check RAGanything capabilities"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-13T01:39:07.039081",
+      "file_path": "/media/sam/1TB/N8N_dev/scripts/raganything_service.py"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:39:16.119186",
+      "command": "ls -la /media/sam/1TB/N8N_dev/raganything/ 2>/dev/null | head -20",
+      "description": "Check RAGanything directory"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:39:16.142899",
+      "command": "cat /media/sam/1TB/N8N_dev/raganything/README.md 2>/dev/null | head -80",
+      "description": "Read RAGanything README"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:39:28.681323",
+      "command": "grep -r \"LightRAG\\|query\\|retrieve\\|search\" /media/sam/1TB/N8N_dev/raganything/raganything/*.py 2>/dev/null | head -30",
+      "description": "Check RAGanything query capabilities"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:39:30.034842",
+      "command": "ls -la /media/sam/1TB/N8N_dev/extracted/raganything/ 2>/dev/null | head -10",
+      "description": "Check extracted data"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-13T01:39:38.350845",
+      "file_path": "/media/sam/1TB/N8N_dev/scripts/raganything_service.py"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:41:04.846106",
+      "command": "cat /media/sam/1TB/N8N_dev/raganything/README.md | grep -A 100 \"Quick Start\\|Usage\\|Example\\|query\\|retrieve\" | head -150",
+      "description": "Read RAGanything usage examples"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:41:12.651620",
+      "command": "cat /media/sam/1TB/N8N_dev/raganything/README.md | grep -A 200 \"### Installation\" | head -250",
+      "description": "Read installation and usage"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-13T01:43:05.910728",
+      "file_path": "/media/sam/1TB/N8N_dev/scripts/raganything_service.py"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-13T01:43:24.433220",
+      "todo_count": 3
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-13T01:43:24.985336",
+      "file_path": "/media/sam/1TB/N8N_dev/scripts/raganything_service.py"
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-13T01:44:38.295105",
+      "file_path": "/media/sam/1TB/N8N_dev/scripts/raganything_service.py",
+      "content_length": 15641
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:44:49.702225",
+      "command": "python3 -m py_compile /media/sam/1TB/N8N_dev/scripts/raganything_service.py && echo \"✅ Syntax OK\"",
+      "description": "Verify syntax"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-13T01:44:50.290003",
+      "todo_count": 3
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:44:56.511128",
+      "command": "curl -s http://localhost:8767/health 2>/dev/null | python3 -m json.tool 2>/dev/null || echo \"Service not running\"",
+      "description": "Check if service is running"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:45:02.337570",
+      "command": "pkill -f \"raganything_service.py\" && sleep 2 && echo \"Service stopped\"",
+      "description": "Stop old service"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:45:24.496292",
+      "command": "cd /media/sam/1TB/N8N_dev && nohup python3 scripts/raganything_service.py > /tmp/raganything_service.log 2>&1 &\nsleep 3\ncurl -s http://localhost:8767/health | python3 -m json.tool",
+      "description": "Start service and check health"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:47:31.363044",
+      "command": "cat /tmp/raganything_service.log",
+      "description": "Check service startup log"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:47:31.892785",
+      "command": "sleep 2 && curl -s http://localhost:8767/health 2>/dev/null | python3 -m json.tool 2>/dev/null || echo \"Service failed to start\"",
+      "description": "Verify service health"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-13T01:47:42.062441",
+      "file_path": "/home/sam/.claude/commands/research.md"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-13T01:48:11.294356",
+      "todo_count": 5
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:48:17.344412",
+      "command": "ls -la /home/sam/.claude/commands/research-papers.md 2>/dev/null || echo \"File does not exist\"",
+      "description": "Check if file exists"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-13T01:48:21.960759",
+      "file_path": "/home/sam/.claude/commands/research-papers.md"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-13T01:48:41.027747",
+      "file_path": "/home/sam/.claude/commands/research-papers.md",
+      "old_string": "# /research-papers - View Academic Research Results\n\nDisplay academic papers and validated formulas ..."
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:48:50.325873",
+      "command": "systemctl list-units --type=service 2>/dev/null | grep -i rag || echo \"No systemd service\"",
+      "description": "Check for systemd service"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:48:50.940789",
+      "command": "crontab -l 2>/dev/null | grep -i rag || echo \"No cron job\"",
+      "description": "Check for cron monitoring"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:50:22.481640",
+      "command": "cat << 'EOF' | sudo tee /etc/systemd/system/raganything.service\n[Unit]\nDescription=RAGanything Service - Full RAG for Academic Papers\nAfter=network.target\n\n[Service]\nType=simple\nUser=sam\nWorkingDirectory=/media/sam/1TB/N8N_dev\nEnvironment=\"PATH=/home/sam/.local/bin:/usr/local/bin:/usr/bin:/bin\"\nEnvironmentFile=/media/sam/1TB/N8N_dev/.env\nExecStart=/usr/bin/python3 /media/sam/1TB/N8N_dev/scripts/raganything_service.py\nRestart=always\nRestartSec=10\nStandardOutput=journal\nStandardError=journal\n\n[Install]\nWantedBy=multi-user.target\nEOF",
+      "description": "Create systemd service file"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:50:31.869513",
+      "command": "pkill -f \"raganything_service.py\" 2>/dev/null; sleep 1\nsudo systemctl daemon-reload\nsudo systemctl enable raganything.service\nsudo systemctl start raganything.service\nsleep 2\nsudo systemctl status raganything.service --no-pager",
+      "description": "Enable and start systemd service"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:50:39.597950",
+      "command": "sudo systemctl status raganything.service --no-pager 2>&1 | head -20",
+      "description": "Check service status"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:50:46.397423",
+      "command": "sudo systemctl enable raganything.service && sudo systemctl start raganything.service && sleep 2 && sudo systemctl status raganything.service --no-pager | head -15",
+      "description": "Enable and start service"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:50:55.006951",
+      "command": "curl -s http://localhost:8767/health | python3 -m json.tool",
+      "description": "Verify service health"
+    },
+    {
+      "operation": "glob",
+      "timestamp": "2026-01-13T01:51:00.518813",
+      "pattern": "**/README.md",
+      "path": "/media/sam/1TB/N8N_dev"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:51:05.843062",
+      "command": "ls /media/sam/1TB/N8N_dev/scripts/*.md 2>/dev/null || echo \"No MD files in scripts\"",
+      "description": "Check for existing docs in scripts"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:51:27.281713",
+      "command": "cat << 'EOF' > /media/sam/1TB/N8N_dev/scripts/RAGANYTHING_SERVICE_README.md\n# RAGanything Service v3.0\n\nFull RAG (Retrieval Augmented Generation) service for academic papers.\n\n## Architecture\n\n```\n┌─────────────────────┐     ┌──────────────────────┐\n│   N8N (Docker)      │────▶│  RAGanything (HOST)  │\n│   localhost:5678    │     │  localhost:8767      │\n│                     │     │                      │\n│  host.docker.internal:8767│  - MinerU + GPU      │\n└─────────────────────┘     │  - LightRAG KG       │\n                            │  - OpenAI embeddings │\n                            └──────────────────────┘\n```\n\n## Service Management\n\n```bash\n# Start\nsudo systemctl start raganything\n\n# Stop\nsudo systemctl stop raganything\n\n# Restart\nsudo systemctl restart raganything\n\n# Status\nsudo systemctl status raganything\n\n# Logs\njournalctl -u raganything -f\n```\n\n## Endpoints\n\n| Endpoint | Method | Description |\n|----------|--------|-------------|\n| `/health` | GET | Service health + status |\n| `/status` | GET | Circuit breaker + jobs |\n| `/process` | POST | Process PDF → Knowledge Graph |\n| `/query` | POST | Semantic search |\n\n## Usage Examples\n\n### Process a PDF\n\n```bash\ncurl -X POST http://localhost:8767/process \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"pdf_path\": \"/media/sam/1TB/papers/kelly.pdf\",\n    \"paper_id\": \"arxiv:2401.12345\"\n  }'\n```\n\n### Query Knowledge Graph\n\n```bash\ncurl -X POST http://localhost:8767/query \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"query\": \"What is the Kelly criterion formula?\",\n    \"mode\": \"hybrid\"\n  }'\n```\n\nQuery modes:\n- `hybrid` - Combines local + global (default)\n- `local` - Specific context chunks\n- `global` - Summary across papers\n\n## Storage\n\n- **Knowledge Graph**: `/media/sam/1TB/N8N_dev/rag_knowledge_base/`\n- **Extracted Output**: `/media/sam/1TB/N8N_dev/extracted/raganything/`\n\n## Configuration\n\nEnvironment variables (from `.env`):\n- `OPENAI_API_KEY` - Required for embeddings\n\nService config (in script):\n- `PORT = 8767`\n- `PROCESS_TIMEOUT = 600` (10 min)\n- `MAX_CONCURRENT_JOBS = 2`\n\n## Systemd Service\n\nFile: `/etc/systemd/system/raganything.service`\n\nFeatures:\n- Auto-start on boot\n- Auto-restart on crash (10s delay)\n- Logs to journald\n\n## Integration with N8N\n\nFrom N8N container, call:\n```\nhttp://host.docker.internal:8767/process\nhttp://host.docker.internal:8767/query\n```\n\n## Claude Command\n\nUse `/research-papers \"query\"` to query the knowledge graph.\nEOF\n\necho \"✅ Documentation created\"",
+      "description": "Create RAGanything documentation"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-13T01:51:35.072845",
+      "todo_count": 4
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:51:52.884971",
+      "command": "curl -s -X POST http://localhost:8767/query \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"query\": \"Kelly criterion optimal betting\", \"mode\": \"hybrid\"}' | python3 -m json.tool 2>/dev/null || echo \"Query failed\"",
+      "description": "Test RAG query"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:52:00.439246",
+      "command": "ls -la /media/sam/1TB/N8N_dev/raganything_venv/bin/python3 2>/dev/null && echo \"venv exists\"",
+      "description": "Check venv path"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:52:09.456612",
+      "command": "sudo systemctl stop raganything\n\ncat << 'EOF' | sudo tee /etc/systemd/system/raganything.service\n[Unit]\nDescription=RAGanything Service - Full RAG for Academic Papers\nAfter=network.target\n\n[Service]\nType=simple\nUser=sam\nWorkingDirectory=/media/sam/1TB/N8N_dev\nEnvironment=\"PATH=/media/sam/1TB/N8N_dev/raganything_venv/bin:/home/sam/.local/bin:/usr/local/bin:/usr/bin:/bin\"\nEnvironment=\"VIRTUAL_ENV=/media/sam/1TB/N8N_dev/raganything_venv\"\nEnvironmentFile=/media/sam/1TB/N8N_dev/.env\nExecStart=/media/sam/1TB/N8N_dev/raganything_venv/bin/python3 /media/sam/1TB/N8N_dev/scripts/raganything_service.py\nRestart=always\nRestartSec=10\nStandardOutput=journal\nStandardError=journal\n\n[Install]\nWantedBy=multi-user.target\nEOF\n\nsudo systemctl daemon-reload\nsudo systemctl start raganything\nsleep 3\nsudo systemctl status raganything --no-pager | head -12",
+      "description": "Update systemd to use venv"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:52:19.667925",
+      "command": "sleep 2 && curl -s -X POST http://localhost:8767/query \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"query\": \"Kelly criterion\", \"mode\": \"hybrid\"}' | python3 -m json.tool 2>/dev/null | head -30",
+      "description": "Test RAG query with venv"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T01:52:33.806376",
+      "command": "find /media/sam/1TB/N8N_dev -name \"*.pdf\" -type f 2>/dev/null | head -5",
+      "description": "Find PDFs to process"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-13T01:53:37.154208",
+      "todo_count": 5
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:01:23.376785",
+      "command": "curl -s http://localhost:8767/health | python3 -m json.tool",
+      "description": "Check RAG service status"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:01:24.075397",
+      "command": "journalctl -u raganything --since \"5 minutes ago\" --no-pager 2>/dev/null | tail -20",
+      "description": "Check recent logs"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:01:35.030709",
+      "command": "curl -s -X POST http://localhost:8767/query \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"query\": \"What is the main topic of the indexed papers?\", \"mode\": \"hybrid\"}' | python3 -m json.tool 2>/dev/null | head -50",
+      "description": "Test RAG query"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:01:43.697237",
+      "command": "journalctl -u raganything --since \"30 minutes ago\" --no-pager 2>/dev/null | grep -E \"RAG|Error|error|Process|Query\" | tail -30",
+      "description": "Check detailed logs"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:01:52.387998",
+      "command": "ls -la /media/sam/1TB/N8N_dev/rag_knowledge_base/ 2>/dev/null",
+      "description": "Check knowledge base contents"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:02:45.309350",
+      "command": "grep -r \"8767\\|raganything\\|host.docker.internal\" /media/sam/1TB/N8N_dev/n8n_workflows/*.json 2>/dev/null | head -20",
+      "description": "Find N8N workflows calling RAGanything"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:02:46.656399",
+      "command": "grep -r \"8767\" /media/sam/1TB/N8N_dev/*.json 2>/dev/null | head -10",
+      "description": "Find references to port 8767"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:02:56.839530",
+      "command": "find /media/sam/1TB/N8N_dev -name \"*.json\" -exec grep -l \"8767\\|raganything\" {} \\; 2>/dev/null | head -10",
+      "description": "Find JSON files with RAGanything references"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:02:59.129418",
+      "command": "docker exec n8n cat /home/node/.n8n/database.sqlite 2>/dev/null | strings | grep -i \"8767\\|raganything\" | head -10 || echo \"Cannot access N8N DB directly\"",
+      "description": "Check N8N database for endpoint"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:03:08.105845",
+      "command": "docker exec n8n-postgres psql -U n8n -d n8n -c \"SELECT name FROM workflow_entity WHERE active = true;\" 2>/dev/null || echo \"Cannot query N8N DB\"",
+      "description": "List active N8N workflows"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:03:08.687776",
+      "command": "grep -r \"host.docker.internal\" /media/sam/1TB/N8N_dev --include=\"*.json\" --include=\"*.py\" 2>/dev/null | grep -v context_bundles | head -10",
+      "description": "Find host.docker.internal references"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:03:19.041873",
+      "command": "grep -E \"^PORT|HOST.*=\" /media/sam/1TB/N8N_dev/scripts/mineru_service.py /media/sam/1TB/N8N_dev/scripts/nougat_service.py 2>/dev/null | head -10",
+      "description": "Check ports of other services"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:03:19.689814",
+      "command": "ss -tlnp 2>/dev/null | grep -E \"876[0-9]\" || netstat -tlnp 2>/dev/null | grep -E \"876[0-9]\"",
+      "description": "Check which services are running"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-13T02:03:32.647379",
+      "file_path": "/home/sam/.claude/scripts/trigger-n8n-research.sh"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:03:47.354182",
+      "command": "curl -s \"http://localhost:5678/api/v1/workflows\" \\\n  -H \"X-N8N-API-KEY: $(grep N8N_API_KEY /media/sam/1TB/N8N_dev/.env 2>/dev/null | cut -d= -f2)\" 2>/dev/null | python3 -m json.tool 2>/dev/null | grep -E \"name|id\" | head -20 || echo \"Cannot access N8N API\"",
+      "description": "List N8N workflows via API"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:03:55.713398",
+      "command": "find /media/sam/1TB/N8N_dev -name \"*.json\" -path \"*/workflow*\" -exec grep -l \"8766\\|8767\\|raganything\\|mineru\" {} \\; 2>/dev/null | head -5",
+      "description": "Find workflow JSON files with service references"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:05:19.804208",
+      "command": "echo \"=== From environment ===\" && env | grep -i n8n | head -10\necho -e \"\\n=== From .env ===\" && grep -i \"N8N_API\" /media/sam/1TB/N8N_dev/.env 2>/dev/null | head -5\necho -e \"\\n=== From GSM ===\" && gcloud secrets list 2>/dev/null | grep -i n8n | head -5",
+      "description": "Find N8N API credentials"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:05:33.041729",
+      "command": "env | grep -i n8n",
+      "description": "Check N8N env vars"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:05:33.668594",
+      "command": "grep -i \"N8N_API\" /media/sam/1TB/N8N_dev/.env 2>/dev/null",
+      "description": "Check .env for N8N API key"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:05:34.356781",
+      "command": "gcloud secrets list 2>/dev/null | grep -i n8n",
+      "description": "Check GSM for N8N secrets"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:05:46.943439",
+      "command": "N8N_API_KEY=$(gcloud secrets versions access latest --secret=\"n8n-api-key\" 2>/dev/null)\nN8N_URL=\"http://localhost:5678\"\n\n# List workflows\ncurl -s \"${N8N_URL}/api/v1/workflows\" \\\n  -H \"X-N8N-API-KEY: ${N8N_API_KEY}\" 2>/dev/null | python3 -c \"\nimport json, sys\ndata = json.load(sys.stdin)\nif 'data' in data:\n    for w in data['data'][:10]:\n        print(f\\\"{w.get('id', 'N/A'):10} | {w.get('name', 'Unknown')[:50]}\\\")\nelse:\n    print('No workflows found or API error')\n    print(data)\n\"",
+      "description": "List N8N workflows via API"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:05:56.182260",
+      "command": "N8N_API_KEY=$(gcloud secrets versions access latest --secret=\"n8n-api-key\" 2>/dev/null)\necho \"API Key (first 10 chars): ${N8N_API_KEY:0:10}...\"\n\n# Test API\ncurl -s -w \"\\nHTTP: %{http_code}\" \"http://localhost:5678/api/v1/workflows\" \\\n  -H \"X-N8N-API-KEY: ${N8N_API_KEY}\" 2>/dev/null | tail -5",
+      "description": "Debug N8N API access"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:06:03.896730",
+      "command": "docker ps | grep -i n8n",
+      "description": "Check if N8N container is running"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:06:09.730767",
+      "command": "N8N_API_KEY=$(gcloud secrets versions access latest --secret=\"n8n-api-key\" 2>/dev/null)\n\ncurl -s \"http://localhost:5678/api/v1/workflows\" \\\n  -H \"X-N8N-API-KEY: ${N8N_API_KEY}\" | head -500",
+      "description": "Get workflows list"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:06:18.433248",
+      "command": "N8N_API_KEY=$(gcloud secrets versions access latest --secret=\"n8n-api-key\" 2>/dev/null)\n\ncurl -v \"http://localhost:5678/api/v1/workflows\" \\\n  -H \"X-N8N-API-KEY: ${N8N_API_KEY}\" 2>&1 | tail -30",
+      "description": "Debug API call"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:06:26.457705",
+      "command": "curl -s http://localhost:5678/healthz && echo \" - N8N health OK\"",
+      "description": "Check N8N health"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:06:34.995952",
+      "command": "N8N_API_KEY=$(gcloud secrets versions access latest --secret=\"n8n-api-key\")\nresponse=$(curl -s \"http://localhost:5678/api/v1/workflows\" -H \"X-N8N-API-KEY: $N8N_API_KEY\")\necho \"$response\" | python3 -m json.tool 2>/dev/null | head -100 || echo \"Raw: $response\"",
+      "description": "Get workflows with proper handling"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:06:47.386258",
+      "command": "N8N_API_KEY=$(gcloud secrets versions access latest --secret=\"n8n-api-key\")\ncurl -s \"http://localhost:5678/api/v1/workflows\" -H \"X-N8N-API-KEY: $N8N_API_KEY\" | python3 -c \"\nimport json, sys\ndata = json.load(sys.stdin)\nfor w in data.get('data', []):\n    nodes_str = json.dumps(w.get('nodes', []))\n    if '8766' in nodes_str or '8767' in nodes_str or 'raganything' in nodes_str.lower() or 'mineru' in nodes_str.lower():\n        print(f\\\"MATCH: {w['id']} | {w['name']}\\\")\n    elif 'research' in w['name'].lower() or 'paper' in w['name'].lower() or 'arxiv' in w['name'].lower():\n        print(f\\\"POTENTIAL: {w['id']} | {w['name']}\\\")\n\"",
+      "description": "Find workflow with RAGanything/MinerU references"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:06:58.089820",
+      "command": "N8N_API_KEY=$(gcloud secrets versions access latest --secret=\"n8n-api-key\")\ncurl -s \"http://localhost:5678/api/v1/workflows\" -H \"X-N8N-API-KEY: $N8N_API_KEY\" > /tmp/n8n_workflows.json\ncat /tmp/n8n_workflows.json | python3 -c \"\nimport json, sys\ndata = json.load(sys.stdin)\nfor w in data.get('data', []):\n    nodes_str = json.dumps(w.get('nodes', []))\n    if '8766' in nodes_str or '8767' in nodes_str or 'host.docker.internal' in nodes_str:\n        print(f\\\"MATCH: {w['id']} | {w['name']}\\\")\n    elif 'research' in w['name'].lower() or 'paper' in w['name'].lower() or 'arxiv' in w['name'].lower() or 'pdf' in w['name'].lower():\n        print(f\\\"POTENTIAL: {w['id']} | {w['name']}\\\")\n\"",
+      "description": "Find relevant workflows"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:07:04.834542",
+      "command": "ls -la /tmp/n8n_workflows.json && head -c 500 /tmp/n8n_workflows.json",
+      "description": "Check saved file"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:07:13.295505",
+      "command": "python3 << 'PYEOF'\nimport json\n\nwith open('/tmp/n8n_workflows.json') as f:\n    data = json.load(f)\n\nfor w in data.get('data', []):\n    nodes_str = json.dumps(w.get('nodes', []))\n    name = w.get('name', '')\n    wid = w.get('id', '')\n    \n    if '8766' in nodes_str or '8767' in nodes_str or 'host.docker.internal' in nodes_str:\n        print(f\"MATCH: {wid} | {name}\")\n    elif any(kw in name.lower() for kw in ['research', 'paper', 'arxiv', 'pdf', 'extract']):\n        print(f\"POTENTIAL: {wid} | {name}\")\nPYEOF",
+      "description": "Find relevant workflows"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:07:25.672812",
+      "command": "python3 << 'PYEOF'\nimport json\n\nwith open('/tmp/n8n_workflows.json') as f:\n    data = json.load(f)\n\n# Find W3.1 PDF Extractor\nfor w in data.get('data', []):\n    if w.get('id') == '6dcjxKkywwpzrZOm':\n        nodes = w.get('nodes', [])\n        for node in nodes:\n            params = json.dumps(node.get('parameters', {}))\n            if 'host.docker.internal' in params or '876' in params:\n                print(f\"Node: {node.get('name')}\")\n                print(f\"Type: {node.get('type')}\")\n                print(f\"Params: {params[:500]}\")\n                print(\"---\")\nPYEOF",
+      "description": "Find HTTP node with port"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:07:40.158711",
+      "command": "N8N_API_KEY=$(gcloud secrets versions access latest --secret=\"n8n-api-key\")\n\n# Get current workflow\ncurl -s \"http://localhost:5678/api/v1/workflows/6dcjxKkywwpzrZOm\" \\\n  -H \"X-N8N-API-KEY: $N8N_API_KEY\" > /tmp/w3_1_workflow.json\n\n# Update URL in the workflow\npython3 << 'PYEOF'\nimport json\n\nwith open('/tmp/w3_1_workflow.json') as f:\n    workflow = json.load(f)\n\n# Find and update the HTTP node\nmodified = False\nfor node in workflow.get('nodes', []):\n    if node.get('name') == 'Call RAGanything Service':\n        params = node.get('parameters', {})\n        old_url = params.get('url', '')\n        if old_url == 'http://host.docker.internal:8767':\n            params['url'] = 'http://host.docker.internal:8767/process'\n            modified = True\n            print(f\"Updated: {old_url} -> {params['url']}\")\n\nif modified:\n    with open('/tmp/w3_1_workflow_updated.json', 'w') as f:\n        json.dump(workflow, f)\n    print(\"Workflow saved to /tmp/w3_1_workflow_updated.json\")\nelse:\n    print(\"No changes needed\")\nPYEOF",
+      "description": "Update workflow URL"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:07:49.340568",
+      "command": "N8N_API_KEY=$(gcloud secrets versions access latest --secret=\"n8n-api-key\")\n\n# Push updated workflow\ncurl -s -X PUT \"http://localhost:5678/api/v1/workflows/6dcjxKkywwpzrZOm\" \\\n  -H \"X-N8N-API-KEY: $N8N_API_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d @/tmp/w3_1_workflow_updated.json | python3 -c \"\nimport json, sys\ndata = json.load(sys.stdin)\nif 'id' in data:\n    print(f'✅ Workflow updated: {data[\\\"id\\\"]} - {data.get(\\\"name\\\", \\\"\\\")}')\nelse:\n    print(f'❌ Error: {data}')\n\"",
+      "description": "Push updated workflow to N8N"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:08:01.312172",
+      "command": "N8N_API_KEY=$(gcloud secrets versions access latest --secret=\"n8n-api-key\")\n\n# Push updated workflow with debug\nresponse=$(curl -s -w \"\\nHTTP_CODE:%{http_code}\" -X PUT \"http://localhost:5678/api/v1/workflows/6dcjxKkywwpzrZOm\" \\\n  -H \"X-N8N-API-KEY: $N8N_API_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d @/tmp/w3_1_workflow_updated.json)\n\necho \"$response\" | tail -5",
+      "description": "Debug workflow update"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:08:09.724867",
+      "command": "N8N_API_KEY=$(gcloud secrets versions access latest --secret=\"n8n-api-key\")\n\n# Try PATCH instead\ncurl -s -X PATCH \"http://localhost:5678/api/v1/workflows/6dcjxKkywwpzrZOm\" \\\n  -H \"X-N8N-API-KEY: $N8N_API_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d @/tmp/w3_1_workflow_updated.json > /tmp/patch_response.txt 2>&1\n\ncat /tmp/patch_response.txt | head -200",
+      "description": "Try PATCH method"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:08:18.062235",
+      "command": "ls -la /tmp/patch_response.txt && cat /tmp/patch_response.txt",
+      "description": "Check response file"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:08:24.882482",
+      "command": "N8N_API_KEY=$(gcloud secrets versions access latest --secret=\"n8n-api-key\")\n\n# Check what format PUT expects\ncurl -s -X PUT \"http://localhost:5678/api/v1/workflows/6dcjxKkywwpzrZOm\" \\\n  -H \"X-N8N-API-KEY: $N8N_API_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\"nodes\": []}' 2>&1",
+      "description": "Test PUT format"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:08:36.759751",
+      "command": "N8N_API_KEY=$(gcloud secrets versions access latest --secret=\"n8n-api-key\")\n\n# Create proper update payload\npython3 << 'PYEOF'\nimport json\n\nwith open('/tmp/w3_1_workflow_updated.json') as f:\n    workflow = json.load(f)\n\n# Extract only required fields for update\nupdate_payload = {\n    \"name\": workflow.get(\"name\"),\n    \"nodes\": workflow.get(\"nodes\", []),\n    \"connections\": workflow.get(\"connections\", {}),\n    \"settings\": workflow.get(\"settings\", {})\n}\n\nwith open('/tmp/w3_1_update_payload.json', 'w') as f:\n    json.dump(update_payload, f)\n\nprint(\"Payload created\")\nprint(f\"Nodes count: {len(update_payload['nodes'])}\")\nPYEOF\n\ncurl -s -X PUT \"http://localhost:5678/api/v1/workflows/6dcjxKkywwpzrZOm\" \\\n  -H \"X-N8N-API-KEY: $N8N_API_KEY\" \\\n  -H \"Content-Type: application/json\" \\\n  -d @/tmp/w3_1_update_payload.json | python3 -m json.tool 2>/dev/null | head -20",
+      "description": "Update with proper payload"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:08:47.820992",
+      "command": "N8N_API_KEY=$(gcloud secrets versions access latest --secret=\"n8n-api-key\")\n\ncurl -s \"http://localhost:5678/api/v1/workflows/6dcjxKkywwpzrZOm\" \\\n  -H \"X-N8N-API-KEY: $N8N_API_KEY\" | python3 -c \"\nimport json, sys\ndata = json.load(sys.stdin)\nfor node in data.get('nodes', []):\n    if node.get('name') == 'Call RAGanything Service':\n        print(f\\\"Node: {node.get('name')}\\\")\n        print(f\\\"URL: {node.get('parameters', {}).get('url')}\\\")\n\"",
+      "description": "Verify URL update"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:08:57.189400",
+      "command": "N8N_API_KEY=$(gcloud secrets versions access latest --secret=\"n8n-api-key\")\ncurl -s \"http://localhost:5678/api/v1/workflows/6dcjxKkywwpzrZOm\" \\\n  -H \"X-N8N-API-KEY: $N8N_API_KEY\" > /tmp/verify_workflow.json\n\ngrep -o '\"url\":\"[^\"]*8767[^\"]*\"' /tmp/verify_workflow.json",
+      "description": "Verify URL with grep"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:23:03.204329",
+      "command": "curl -s http://localhost:8767/health | python3 -m json.tool",
+      "description": "Check RAG service health"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:23:04.308283",
+      "command": "journalctl -u raganything --since \"5 minutes ago\" --no-pager | tail -15",
+      "description": "Check recent logs"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:23:13.948951",
+      "command": "ls -la /media/sam/1TB/N8N_dev/rag_knowledge_base/",
+      "description": "Check knowledge base"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:24:24.930124",
+      "command": "grep -E \"embedding|llm_model|vision_model|enable_\" /media/sam/1TB/N8N_dev/scripts/raganything_service.py | head -20",
+      "description": "Check enabled features in service"
+    },
+    {
+      "operation": "grep",
+      "timestamp": "2026-01-13T02:27:37.788815",
+      "pattern": "OPENAI|api_key|secret",
+      "path": "/media/sam/1TB/N8N_dev/scripts/raganything_service.py",
+      "output_mode": "content"
+    },
+    {
+      "operation": "grep",
+      "timestamp": "2026-01-13T02:27:37.816905",
+      "pattern": "OPENAI",
+      "path": "/media/sam/1TB/N8N_dev/.env",
+      "output_mode": "content"
+    },
+    {
+      "operation": "grep",
+      "timestamp": "2026-01-13T02:27:46.924960",
+      "pattern": "OPENAI_API_KEY",
+      "path": "/media/sam/1TB/N8N_dev/.env",
+      "output_mode": "content"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-13T02:27:47.086657",
+      "file_path": "/etc/systemd/system/raganything.service"
+    },
+    {
+      "operation": "glob",
+      "timestamp": "2026-01-13T02:27:55.464392",
+      "pattern": "/media/sam/1TB/N8N_dev/**/*gsm*.py"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-13T02:27:55.600346",
+      "file_path": "/media/sam/1TB/N8N_dev/.env"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-13T02:28:05.135155",
+      "file_path": "/home/sam/.config/gsm/load-secrets.sh"
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-13T02:28:21.110071",
+      "file_path": "/media/sam/1TB/N8N_dev/scripts/raganything_start.sh",
+      "content_length": 1161
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:28:30.753507",
+      "command": "sudo journalctl -u raganything --no-pager -n 20 | grep -i \"openai\\|api\\|key\\|warning\"",
+      "description": "Check if OPENAI_API_KEY is loaded"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:28:37.218561",
+      "command": "sudo journalctl -u raganything --no-pager -n 30",
+      "description": "Check raganything service logs"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:28:47.504258",
+      "command": "sudo journalctl -u raganything --no-pager | head -50 | grep -i \"warning\\|openai\\|key\\|started\\|config\"",
+      "description": "Check startup logs for API key warning"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:28:54.948189",
+      "command": "sudo journalctl -u raganything --no-pager | head -100",
+      "description": "Check full startup logs"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:29:10.939027",
+      "command": "sudo cat /proc/$(pgrep -f raganything_service)/environ 2>/dev/null | tr '\\0' '\\n' | grep OPENAI || echo \"OPENAI_API_KEY not found in process environment\"",
+      "description": "Check if OPENAI_API_KEY is in process env"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:29:22.243559",
+      "command": "chmod +x /media/sam/1TB/N8N_dev/scripts/raganything_start.sh",
+      "description": "Make wrapper script executable"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-13T02:29:23.250924",
+      "todo_count": 3
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:29:34.025171",
+      "command": "ollama list 2>/dev/null || echo \"Ollama not running\"",
+      "description": "Check Ollama models"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:29:36.279753",
+      "command": "pip show sentence-transformers 2>/dev/null | head -2 || echo \"sentence-transformers not installed\"",
+      "description": "Check sentence-transformers"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-13T02:32:22.265120",
+      "file_path": "/media/sam/1TB/N8N_dev/scripts/raganything_service.py"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-13T02:32:35.718124",
+      "file_path": "/media/sam/1TB/N8N_dev/scripts/raganything_service.py",
+      "old_string": "\"\"\"\nRAGanything HTTP service for n8n integration.\nFull RAG capabilities: document processing + seman..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-13T02:32:50.530928",
+      "file_path": "/media/sam/1TB/N8N_dev/scripts/raganything_service.py",
+      "old_string": "# API Keys\nOPENAI_API_KEY = os.getenv(\"OPENAI_API_KEY\")\nif not OPENAI_API_KEY:\n    print(\"[WARNING] ..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-13T02:33:21.934292",
+      "file_path": "/media/sam/1TB/N8N_dev/scripts/raganything_service.py",
+      "old_string": "def get_rag_instance():\n    \"\"\"Get or create singleton RAGAnything instance.\"\"\"\n    global rag_insta..."
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:33:31.244075",
+      "command": "/media/sam/1TB/N8N_dev/raganything_venv/bin/pip show sentence-transformers 2>/dev/null | head -2 || echo \"NOT INSTALLED\"",
+      "description": "Check if sentence-transformers in venv"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:33:33.698626",
+      "command": "/media/sam/1TB/N8N_dev/raganything_venv/bin/python3 -c \"from sentence_transformers import SentenceTransformer; m = SentenceTransformer('BAAI/bge-large-en-v1.5'); print('Model loaded, dim:', m.get_sentence_embedding_dimension())\" 2>&1",
+      "description": "Download and test embedding model"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:33:39.920920",
+      "command": "/media/sam/1TB/N8N_dev/raganything_venv/bin/pip install sentence-transformers --quiet && echo \"Installed\"",
+      "description": "Install sentence-transformers"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:34:00.126372",
+      "command": "/media/sam/1TB/N8N_dev/raganything_venv/bin/python3 -c \"\nfrom sentence_transformers import SentenceTransformer\nprint('Downloading BAAI/bge-large-en-v1.5...')\nm = SentenceTransformer('BAAI/bge-large-en-v1.5')\nprint(f'Model loaded! Embedding dim: {m.get_sentence_embedding_dimension()}')\n# Test embedding\ntest = m.encode(['Test sentence'], normalize_embeddings=True)\nprint(f'Test embedding shape: {test.shape}')\n\"",
+      "description": "Download embedding model"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-13T02:34:42.341502",
+      "todo_count": 5
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:34:56.203091",
+      "command": "sudo systemctl stop raganything && echo \"Service stopped\"",
+      "description": "Stop raganything service"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-13T02:34:58.482695",
+      "todo_count": 6
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:35:05.502827",
+      "command": "rm -rf /media/sam/1TB/N8N_dev/rag_knowledge_base/* && echo \"Knowledge base cleared\"",
+      "description": "Clear old knowledge base"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:35:06.052095",
+      "command": "cat > /tmp/raganything.service << 'EOF'\n[Unit]\nDescription=RAGanything Service - Full RAG for Academic Papers\nAfter=network.target\n\n[Service]\nType=simple\nUser=sam\nWorkingDirectory=/media/sam/1TB/N8N_dev\nExecStart=/media/sam/1TB/N8N_dev/scripts/raganything_start.sh\nRestart=always\nRestartSec=10\nStandardOutput=journal\nStandardError=journal\n\n[Install]\nWantedBy=multi-user.target\nEOF\nsudo cp /tmp/raganything.service /etc/systemd/system/raganything.service && sudo systemctl daemon-reload && echo \"Systemd updated\"",
+      "description": "Update systemd to use wrapper script"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:35:13.488038",
+      "command": "ls -la /media/sam/1TB/N8N_dev/scripts/raganything_start.sh",
+      "description": "Check wrapper script"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-13T02:35:14.073684",
+      "todo_count": 6
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:35:18.746144",
+      "command": "sudo systemctl start raganything && sleep 3 && sudo journalctl -u raganything --no-pager -n 30",
+      "description": "Start service and check logs"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:35:28.092049",
+      "command": "sleep 10 && sudo journalctl -u raganything --no-pager -n 20",
+      "description": "Check service initialization"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:35:44.492345",
+      "command": "sleep 15 && sudo journalctl -u raganything --no-pager --since \"2 minutes ago\"",
+      "description": "Check recent logs"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:36:05.512223",
+      "command": "sudo systemctl status raganything --no-pager",
+      "description": "Check service status"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:36:11.611470",
+      "command": "curl -s http://localhost:8767/health 2>&1 || echo \"Service not ready yet\"",
+      "description": "Check health endpoint"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:36:17.828081",
+      "command": "curl -s -X POST http://localhost:8767/query -H \"Content-Type: application/json\" -d '{\"query\": \"test\", \"mode\": \"hybrid\"}' 2>&1",
+      "description": "Test query to initialize RAG"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:36:35.211320",
+      "command": "sudo journalctl -u raganything --no-pager --since \"3 minutes ago\" | grep -i \"config\\|embed\\|openai\\|ollama\\|loading\\|llm\"",
+      "description": "Check config logs"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:36:40.808297",
+      "command": "sudo journalctl -u raganything --no-pager --since \"3 minutes ago\" | tail -30",
+      "description": "Check recent logs"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:36:49.584140",
+      "command": "grep -n \"EMBEDDING_MODEL\\|OPENAI_MODEL\\|OLLAMA_MODEL\\|v3.1\" /media/sam/1TB/N8N_dev/scripts/raganything_service.py | head -10",
+      "description": "Verify config in code"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-13T02:37:07.927139",
+      "file_path": "/media/sam/1TB/N8N_dev/scripts/raganything_service.py",
+      "old_string": "# LLM config\nOPENAI_MODEL = \"gpt-4o-mini\"\nOLLAMA_MODEL = \"qwen2.5:7b\"\n\nif OPENAI_API_KEY:\n    print(..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-13T02:37:16.842982",
+      "file_path": "/media/sam/1TB/N8N_dev/scripts/raganything_service.py",
+      "old_string": "            # ===== VISION MODEL (OpenAI only, optional) =====\n            def vision_model_func(\n  ..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-13T02:37:21.615054",
+      "file_path": "/media/sam/1TB/N8N_dev/scripts/raganything_service.py",
+      "old_string": "\"version\": \"3.0\""
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:37:26.839894",
+      "command": "sudo systemctl restart raganything && sleep 5 && curl -s http://localhost:8767/health | jq -r '.version, .features[]'",
+      "description": "Restart and verify version"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:37:39.643296",
+      "command": "sudo journalctl -u raganything --no-pager --since \"1 minute ago\" | grep -i \"config\\|vision\\|embed\\|openai\"",
+      "description": "Check config in logs"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-13T02:37:47.747905",
+      "todo_count": 6
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-13T02:37:51.985953",
+      "file_path": "/media/sam/1TB/N8N_dev/scripts/RAGANYTHING_SERVICE_README.md"
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-13T02:38:14.549080",
+      "file_path": "/media/sam/1TB/N8N_dev/scripts/RAGANYTHING_SERVICE_README.md",
+      "content_length": 4545
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-13T02:38:23.049946",
+      "todo_count": 7
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:38:28.490483",
+      "command": "find /media/sam/1TB/N8N_dev/papers -name \"*.pdf\" -type f -exec du -k {} \\; 2>/dev/null | sort -n | head -5",
+      "description": "Find smallest PDFs"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:38:34.216418",
+      "command": "find /media/sam/1TB -name \"*.pdf\" -type f -size -500k 2>/dev/null | head -5",
+      "description": "Find small PDFs"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:38:41.184086",
+      "command": "ls -la /media/sam/1TB/N8N_dev/papers/ 2>/dev/null || ls -la /media/sam/1TB/papers/ 2>/dev/null | head -10",
+      "description": "Check papers directory"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:38:48.570113",
+      "command": "curl -s -X POST http://localhost:8767/process \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"pdf_path\": \"/media/sam/1TB/N8N_dev/papers/1411.3615v1.pdf\",\n    \"paper_id\": \"arxiv:1411.3615v1\"\n  }' &\necho \"Processing started in background, monitoring logs...\"\nsleep 5 && sudo journalctl -u raganything --no-pager -n 20 --since \"1 minute ago\"",
+      "description": "Start E2E test with small PDF"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:39:06.054210",
+      "command": "which mineru && /media/sam/1TB/N8N_dev/raganything_venv/bin/mineru --version 2>&1 | head -3",
+      "description": "Check MinerU installation"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:39:12.524884",
+      "command": "find /media/sam/1TB -name \"mineru\" -type f 2>/dev/null | head -5",
+      "description": "Find mineru binary"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:39:31.741160",
+      "command": "ls -la /media/sam/1TB/N8N_dev/raganything_venv/bin/ | grep -E \"python|mineru\" | head -5",
+      "description": "Check venv binaries"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-13T02:39:37.189368",
+      "file_path": "/media/sam/1TB/N8N_dev/scripts/raganything_start.sh"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-13T02:39:44.395240",
+      "file_path": "/media/sam/1TB/N8N_dev/scripts/raganything_start.sh",
+      "old_string": "#!/bin/bash\n# RAGanything Service Wrapper - Loads GSM secrets before starting\n# Used by systemd to e..."
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:39:49.053506",
+      "command": "sudo systemctl restart raganything && sleep 5 && curl -s http://localhost:8767/health | jq '.version'",
+      "description": "Restart service"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:40:00.179788",
+      "command": "curl -s -X POST http://localhost:8767/process \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"pdf_path\": \"/media/sam/1TB/N8N_dev/papers/1411.3615v1.pdf\",\n    \"paper_id\": \"arxiv:1411.3615v1\"\n  }' 2>&1 &\necho \"Processing started...\"\nsleep 10\nsudo journalctl -u raganything --no-pager -n 30 --since \"1 minute ago\"",
+      "description": "E2E test retry"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-13T02:41:54.279824",
+      "file_path": "/tmp/claude/-home-sam/tasks/b488400.output"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:41:59.703443",
+      "command": "sleep 30 && sudo journalctl -u raganything --no-pager -n 50 --since \"2 minutes ago\"",
+      "description": "Check processing status"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:42:35.585395",
+      "command": "sudo systemctl status raganything --no-pager && echo \"---\" && curl -s http://localhost:8767/health",
+      "description": "Check service status"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:42:43.444707",
+      "command": "while curl -s http://localhost:8767/health | jq -r '.jobs.active_jobs' | grep -q \"1\"; do\n  echo \"$(date '+%H:%M:%S') - Processing...\"\n  sleep 30\ndone\necho \"Processing complete!\"\ncurl -s http://localhost:8767/health | jq '.jobs'",
+      "description": "Monitor processing completion"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:42:51.336472",
+      "command": "sudo journalctl -u raganything --no-pager -n 10 --since \"1 minute ago\" 2>/dev/null || echo \"Checking again...\"",
+      "description": "Check recent logs"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-13T02:42:57.742688",
+      "file_path": "/tmp/claude/-home-sam/tasks/b81d58c.output"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:43:03.353399",
+      "command": "sudo journalctl -u raganything --no-pager -n 5",
+      "description": "Check latest logs"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:43:11.405313",
+      "command": "sleep 60 && cat /tmp/claude/-home-sam/tasks/b81d58c.output",
+      "description": "Wait and check status"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:44:17.017881",
+      "command": "sleep 120 && tail -5 /tmp/claude/-home-sam/tasks/b81d58c.output && echo \"---\" && sudo journalctl -u raganything --no-pager -n 5",
+      "description": "Check after 2 minutes"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:46:25.221763",
+      "command": "sleep 180 && tail -3 /tmp/claude/-home-sam/tasks/b81d58c.output && echo \"---\" && sudo journalctl -u raganything --no-pager -n 10 --since \"5 minutes ago\"",
+      "description": "Check after 3 minutes"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:49:32.690417",
+      "command": "sleep 180 && tail -3 /tmp/claude/-home-sam/tasks/b81d58c.output && echo \"---\" && sudo journalctl -u raganything --no-pager -n 10 --since \"3 minutes ago\"",
+      "description": "Check after 3 more minutes"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:50:05.427530",
+      "command": "curl -s http://localhost:8767/health | jq '.jobs' && echo \"---\" && sudo journalctl -u raganything --no-pager -n 5",
+      "description": "Check current status"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:51:13.370934",
+      "command": "cd /media/sam/1TB/N8N_dev && git status --short",
+      "description": "Check git status"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:51:25.751728",
+      "command": "cd /media/sam/1TB/N8N_dev && git add scripts/raganything_service.py scripts/RAGANYTHING_SERVICE_README.md scripts/raganything_start.sh && git commit -m \"$(cat <<'EOF'\nfeat(raganything): v3.1 hybrid local/cloud RAG\n\n- Switch to local embeddings (bge-large-en-v1.5, 1024 dim)\n- Add LLM fallback: OpenAI gpt-4o-mini → Ollama qwen2.5:7b\n- Add vision toggle (disabled by default to save costs)\n- Add GSM integration for OPENAI_API_KEY via wrapper script\n- Update documentation with new architecture\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\"",
+      "description": "Commit RAGanything v3.1 changes"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:51:32.173877",
+      "command": "tail -3 /tmp/claude/-home-sam/tasks/b81d58c.output && echo \"---\" && sudo journalctl -u raganything --no-pager -n 3 --since \"2 minutes ago\"",
+      "description": "Check E2E progress"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-13T02:51:41.141539",
+      "todo_count": 1
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-13T02:52:39.517100",
+      "file_path": "/tmp/claude/-home-sam/tasks/b2e6510.output"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:52:40.031672",
+      "command": "sudo journalctl -u raganything --no-pager -n 5 --since \"2 minutes ago\"",
+      "description": "Check latest progress"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:52:46.500918",
+      "command": "sudo journalctl -u raganything --no-pager -n 5",
+      "description": "Check latest logs"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:52:52.137083",
+      "command": "curl -s http://localhost:8767/status | jq",
+      "description": "Check job status"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-13T02:54:52.302959",
+      "file_path": "/tmp/claude/-home-sam/tasks/b81d58c.output"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:54:58.064615",
+      "command": "curl -s http://localhost:8767/health | jq '{version, rag_initialized, jobs}' && echo \"---\" && sudo journalctl -u raganything --no-pager -n 15 --since \"5 minutes ago\"",
+      "description": "Check final status"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T02:55:08.620757",
+      "command": "ls -la /media/sam/1TB/N8N_dev/rag_knowledge_base/ 2>/dev/null | head -10",
+      "description": "Check knowledge base"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T03:07:56.306879",
+      "command": "curl -s http://localhost:8767/status | jq '.jobs' && echo \"---\" && sudo journalctl -u raganything --no-pager -n 3",
+      "description": "Check progress"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T03:08:46.647936",
+      "command": "cat > /tmp/rag_monitor.sh << 'EOF'\n#!/bin/bash\nLOG=\"/tmp/rag_monitor.log\"\necho \"=== RAG Monitor started at $(date) ===\" > \"$LOG\"\n\nwhile true; do\n    STATUS=$(curl -s http://localhost:8767/status 2>/dev/null)\n    ACTIVE=$(echo \"$STATUS\" | jq -r '.jobs.active_jobs')\n    JOBS=$(echo \"$STATUS\" | jq -r '.jobs.jobs | join(\", \")')\n    LATEST=$(sudo journalctl -u raganything --no-pager -n 1 --since \"5 minutes ago\" 2>/dev/null | tail -1)\n    \n    echo \"[$(date '+%H:%M')] Active: $ACTIVE | Jobs: $JOBS\" >> \"$LOG\"\n    echo \"  Latest: $LATEST\" >> \"$LOG\"\n    \n    # Exit if no active jobs\n    if [[ \"$ACTIVE\" == \"0\" ]]; then\n        echo \"[$(date '+%H:%M')] All jobs completed!\" >> \"$LOG\"\n        # Test query\n        echo \"Testing query...\" >> \"$LOG\"\n        curl -s -X POST http://localhost:8767/query \\\n          -H \"Content-Type: application/json\" \\\n          -d '{\"query\": \"What is this paper about?\", \"mode\": \"hybrid\"}' >> \"$LOG\" 2>&1\n        break\n    fi\n    \n    sleep 1800  # 30 minutes\ndone\necho \"=== Monitor ended at $(date) ===\" >> \"$LOG\"\nEOF\nchmod +x /tmp/rag_monitor.sh\nnohup /tmp/rag_monitor.sh > /dev/null 2>&1 &\necho \"Monitor avviato. Log: /tmp/rag_monitor.log\"",
+      "description": "Start background monitor"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-13T03:27:57.092449",
+      "file_path": "/tmp/claude/-home-sam/tasks/b488400.output"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-13T12:08:10.624731",
+      "file_path": "/media/sam/1TB/N8N_dev/scripts/raganything_service.py",
+      "old_string": "PROCESS_TIMEOUT = 600  # 10 minutes"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:08:15.464389",
+      "command": "curl -s http://localhost:8767/status | jq '.jobs'",
+      "description": "Check active jobs before restart"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:08:23.430064",
+      "command": "sudo systemctl restart raganything && sleep 3 && curl -s http://localhost:8767/health | jq '{version, rag_initialized}'",
+      "description": "Restart service"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:08:28.065085",
+      "command": "cd /media/sam/1TB/N8N_dev && git add scripts/raganything_service.py && git commit -m \"$(cat <<'EOF'\nchore(raganything): increase timeout to 1h for CPU processing\n\nMinerU on CPU takes ~5min/page, 10min timeout was insufficient.\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\"",
+      "description": "Commit timeout change"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:08:33.572126",
+      "command": "cat /tmp/rag_monitor.log",
+      "description": "Check monitor log"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:08:41.163013",
+      "command": "ls -la /media/sam/1TB/N8N_dev/rag_knowledge_base/ && echo \"---\" && du -sh /media/sam/1TB/N8N_dev/rag_knowledge_base/",
+      "description": "Check knowledge base contents"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:08:47.268744",
+      "command": "sudo journalctl -u raganything --no-pager --since \"06:30\" --until \"06:45\" 2>/dev/null | tail -50",
+      "description": "Check logs around completion time"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:08:54.831364",
+      "command": "ls -la /media/sam/1TB/N8N_dev/extracted/raganything/ && echo \"---\" && find /media/sam/1TB/N8N_dev/extracted/raganything/ -name \"*.md\" -type f 2>/dev/null | head -5",
+      "description": "Check extracted output"
+    },
+    {
+      "operation": "grep",
+      "timestamp": "2026-01-13T12:09:03.444313",
+      "pattern": "process_document_complete|insert|ainsert",
+      "path": "/media/sam/1TB/N8N_dev/scripts/raganything_service.py",
+      "output_mode": "content"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:09:09.738801",
+      "command": "sudo journalctl -u raganything --no-pager -n 100 | grep -i \"error\\|exception\\|failed\\|traceback\" | tail -20",
+      "description": "Check for errors in logs"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-13T12:09:18.724784",
+      "file_path": "/media/sam/1TB/N8N_dev/scripts/raganything_service.py",
+      "old_string": "            def local_embed(texts):\n                \"\"\"Generate embeddings using local sentence-tran..."
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:09:23.681808",
+      "command": "sudo systemctl restart raganything && sleep 8 && curl -s http://localhost:8767/health | jq '{version, rag_initialized}'",
+      "description": "Restart service"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:09:41.497078",
+      "command": "echo \"Starting E2E test...\" && curl -s -X POST http://localhost:8767/process \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"pdf_path\": \"/media/sam/1TB/N8N_dev/papers/1411.3615v1.pdf\",\n    \"paper_id\": \"test-e2e-001\"\n  }' &\n\n# Monitor for 2 minutes then check\nsleep 30 && echo \"--- 30s ---\" && curl -s http://localhost:8767/status | jq '.jobs'\nsleep 30 && echo \"--- 60s ---\" && curl -s http://localhost:8767/status | jq '.jobs'\nsleep 30 && echo \"--- 90s ---\" && curl -s http://localhost:8767/status | jq '.jobs'",
+      "description": "Run E2E test"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:09:46.130678",
+      "command": "sleep 20 && sudo journalctl -u raganything --no-pager -n 15 --since \"1 minute ago\"",
+      "description": "Check initial logs"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:10:14.658579",
+      "command": "(sleep 1800 && echo \"=== Check at $(date) ===\" && curl -s http://localhost:8767/status | jq && echo \"---\" && sudo journalctl -u raganything --no-pager -n 20 --since \"35 minutes ago\" && ls -la /media/sam/1TB/N8N_dev/rag_knowledge_base/) > /tmp/e2e_check_30min.log 2>&1 &\necho \"Check schedulato fra 30 minuti. Risultato in: /tmp/e2e_check_30min.log\"",
+      "description": "Schedule 30min check"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:10:21.646514",
+      "command": "cd /media/sam/1TB/N8N_dev && git add scripts/raganything_service.py && git commit -m \"$(cat <<'EOF'\nfix(raganything): make embedding function async for LightRAG\n\nLightRAG expects async embedding functions. Wrapped sync \nsentence-transformers call in executor to avoid blocking.\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\"",
+      "description": "Commit async fix"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-13T12:10:25.860629",
+      "file_path": "/tmp/claude/-home-sam/tasks/b9e7721.output"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:10:50.250503",
+      "command": "/media/sam/1TB/N8N_dev/raganything_venv/bin/python3 << 'EOF'\nimport asyncio\nfrom sentence_transformers import SentenceTransformer\nimport numpy as np\n\nprint(\"Loading embedding model...\")\nmodel = SentenceTransformer(\"BAAI/bge-large-en-v1.5\")\n\nasync def test_embed():\n    texts = [\"This is a test sentence about machine learning.\", \"Another sentence about AI.\"]\n    \n    # Simulate async embedding like in the service\n    loop = asyncio.get_event_loop()\n    embeddings = await loop.run_in_executor(\n        None,\n        lambda: model.encode(texts, normalize_embeddings=True)\n    )\n    \n    result = np.array(embeddings).tolist()\n    print(f\"✅ Embeddings generated!\")\n    print(f\"   Shape: {len(result)} texts x {len(result[0])} dimensions\")\n    print(f\"   First 5 values: {result[0][:5]}\")\n    return result\n\nasyncio.run(test_embed())\nprint(\"Test passed!\")\nEOF",
+      "description": "Test embedding function directly"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-13T12:11:10.599747",
+      "file_path": "/tmp/claude/-home-sam/tasks/b9e7721.output"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:11:50.971443",
+      "command": "/media/sam/1TB/N8N_dev/raganything_venv/bin/python3 << 'EOF'\nimport asyncio\nimport sys\nsys.path.insert(0, \"/media/sam/1TB/N8N_dev/raganything\")\n\nfrom lightrag import LightRAG\nfrom lightrag.utils import EmbeddingFunc\nfrom sentence_transformers import SentenceTransformer\nimport numpy as np\nimport tempfile\nimport os\n\nprint(\"Testing LightRAG Knowledge Graph...\")\n\n# Setup\nmodel = SentenceTransformer(\"BAAI/bge-large-en-v1.5\")\ntest_dir = tempfile.mkdtemp()\n\nasync def embed(texts):\n    if isinstance(texts, str):\n        texts = [texts]\n    loop = asyncio.get_event_loop()\n    emb = await loop.run_in_executor(None, lambda: model.encode(texts, normalize_embeddings=True))\n    return np.array(emb).tolist()\n\nasync def llm_func(prompt, **kwargs):\n    # Simple mock for testing\n    return \"Test entity extraction: ENTITY1, ENTITY2\"\n\nasync def test_kg():\n    rag = LightRAG(\n        working_dir=test_dir,\n        llm_model_func=llm_func,\n        embedding_func=EmbeddingFunc(embedding_dim=1024, max_token_size=8192, func=embed)\n    )\n    \n    # Insert test document\n    print(\"Inserting test document...\")\n    await rag.ainsert(\"Machine learning is a subset of artificial intelligence. Deep learning uses neural networks.\")\n    \n    print(\"✅ Document inserted into KG!\")\n    \n    # Check files created\n    files = os.listdir(test_dir)\n    print(f\"   Files created: {files}\")\n    \n    # Try query\n    print(\"Testing query...\")\n    result = await rag.aquery(\"What is machine learning?\", param={\"mode\": \"hybrid\"})\n    print(f\"✅ Query result: {result[:100]}...\")\n    \n    return True\n\nasyncio.run(test_kg())\nprint(\"\\nKG test passed!\")\nEOF",
+      "description": "Test KG directly"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:12:19.904682",
+      "command": "/media/sam/1TB/N8N_dev/raganything_venv/bin/python3 << 'EOF'\nimport asyncio\nimport sys\nimport os\nsys.path.insert(0, \"/media/sam/1TB/N8N_dev/raganything\")\n\n# Load API key from GSM\nimport subprocess\napi_key = subprocess.check_output(\n    [\"gcloud\", \"secrets\", \"versions\", \"access\", \"latest\", \"--secret=openai-api-key\"],\n    text=True\n).strip()\nos.environ[\"OPENAI_API_KEY\"] = api_key\n\nfrom lightrag import LightRAG\nfrom lightrag.llm.openai import openai_complete_if_cache, openai_embed\nfrom lightrag.utils import EmbeddingFunc\nimport tempfile\n\nprint(\"Testing LightRAG with OpenAI...\")\n\ntest_dir = tempfile.mkdtemp()\n\nasync def test_kg_openai():\n    # OpenAI LLM function\n    async def llm_func(prompt, system_prompt=None, history_messages=[], **kwargs):\n        return await openai_complete_if_cache(\n            \"gpt-4o-mini\", prompt, \n            system_prompt=system_prompt,\n            api_key=api_key\n        )\n    \n    # OpenAI embedding function\n    async def embed_func(texts):\n        return await openai_embed(texts, model=\"text-embedding-3-small\", api_key=api_key)\n    \n    rag = LightRAG(\n        working_dir=test_dir,\n        llm_model_func=llm_func,\n        embedding_func=EmbeddingFunc(embedding_dim=1536, max_token_size=8192, func=embed_func)\n    )\n    \n    # IMPORTANT: Initialize storages\n    print(\"Initializing storages...\")\n    await rag.initialize_storages()\n    print(\"✅ Storages initialized!\")\n    \n    # Insert test document\n    print(\"Inserting test document...\")\n    await rag.ainsert(\"Machine learning is a subset of artificial intelligence. Deep learning uses neural networks for complex pattern recognition.\")\n    print(\"✅ Document inserted!\")\n    \n    # Query\n    print(\"Testing query...\")\n    result = await rag.aquery(\"What is machine learning?\", param={\"mode\": \"hybrid\"})\n    print(f\"✅ Query result:\\n{result}\")\n    \n    return True\n\nasyncio.run(test_kg_openai())\nprint(\"\\n✅ KG + OpenAI test passed!\")\nEOF",
+      "description": "Test KG with OpenAI"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:12:57.182780",
+      "command": "/media/sam/1TB/N8N_dev/raganything_venv/bin/python3 << 'EOF'\nimport asyncio\nimport sys\nimport os\nsys.path.insert(0, \"/media/sam/1TB/N8N_dev/raganything\")\n\nimport subprocess\napi_key = subprocess.check_output(\n    [\"gcloud\", \"secrets\", \"versions\", \"access\", \"latest\", \"--secret=openai-api-key\"],\n    text=True\n).strip()\nos.environ[\"OPENAI_API_KEY\"] = api_key\n\nfrom lightrag import LightRAG, QueryParam\nfrom lightrag.llm.openai import openai_complete_if_cache, openai_embed\nfrom lightrag.utils import EmbeddingFunc\nimport tempfile\n\ntest_dir = tempfile.mkdtemp()\n\nasync def test_fixed():\n    async def llm_func(prompt, system_prompt=None, history_messages=[], **kwargs):\n        return await openai_complete_if_cache(\"gpt-4o-mini\", prompt, system_prompt=system_prompt, api_key=api_key)\n    \n    async def embed_func(texts):\n        return await openai_embed(texts, model=\"text-embedding-3-small\", api_key=api_key)\n    \n    rag = LightRAG(\n        working_dir=test_dir,\n        llm_model_func=llm_func,\n        embedding_func=EmbeddingFunc(embedding_dim=1536, max_token_size=8192, func=embed_func)\n    )\n    \n    await rag.initialize_storages()\n    await rag.ainsert(\"Machine learning uses algorithms to learn from data. Deep learning is a type of machine learning using neural networks.\")\n    \n    # Fixed: use QueryParam or mode= directly\n    result = await rag.aquery(\"What is machine learning?\", mode=\"hybrid\")\n    print(f\"✅ Query result:\\n{result}\")\n\nasyncio.run(test_fixed())\nEOF",
+      "description": "Test with fixed query"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:13:21.043682",
+      "command": "/media/sam/1TB/N8N_dev/raganything_venv/bin/python3 -c \"\nfrom lightrag import LightRAG, QueryParam\nimport inspect\nsig = inspect.signature(LightRAG.aquery)\nprint('aquery signature:', sig)\nprint('QueryParam fields:', QueryParam.__dataclass_fields__.keys() if hasattr(QueryParam, '__dataclass_fields__') else dir(QueryParam))\n\"",
+      "description": "Check aquery signature"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:13:35.705752",
+      "command": "/media/sam/1TB/N8N_dev/raganything_venv/bin/python3 << 'EOF'\nimport asyncio\nimport sys\nimport os\nsys.path.insert(0, \"/media/sam/1TB/N8N_dev/raganything\")\n\nimport subprocess\napi_key = subprocess.check_output([\"gcloud\", \"secrets\", \"versions\", \"access\", \"latest\", \"--secret=openai-api-key\"], text=True).strip()\nos.environ[\"OPENAI_API_KEY\"] = api_key\n\nfrom lightrag import LightRAG, QueryParam\nfrom lightrag.llm.openai import openai_complete_if_cache, openai_embed\nfrom lightrag.utils import EmbeddingFunc\nimport tempfile\n\ntest_dir = tempfile.mkdtemp()\n\nasync def test():\n    async def llm_func(prompt, system_prompt=None, **kwargs):\n        return await openai_complete_if_cache(\"gpt-4o-mini\", prompt, system_prompt=system_prompt, api_key=api_key)\n    \n    async def embed_func(texts):\n        return await openai_embed(texts, model=\"text-embedding-3-small\", api_key=api_key)\n    \n    rag = LightRAG(working_dir=test_dir, llm_model_func=llm_func,\n        embedding_func=EmbeddingFunc(embedding_dim=1536, max_token_size=8192, func=embed_func))\n    \n    await rag.initialize_storages()\n    await rag.ainsert(\"Machine learning uses algorithms to learn from data. Deep learning uses neural networks.\")\n    \n    # Correct: param=QueryParam(mode=\"hybrid\")\n    result = await rag.aquery(\"What is machine learning?\", param=QueryParam(mode=\"hybrid\"))\n    print(f\"✅ Query result:\\n{result}\")\n\nasyncio.run(test())\nEOF",
+      "description": "Test with QueryParam"
+    },
+    {
+      "operation": "grep",
+      "timestamp": "2026-01-13T12:14:06.529214",
+      "pattern": "aquery|initialize_storages",
+      "path": "/media/sam/1TB/N8N_dev/scripts/raganything_service.py",
+      "output_mode": "content"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-13T12:14:12.571477",
+      "file_path": "/media/sam/1TB/N8N_dev/scripts/raganything_service.py"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:14:20.201066",
+      "command": "/media/sam/1TB/N8N_dev/raganything_venv/bin/python3 -c \"\nimport sys\nsys.path.insert(0, '/media/sam/1TB/N8N_dev/raganything')\nfrom raganything import RAGAnything\nimport inspect\ntry:\n    sig = inspect.signature(RAGAnything.aquery)\n    print('RAGAnything.aquery signature:', sig)\nexcept:\n    print('No aquery method')\n    print('Available methods:', [m for m in dir(RAGAnything) if not m.startswith('_')])\n\"",
+      "description": "Check RAGAnything API"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:16:30.384210",
+      "command": "source ~/.config/gsm/load-secrets.sh 2>/dev/null && curl -s -X GET \"${N8N_API_URL}api/v1/workflows\" \\\n  -H \"X-N8N-API-KEY: ${N8N_API_KEY}\" | jq -r '.data[] | \"\\(.id) | \\(.name)\"' | head -20",
+      "description": "List N8N workflows"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:16:55.221453",
+      "command": "curl -s -X GET \"https://n8nubuntu.princyx.xyz/api/v1/workflows\" \\\n  -H \"X-N8N-API-KEY: $(gcloud secrets versions access latest --secret=n8n-api-key)\" | jq -r '.data[] | \"\\(.id) | \\(.name)\"' 2>/dev/null | grep -i \"pdf\\|rag\\|paper\\|research\" || echo \"Checking all...\"\ncurl -s -X GET \"https://n8nubuntu.princyx.xyz/api/v1/workflows\" \\\n  -H \"X-N8N-API-KEY: $(gcloud secrets versions access latest --secret=n8n-api-key)\" | jq -r '.data[] | \"\\(.id) | \\(.name)\"' 2>/dev/null | head -15",
+      "description": "List workflows"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:18:47.905822",
+      "command": "/media/sam/1TB/N8N_dev/raganything_venv/bin/pip show FlagEmbedding 2>/dev/null | head -2 || echo \"FlagEmbedding not installed\"",
+      "description": "Check if FlagEmbedding installed"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:18:54.943080",
+      "command": "/media/sam/1TB/N8N_dev/raganything_venv/bin/pip install FlagEmbedding --quiet && echo \"FlagEmbedding installed\"",
+      "description": "Install FlagEmbedding for reranker"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:19:33.276608",
+      "command": "/media/sam/1TB/N8N_dev/raganything_venv/bin/python3 -c \"\nfrom lightrag import LightRAG\nimport inspect\nsig = inspect.signature(LightRAG.__init__)\nprint([p for p in sig.parameters if 'rerank' in p.lower()])\n\"",
+      "description": "Check LightRAG rerank params"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-13T12:19:41.370475",
+      "file_path": "/media/sam/1TB/N8N_dev/scripts/raganything_service.py"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-13T12:19:49.839186",
+      "file_path": "/media/sam/1TB/N8N_dev/scripts/raganything_service.py",
+      "old_string": "# Vision processing (expensive - uses GPT-4o)\n# Set to False to skip image analysis and save API cos..."
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-13T12:19:55.409777",
+      "file_path": "/media/sam/1TB/N8N_dev/scripts/raganything_service.py"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:20:01.881533",
+      "command": "/media/sam/1TB/N8N_dev/raganything_venv/bin/python3 -c \"\nimport sys\nsys.path.insert(0, '/media/sam/1TB/N8N_dev/raganything')\nfrom raganything import RAGAnything\nimport inspect\nsig = inspect.signature(RAGAnything.__init__)\nparams = [p for p in sig.parameters]\nprint('RAGAnything params:', params)\n\"",
+      "description": "Check RAGAnything init params"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-13T12:20:16.315931",
+      "file_path": "/media/sam/1TB/N8N_dev/scripts/raganything_service.py",
+      "old_string": "            # Initialize RAGAnything\n            rag_instance = RAGAnything(\n                config=..."
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:20:25.002692",
+      "command": "echo \"Pre-downloading reranker model...\" && /media/sam/1TB/N8N_dev/raganything_venv/bin/python3 -c \"\nfrom FlagEmbedding import FlagReranker\nprint('Loading BAAI/bge-reranker-v2-m3...')\nr = FlagReranker('BAAI/bge-reranker-v2-m3', use_fp16=True)\nscore = r.compute_score([['test query', 'test passage']])\nprint(f'Model loaded! Test score: {score}')\n\" 2>&1 | tail -5",
+      "description": "Download reranker model"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:21:03.959830",
+      "command": "sudo systemctl restart raganything && sleep 15 && curl -s http://localhost:8767/health | jq '{version, rag_initialized}' && echo \"---\" && sudo journalctl -u raganything --no-pager -n 15 --since \"1 minute ago\" | grep -i \"config\\|rerank\\|embed\\|llm\"",
+      "description": "Restart and verify"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:21:27.273554",
+      "command": "sudo journalctl -u raganything --no-pager -n 20",
+      "description": "Check all recent logs"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:21:34.396314",
+      "command": "sleep 30 && curl -s http://localhost:8767/health | jq && echo \"---\" && sudo journalctl -u raganything --no-pager -n 10 --since \"1 minute ago\"",
+      "description": "Wait and check health"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:22:29.470613",
+      "command": "cat > /tmp/gdrive_rag_workflow.json << 'EOF'\n{\n  \"name\": \"W4.1 GDrive to RAG Processor\",\n  \"nodes\": [\n    {\n      \"parameters\": {\n        \"pollTimes\": {\n          \"item\": [{\"mode\": \"everyMinute\"}]\n        },\n        \"triggerOn\": \"specificFolder\",\n        \"folderToWatch\": {\n          \"__rl\": true,\n          \"mode\": \"list\",\n          \"value\": \"\"\n        },\n        \"event\": \"fileCreated\",\n        \"options\": {}\n      },\n      \"id\": \"gdrive-trigger\",\n      \"name\": \"GDrive Trigger\",\n      \"type\": \"n8n-nodes-base.googleDriveTrigger\",\n      \"typeVersion\": 1,\n      \"position\": [240, 300],\n      \"credentials\": {\n        \"googleDriveOAuth2Api\": {\n          \"id\": \"\",\n          \"name\": \"\"\n        }\n      }\n    },\n    {\n      \"parameters\": {\n        \"operation\": \"download\",\n        \"fileId\": {\n          \"__rl\": true,\n          \"mode\": \"id\",\n          \"value\": \"={{ $json.id }}\"\n        },\n        \"options\": {\n          \"fileName\": \"={{ $json.name }}\"\n        }\n      },\n      \"id\": \"gdrive-download\",\n      \"name\": \"Download PDF\",\n      \"type\": \"n8n-nodes-base.googleDrive\",\n      \"typeVersion\": 3,\n      \"position\": [460, 300],\n      \"credentials\": {\n        \"googleDriveOAuth2Api\": {\n          \"id\": \"\",\n          \"name\": \"\"\n        }\n      }\n    },\n    {\n      \"parameters\": {\n        \"method\": \"POST\",\n        \"url\": \"http://host.docker.internal:8767/process\",\n        \"sendBody\": true,\n        \"specifyBody\": \"json\",\n        \"jsonBody\": \"={\\n  \\\"pdf_path\\\": \\\"/workspace/1TB/N8N_dev/gdrive_uploads/{{ $('Download PDF').item.json.name }}\\\",\\n  \\\"paper_id\\\": \\\"gdrive:{{ $('GDrive Trigger').item.json.id }}\\\"\\n}\",\n        \"options\": {\n          \"timeout\": 3600000\n        }\n      },\n      \"id\": \"rag-process\",\n      \"name\": \"RAG Process\",\n      \"type\": \"n8n-nodes-base.httpRequest\",\n      \"typeVersion\": 4.2,\n      \"position\": [680, 300]\n    },\n    {\n      \"parameters\": {\n        \"content\": \"=📄 **New Paper Processed**\\n\\n**File:** {{ $('GDrive Trigger').item.json.name }}\\n**Status:** {{ $json.success ? '✅ Success' : '❌ Failed' }}\\n**Indexed:** {{ $json.indexed ? 'Yes' : 'No' }}\\n{{ $json.error ? '**Error:** ' + $json.error : '' }}\",\n        \"options\": {}\n      },\n      \"id\": \"discord-notify\",\n      \"name\": \"Discord Notify\",\n      \"type\": \"n8n-nodes-base.discord\",\n      \"typeVersion\": 2,\n      \"position\": [900, 300],\n      \"credentials\": {\n        \"discordWebhookApi\": {\n          \"id\": \"\",\n          \"name\": \"\"\n        }\n      }\n    },\n    {\n      \"parameters\": {\n        \"mode\": \"runOnceForAllItems\",\n        \"jsCode\": \"// Save PDF to local filesystem for RAGanything\\nconst fs = require('fs');\\nconst path = '/workspace/1TB/N8N_dev/gdrive_uploads';\\n\\n// Create directory if not exists\\nif (!fs.existsSync(path)) {\\n  fs.mkdirSync(path, { recursive: true });\\n}\\n\\n// Get binary data from previous node\\nconst binaryData = $input.first().binary;\\nif (binaryData && binaryData.data) {\\n  const fileName = $input.first().json.name || 'downloaded.pdf';\\n  const filePath = `${path}/${fileName}`;\\n  \\n  // Write file\\n  const buffer = Buffer.from(binaryData.data.data, 'base64');\\n  fs.writeFileSync(filePath, buffer);\\n  \\n  return [{ json: { saved: true, filePath, fileName } }];\\n}\\n\\nreturn [{ json: { saved: false, error: 'No binary data' } }];\"\n      },\n      \"id\": \"save-file\",\n      \"name\": \"Save to Disk\",\n      \"type\": \"n8n-nodes-base.code\",\n      \"typeVersion\": 2,\n      \"position\": [570, 300]\n    }\n  ],\n  \"connections\": {\n    \"GDrive Trigger\": {\n      \"main\": [[{\"node\": \"Download PDF\", \"type\": \"main\", \"index\": 0}]]\n    },\n    \"Download PDF\": {\n      \"main\": [[{\"node\": \"Save to Disk\", \"type\": \"main\", \"index\": 0}]]\n    },\n    \"Save to Disk\": {\n      \"main\": [[{\"node\": \"RAG Process\", \"type\": \"main\", \"index\": 0}]]\n    },\n    \"RAG Process\": {\n      \"main\": [[{\"node\": \"Discord Notify\", \"type\": \"main\", \"index\": 0}]]\n    }\n  },\n  \"settings\": {\n    \"executionOrder\": \"v1\"\n  }\n}\nEOF\n\n# Create workflow via API\ncurl -s -X POST \"https://n8nubuntu.princyx.xyz/api/v1/workflows\" \\\n  -H \"X-N8N-API-KEY: $(gcloud secrets versions access latest --secret=n8n-api-key)\" \\\n  -H \"Content-Type: application/json\" \\\n  -d @/tmp/gdrive_rag_workflow.json | jq '{id, name, active}'",
+      "description": "Create GDrive RAG workflow"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:22:39.399495",
+      "command": "mkdir -p /media/sam/1TB/N8N_dev/gdrive_uploads && ls -la /media/sam/1TB/N8N_dev/gdrive_uploads",
+      "description": "Create uploads folder"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:22:49.713963",
+      "command": "cd /media/sam/1TB/N8N_dev && git add scripts/raganything_service.py && git commit -m \"$(cat <<'EOF'\nfeat(raganything): add local reranker (bge-reranker-v2-m3)\n\n- Add ENABLE_RERANK config (default: true)\n- Use FlagEmbedding for local reranking (zero API cost)\n- Improves query result quality\n- Can be disabled via RAG_ENABLE_RERANK=false\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\"",
+      "description": "Commit rerank feature"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-13T12:23:02.459933",
+      "file_path": "/tmp/claude/-home-sam/tasks/b9e7721.output"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:23:08.961398",
+      "command": "cat /tmp/e2e_check_30min.log 2>/dev/null || echo \"Check non ancora completato\"",
+      "description": "Check 30min log"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:23:16.456430",
+      "command": "curl -s http://localhost:8767/status | jq && echo \"---\" && ls -la /media/sam/1TB/N8N_dev/rag_knowledge_base/",
+      "description": "Check current status"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-13T12:44:25.084000",
+      "command": "curl -s -X POST http://localhost:8767/process \\\n  -H \"Content-Type: application/json\" \\\n  -d '{\n    \"pdf_path\": \"/media/sam/1TB/N8N_dev/papers/1411.3615v1.pdf\",\n    \"paper_id\": \"test-final-001\"\n  }' &\necho \"Test lanciato. Monitoro...\"",
+      "description": "Launch E2E test"
+    }
+  ],
+  "last_updated": "2026-01-13T12:44:25.084022"
+}

@@ -1,0 +1,4 @@
+#!/bin/bash
+# Git pre-push hook - ClaudeFlow Bug Hunter v2
+# Uses Haiku for token efficiency with metrics tracking
+python3 ~/.claude/hooks/pre-push-review.py

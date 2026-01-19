@@ -1,5 +1,5 @@
-version: '1.2'
-updated: '2026-01-14'
+version: '1.4'
+updated: '2026-01-17'
 
 # =============================================================================
 # ENVIRONMENT VARIABLES - SSOT Registry
@@ -9,14 +9,14 @@ updated: '2026-01-14'
 # =============================================================================
 environment:
   # SSOT per API keys e secrets (Claude/MCP related)
+  # NOTE: ~/.claude/.env RIMOSSO 2026-01-17 - secrets migrati a SOPS/GSM
   claude_secrets:
-    file: ~/.claude/.env
+    file: ~/.claude/.env.enc  # Cifrato con SOPS/age (se necessario)
+    migrated_to_gsm:
+      - LINEAR_API_KEY        # -> GSM: linear-api-key
+      - SENTRY_AUTH_TOKEN     # -> SOPS: secrets.enc
     keys:
-      - LINEAR_API_KEY        # Linear issue tracking
-      - DISCORD_WEBHOOK_URL   # Notifications (UNICA COPIA)
-      - N8N_AUTH_TOKEN        # N8N automation
-      - N8N_AUTH_HEADER       # N8N auth header
-      - SENTRY_AUTH_TOKEN     # Error tracking token
+      - DISCORD_WEBHOOK_URL   # Notifications
 
   # SSOT per infrastruttura locale
   infra_config:
@@ -39,12 +39,18 @@ environment:
   # GSM (Google Secret Manager) - ATTIVO
   gsm:
     enabled: true
-    project: ${GOOGLE_CLOUD_PROJECT}  # From N8N_dev/.env
+    project: custom-mix-460500-g9  # GCP project ID
     secrets:
-      - GITHUB_TOKEN
-      - LINEAR_API_KEY
-      - SENTRY_AUTH_TOKEN
-      - DISCORD_WEBHOOK_URL
+      - github-token
+      - linear-api-key          # Added 2026-01-17
+      - sentry-auth-token
+      - discord-bot-token
+      - openai-api-key
+      - gemini-api-key
+      - n8n-api-key
+      - grafana-service-token
+      - jwt-secret-key
+      - hyperliquid-testnet-pk
     usage: "gcloud secrets versions access latest --secret=SECRET_NAME"
 
   # Caricamento automatico via ~/.bashrc
@@ -57,7 +63,7 @@ infrastructure:
     database: postgresql  # Reuses n8n PostgreSQL
     catalog:
       system: catalog/system.yaml
-      mcp_profiles: catalog/mcp-profiles.yaml
+      mcp_config: catalog/mcp-profiles.yaml  # References ~/.mcp.json SSOT
       repos:
         - /media/sam/1TB/nautilus_dev/catalog-info.yaml
         - /media/sam/1TB/N8N_dev/catalog-info.yaml
@@ -82,6 +88,14 @@ infrastructure:
     path: /media/sam/1TB/nautilus_dev/monitoring
     grafana_port: 3000
     dashboards: /media/sam/1TB/nautilus_dev/monitoring/grafana/dashboards
+    dashboard_list:
+      - claude_metrics.json      # Ralph iterations, agents, AI metrics
+      - quality-score.json       # NEW: Quality scores, ClaudeFlow strategy
+      - config-drift.json        # Config drift tracking
+      - security.json            # Security events
+      - infrastructure.json      # Infrastructure metrics
+      - trading.json             # Trading metrics
+      - evolution.json           # Strategy evolution
     alerts: /media/sam/1TB/nautilus_dev/monitoring/grafana/provisioning/alerting
     prometheus_port: 9090
     cadvisor_port: 8484
@@ -264,6 +278,7 @@ global:
     - post-tool-use.py
     - dora-tracker.py
     - auto-format.py (Write|Edit)
+    - quality-score-tracker.py (Bash)  # NEW: Quality metrics tracking
     - architecture-validator.py (Bash)
     - readme-generator.py (Bash)
     stop:
@@ -272,6 +287,7 @@ global:
     - session-summary.py
     - auto-ralph.py
     - ralph-loop.py
+    - claudeflow-sync.py  # NEW: Sync ClaudeFlow JSON+SQLite to QuestDB
     subagent_stop:
     - subagent-checkpoint.sh
     user_prompt_submit:
@@ -279,6 +295,38 @@ global:
     - ssot_check.py
     - ralph-resume.py
     - verbalized_sampling.py
+    - framework-detector.py  # NEW: Detect SpecKit/CGSD frameworks
+  # Git hooks (native git, separate from Claude Code hooks)
+  git_hooks:
+    global_path: ~/.claude/hooks
+    hooks:
+      pre-push: pre-push-review.sh  # ClaudeFlow Bug Hunter
+    features:
+      - Uses claude --print (Max subscription, FREE)
+      - Blocks CRITICAL issues
+      - Prompts on HIGH severity
+      - Filters code files only (.py, .ts, .js, etc.)
+  # AI Services (localhost)
+  ai_services:
+    ai_validation:
+      path: /media/sam/1TB/claude-hooks-shared/services/ai_validation_service.py
+      port: 3848
+      endpoints:
+        - /health
+        - /review-pr
+        - /validate-data
+        - /validate-visual
+        - /validate-domain
+        - /quality-score
+      systemd: ai-validation.service
+      domains: [nautilus, bitcoin, n8n, visualization, default]
+  # N8N Workflows (automation)
+  n8n_workflows:
+    ai_pr_review:
+      id: W7.1_AI_PR_Review
+      webhook: https://n8nubuntu.princyx.xyz/webhook/ai-pr-review
+      spec: ~/.claude/plans/modular-snuggling-snail.md#appendice-b
+      status: pending  # Delegated to N8N team
   utility_scripts:
     drift_detector:
       path: ~/.claude/scripts/drift-detector.py
@@ -341,6 +389,12 @@ metrics:
   - claude_hooks
   - claude_tasks
   - claude_context
+  - claude_quality_scores      # NEW: Quality metrics from pytest/ruff/mypy
+  - claude_strategy_metrics    # NEW: ClaudeFlow strategy performance
+  - claude_strategy_trends     # NEW: ClaudeFlow strategy score trends
+  - claude_agent_learning      # NEW: Per-agent learning patterns
+  - claude_neural_patterns     # NEW: Neural patterns from SQLite
+  - claude_swarm_metrics       # NEW: Swarm performance metrics
   retention:
     default: 90d
     sessions: 365d
@@ -404,6 +458,8 @@ claudeflow:
   enabled: true  # DEFAULT ON (Claude Max 20x = unlimited budget)
   mode: orchestrator  # Full orchestration, not just on-demand
   install_path: /media/sam/1TB/claude-flow
+  version: v3  # Updated to v3 branch (DDD architecture, 15-agent swarm)
+  global_hive_mind_db: ~/.claude/hive-mind/hive-mind.db  # Global SQLite for learning
   speckit_integration:
     checkpoints:
       - phase: specify
@@ -433,6 +489,46 @@ claudeflow:
     session_sync:
       provider: questdb
       sync_interval_ms: 30000
+
+# =============================================================================
+# MCP SERVERS - Global Configuration (2026-01-17)
+# =============================================================================
+# SSOT: ~/.mcp.json (global) + project/.mcp.json (project-specific)
+# Secrets via SOPS or GSM - NO inline credentials.
+# =============================================================================
+mcp:
+  ssot: ~/.mcp.json  # Single source of truth for global MCP servers
+
+  tool_search:
+    enabled: true
+    threshold: 10
+    token_savings: "85-95%"
+
+  # Global servers (in ~/.mcp.json)
+  global_servers:
+    - linear        # GSM wrapper
+    - context7      # No secrets
+    - serena        # No secrets
+    - sentry        # OAuth
+    - firecrawl-mcp # SOPS inline
+    - wolframalpha  # SOPS inline
+    - paper-search-mcp  # No secrets
+    - download-mcp  # No secrets
+
+  # Project-specific servers (in project/.mcp.json)
+  project_servers:
+    nautilus_dev: [matlab-server]
+    N8N_dev: [n8n-mcp]
+    UTXOracle: [brk]
+
+  secrets_sources:
+    sops:
+      file: /media/sam/1TB/secrets.enc
+      keys: [FIRECRAWL_API_KEY, WOLFRAM_LLM_APP_ID]
+    gsm:
+      project: custom-mix-460500-g9
+      secrets: [linear-api-key]
+
 sync:
   # NOTE: Commands speckit/tdd/undo are GLOBAL ONLY (no longer synced to repos)
   # Repos use the global versions directly via ~/.claude/commands/

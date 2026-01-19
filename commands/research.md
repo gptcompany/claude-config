@@ -1,22 +1,31 @@
-# /research - CoAT Iterative Research
+# /research - CoAT Iterative Research v2
 
-Deep research using Chain-of-Associated-Thoughts with optional academic enrichment.
+Deep research using Chain-of-Associated-Thoughts with multi-source triangulation for >95% confidence.
+
+**Architecture:** ClaudeFlow primary orchestrator with automatic Native Task fallback via circuit breaker.
 
 ## Usage
 
 ```
-/research "query"                    # CoAT only (fast, ~2-3 min)
-/research --save "query"             # CoAT + auto-save to spec (no academic)
-/research -s "query"                 # Short form for --save
-/research --academic "query"         # CoAT + PMW + N8N + auto-save (smart merge)
-/research -a "query"                 # Short form (includes PMW)
-/research --academic --no-save "q"   # Skip auto-save to spec
-/research --append "query"           # Append new findings to existing research
-/research --fresh "query"            # Overwrite existing research completely
-/research --version "query"          # Create new version, keep old as backup
+/research "query"
 ```
 
-**Note**: `--academic` automatically includes PMW (Prove Me Wrong) analysis and saves to spec context if detected.
+**Zero flags needed.** Claude auto-detects everything:
+
+| Context | Auto-Behavior |
+|---------|---------------|
+| Inside spec directory | Saves to `research/research.md` |
+| Query contains academic keywords | Enables Academic APIs + PMW |
+| Incomplete checkpoint exists | Prompts to resume |
+| Same query within 1 hour | Uses cache |
+
+**Academic keywords (auto-trigger):**
+`paper`, `study`, `research`, `journal`, `academic`, `peer-reviewed`, `citation`, `arxiv`, `literature`, `scholarly`, `empirical`, `methodology`
+
+**Override only if needed:**
+```
+/research fresh "query"     # Skip cache, fresh results
+```
 
 ## User Input
 
@@ -24,50 +33,112 @@ Deep research using Chain-of-Associated-Thoughts with optional academic enrichme
 $ARGUMENTS
 ```
 
-**Parse flags first:**
-- If `--save` or `-s` present: Set `AUTO_SAVE=true`, `TRIGGER_N8N=false`, `RUN_PMW=false`, `SAVE_MODE=merge`
-- If `--academic` or `-a` present: Set `TRIGGER_N8N=true`, `RUN_PMW=true`, `AUTO_SAVE=true`, `SAVE_MODE=merge`
-- If `--append` present: Set `SAVE_MODE=append`
-- If `--fresh` present: Set `SAVE_MODE=fresh`
-- If `--version` present: Set `SAVE_MODE=version`
-- If `--no-save` present: Set `AUTO_SAVE=false`
-- Default `SAVE_MODE=merge` (smart merge with existing)
+## Smart Detection (executed automatically)
 
-You **MUST** process the user's research query using the CoAT methodology below.
+```python
+QUERY = "$ARGUMENTS".strip()
 
-## Spec Context Detection
+# 1. Remove optional "fresh" prefix
+USE_CACHE = True
+if QUERY.lower().startswith("fresh "):
+    USE_CACHE = False
+    QUERY = QUERY[6:].strip()
 
-When `AUTO_SAVE=true`, detect spec context to save research:
+# 2. Auto-detect academic intent from keywords
+ACADEMIC_KEYWORDS = [
+    "paper", "study", "research", "journal", "academic",
+    "peer-reviewed", "citation", "arxiv", "literature",
+    "scholarly", "empirical", "methodology", "thesis",
+    "publication", "review", "meta-analysis"
+]
+query_lower = QUERY.lower()
+USE_ACADEMIC = any(kw in query_lower for kw in ACADEMIC_KEYWORDS)
+RUN_PMW = USE_ACADEMIC  # PMW always with academic
+
+# 3. Auto-detect spec context
+import subprocess
+spec_check = subprocess.run(
+    ["bash", "-c", "find . -maxdepth 3 -name 'spec.md' -type f 2>/dev/null | head -1"],
+    capture_output=True, text=True
+)
+IN_SPEC_CONTEXT = bool(spec_check.stdout.strip())
+AUTO_SAVE = IN_SPEC_CONTEXT
+
+# 4. Check for incomplete checkpoint
+from research_checkpoint import ResearchCheckpoint
+incomplete = [c for c in ResearchCheckpoint.list_all()
+              if c['state'] not in ['completed', 'failed']
+              and c['query'].lower() == QUERY.lower()]
+if incomplete:
+    # Claude will ask: "Found incomplete research for this query. Resume?"
+    RESUME_ID = incomplete[0]['run_id']
+else:
+    RESUME_ID = None
+
+# Defaults
+SAVE_MODE = "merge"
+MAX_TOKENS = 200000
+```
+
+## Pre-Execution: Guards Initialization
+
+Before starting research, initialize guards:
+
+```python
+# 1. Token Budget Guard (200K default, 5 iterations max)
+from research_budget import BudgetGuard
+budget = BudgetGuard(
+    query=QUERY,
+    max_tokens=MAX_TOKENS or 200000,
+    max_iterations=5,
+    max_time_minutes=30
+)
+
+# 2. Research Cache (1-hour TTL)
+from research_cache import ResearchCache
+cache = ResearchCache(ttl_hours=1)
+
+# 3. Checkpoint Manager
+from research_checkpoint import ResearchCheckpoint, ResearchState
+if RESUME_ID:
+    checkpoint = ResearchCheckpoint.load(RESUME_ID)
+else:
+    checkpoint = ResearchCheckpoint(query=QUERY)
+```
+
+## Spec Context Detection (Auto)
+
+Automatically detects if running inside a spec directory:
 
 ```bash
-# Check for active spec via check-prerequisites.sh
-SPEC_DIR=$(.specify/scripts/bash/check-prerequisites.sh --paths-only 2>/dev/null | grep FEATURE_DIR | cut -d= -f2)
-
-# Fallback: Find most recent spec with spec.md
-if [ -z "$SPEC_DIR" ]; then
-  SPEC_DIR=$(find specs -name "spec.md" -printf '%T@ %h\n' 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2)
-fi
+# Find nearest spec.md
+SPEC_FILE=$(find . -maxdepth 3 -name "spec.md" -type f 2>/dev/null | head -1)
+SPEC_DIR=$(dirname "$SPEC_FILE" 2>/dev/null)
 ```
 
 **If spec context found:**
-- Create research directory if needed: `mkdir -p $SPEC_DIR/research`
-- Set `SPEC_RESEARCH_PATH=$SPEC_DIR/research/research.md`
-- After research complete, save full output to `research/research.md`
+- `AUTO_SAVE=true` (automatic)
+- Creates `$SPEC_DIR/research/research.md`
+- Uses smart merge with existing research
 
 **If no spec context:**
-- Skip auto-save, output to screen only
-- Inform user: "No spec context detected. Use --no-save or run from spec directory."
+- Output to screen only
+- No save prompt needed
 
 ## CoAT Process (Chain-of-Associated-Thoughts)
 
-Execute this iterative research loop (max 5 iterations):
+Execute this iterative research loop (max 5 iterations, enforced by BudgetGuard):
 
-### Phase 1: Associate
+### Phase 1: Associate (checkpoint: QUERYING)
+
+```python
+checkpoint.transition(ResearchState.QUERYING)
+```
 
 Generate 3-5 related concepts/queries from the user's question:
 - Think laterally - what adjacent topics might be relevant?
 - Consider synonyms, related fields, prerequisite concepts
-- Identify potential sources: web, codebase, documentation
+- Identify potential sources: web, codebase, documentation, academic
 
 **Output format:**
 ```
@@ -77,121 +148,141 @@ Associated Queries:
 3. [query 3] - [why relevant]
 ```
 
-### Phase 2: Search
+### Phase 2: Search (checkpoint: SEARCHING)
+
+```python
+checkpoint.transition(ResearchState.SEARCHING)
+budget.record(iteration=True, step_name="search")
+```
+
+**Check cache first (if USE_CACHE=true):**
+```python
+cached_result = cache.get(query)
+if cached_result:
+    print("Cache HIT")
+    # Use cached results, skip API calls
+else:
+    # Execute searches
+```
 
 Execute searches IN PARALLEL using multiple sources:
 
 1. **WebSearch** - For current information, articles, documentation
-2. **Grep** - Search codebase for implementations, patterns, examples
-3. **Read** - Local documentation, README files, specs
+2. **Grep/Read** - Search codebase for implementations, patterns, examples
+3. **Academic APIs** (if `USE_ACADEMIC=true`):
+   ```python
+   # Direct API calls - no MCP dependency
+   from academic_search import search_all
+   results = search_all(query, max_results=10, sources=["arxiv", "semantic", "crossref"])
+   ```
+
+**Cache results (if USE_CACHE=true):**
+```python
+if not cached_result:
+    cache.set(query, results, source="search", ttl_hours=1)
+```
 
 For each source, extract:
 - Key findings
 - Source URL/path
 - Confidence in relevance (1-10)
 
-### Phase 3: Evaluate Branches
+### Phase 3: Triangulation (checkpoint: TRIANGULATING)
 
-Score each search branch:
+```python
+checkpoint.transition(ResearchState.TRIANGULATING)
+```
 
-| Branch | Relevance | Confidence | Completeness |
-|--------|-----------|------------|--------------|
-| Web 1  | X/10      | X/10       | X/10         |
-| Web 2  | X/10      | X/10       | X/10         |
-| Code 1 | X/10      | X/10       | X/10         |
+**Multi-source triangulation for >95% confidence:**
+
+| Source Type | Weight | Quality Indicators |
+|-------------|--------|-------------------|
+| Academic Papers | 40% | Peer-reviewed, citations, methodology |
+| Official Docs | 30% | First-party, version-matched |
+| Web Articles | 20% | Author expertise, recency, citations |
+| Codebase | 10% | Working implementation, tests |
+
+Score each finding:
+```
+Triangulation Score =
+  (source_agreement × 0.40) +    # Multiple sources confirm
+  (source_quality × 0.30) +       # High-quality sources
+  (coverage_depth × 0.20) +       # Comprehensive coverage
+  (counter_evidence × 0.10)       # Addressed contradictions
+```
 
 **Decision logic:**
-- If average score < 5: **BACKTRACK** - generate new queries
+- If triangulation score < 60%: **BACKTRACK** - generate new queries
 - If any critical gap identified: **BACKTRACK** with focused query
-- Otherwise: proceed to Hypothesize
+- If score >= 80%: proceed to synthesis
+- If score 60-80%: proceed but note uncertainty
 
 ### Phase 4: Hypothesize
 
 Synthesize findings into a coherent answer:
-1. Identify common themes across sources
+1. Identify common themes across sources (triangulated findings)
 2. Resolve contradictions (prefer authoritative sources)
 3. Note remaining gaps or uncertainties
 4. Form preliminary hypothesis/answer
 
 ### Phase 5: Refine (Loop Decision)
 
-Calculate overall confidence:
-```
-Confidence = (avg_relevance + avg_source_quality + coverage) / 3
+**Check budget before continuing:**
+```python
+if not budget.can_continue():
+    print("Budget exceeded - stopping gracefully")
+    checkpoint.transition(ResearchState.SYNTHESIZING)
+    # Skip to final synthesis
 ```
 
-**If confidence < 80% AND iterations < 5:**
+Calculate overall confidence:
+```
+Confidence =
+  (triangulation_score × 0.50) +
+  (source_diversity × 0.25) +
+  (gap_coverage × 0.25)
+```
+
+**If confidence < 80% AND budget.can_continue():**
 - Identify weakest area
 - Generate refined queries targeting gaps
 - Return to Phase 1
 
-**If confidence >= 80% OR iterations >= 5:**
+**If confidence >= 80% OR budget exhausted:**
 - Finalize answer
-- Check if N8N academic trigger needed
+- Proceed to PMW (if RUN_PMW=true)
 - Output final response
 
-## N8N Academic Trigger (Smart Suggestion)
+## Academic Search Integration (Auto with Academic Keywords)
 
-### Step 1: Check explicit flag
-If user passed `--academic` or `-a` → Set `TRIGGER_N8N=true`
+```python
+# Direct API calls via academic_search.py
+from academic_search import search_arxiv, search_semantic_scholar, search_crossref
 
-### Step 2: Semantic evaluation (if no flag)
-After completing CoAT research, evaluate if academic papers would add value.
+# Search with circuit breakers and rate limiting built-in
+arxiv_papers = search_arxiv(query, max_results=5)
+semantic_papers = search_semantic_scholar(query, max_results=5)
+crossref_papers = search_crossref(query, max_results=5)
 
-**Criteria to consider:**
-- **Complexity**: Is this a nuanced topic requiring peer-reviewed depth?
-- **Novelty**: Are there recent academic advances the user should know?
-- **Rigor**: Would mathematical proofs/formulas benefit the answer?
-- **Importance**: Is accuracy critical (finance, medical, legal)?
-- **Gap**: Did web search leave significant knowledge gaps?
-
-**Decision matrix:**
-
-| Complexity | Importance | Web Coverage | Suggest Academic? |
-|------------|------------|--------------|-------------------|
-| High | High | Poor | Yes |
-| High | Medium | Poor | Yes |
-| Medium | High | Poor | Yes |
-| Low | Any | Good | No |
-| Any | Any | Excellent | No |
-
-### Step 3: Suggest (don't auto-trigger)
-
-If evaluation suggests academic enrichment would help, ASK the user:
-
-```
-The research is complete, but this topic could benefit from academic papers:
-- [Reason 1: e.g., "Complex mathematical foundations"]
-- [Reason 2: e.g., "Recent advances in 2024-2025 not fully covered"]
-
-Would you like me to trigger the academic pipeline? (~15-30 min async)
-Reply 'yes' or run: /research --academic "query"
+# Deduplicate across sources
+from academic_search import deduplicate_papers
+all_papers = deduplicate_papers(arxiv_papers + semantic_papers + crossref_papers)
 ```
 
-**Only trigger after user confirms.**
+**Rate limits (built into academic_search.py):**
+- arXiv: 3 seconds between requests
+- Semantic Scholar: 1 second (429 handling)
+- CrossRef: 0.5 seconds (polite pool)
 
-### Step 4: Trigger (if confirmed or flag present)
+## PMW Validation (Auto with Academic Keywords)
 
-If `TRIGGER_N8N=true`:
-
-```bash
-~/.claude/scripts/trigger-n8n-research.sh "QUERY_WITHOUT_FLAGS"
+```python
+checkpoint.transition(ResearchState.PMW_ANALYSIS)
 ```
-
-**Inform user:**
-```
-Academic research triggered for: "QUERY"
-- Discord notification when papers ready (~15-30 min)
-- Use `/research-papers` to view results
-```
-
-### Step 5: PMW Validation (if `RUN_PMW=true`)
 
 > **"Cerca attivamente disconferme, non conferme"** - Actively seek disconfirmation, not confirmation.
 
-When `--academic` flag is present, ALWAYS run PMW after CoAT research:
-
-#### 5.1 Counter-Evidence Search
+### PMW.1 Counter-Evidence Search
 
 Search for contradicting evidence using inverted queries:
 
@@ -202,7 +293,7 @@ Counter:  "{topic} failure", "{topic} limitations", "{topic} criticism", "{topic
 
 Execute WebSearch with counter-queries IN PARALLEL.
 
-#### 5.2 SWOT Assessment
+### PMW.2 SWOT Assessment
 
 Based on ALL findings (CoAT + Counter-Evidence), produce:
 
@@ -222,14 +313,14 @@ Based on ALL findings (CoAT + Counter-Evidence), produce:
 - [What could make this approach fail]
 ```
 
-#### 5.3 Mitigations Check
+### PMW.3 Mitigations Check
 
 For each Threat/Weakness:
 - Does existing research address it?
 - Is mitigation documented?
 - Flag unaddressed risks
 
-#### 5.4 Verdict
+### PMW.4 Verdict
 
 Based on PMW analysis, provide verdict:
 
@@ -241,18 +332,11 @@ Based on PMW analysis, provide verdict:
 
 **Include verdict in final output.**
 
-### Examples
-
-**No suggestion needed:**
-- "How to use Python asyncio" → Web coverage excellent, low complexity
-- "Git rebase vs merge" → Well-documented, no academic depth needed
-
-**Suggest academic:**
-- "Optimal execution algorithms for large orders" → High complexity, finance importance
-- "Kelly criterion with correlated assets" → Mathematical rigor needed
-- "Volatility surface arbitrage" → Recent academic advances, critical accuracy
-
 ## Output Format
+
+```python
+checkpoint.transition(ResearchState.SYNTHESIZING)
+```
 
 ### Research Summary
 
@@ -260,11 +344,15 @@ Based on PMW analysis, provide verdict:
 
 ### Key Findings
 
-1. **[Finding 1]** - [Source]
-2. **[Finding 2]** - [Source]
-3. **[Finding 3]** - [Source]
+1. **[Finding 1]** - [Source] (Triangulated: X sources)
+2. **[Finding 2]** - [Source] (Triangulated: X sources)
+3. **[Finding 3]** - [Source] (Triangulated: X sources)
 
 ### Sources
+
+**Academic (if used):**
+- [Paper Title] ([Year]) - [DOI/URL] - Citations: N
+- [Paper Title] ([Year]) - [DOI/URL] - Citations: N
 
 **Web:**
 - [Title](URL) - [brief relevance note]
@@ -277,25 +365,26 @@ Based on PMW analysis, provide verdict:
 
 ### Confidence
 
-**Overall: X/100**
+**Overall: X/100** (Target: >95%)
 
-| Dimension | Score |
-|-----------|-------|
-| Source Quality | X/10 |
-| Coverage | X/10 |
-| Consistency | X/10 |
+| Dimension | Score | Weight |
+|-----------|-------|--------|
+| Source Agreement | X/10 | 40% |
+| Source Quality | X/10 | 30% |
+| Coverage Depth | X/10 | 20% |
+| Counter-Evidence | X/10 | 10% |
 
-### Iterations Performed
+### Research Metrics
 
-X iterations, backtracked Y times
+```
+Run ID: [checkpoint.run_id]
+Iterations: X (max 5)
+Tokens used: X / 200,000
+Sources searched: X
+Cache: HIT/MISS
+```
 
-### Academic Enrichment
-
-[Triggered / Not applicable]
-
-If triggered: "Check `/research-papers` in ~15-30 min for academic papers and validated formulas."
-
-### PMW Analysis (if --academic)
+### PMW Analysis (if academic keywords detected)
 
 ```markdown
 ## PMW: Prove Me Wrong
@@ -319,162 +408,81 @@ If triggered: "Check `/research-papers` in ~15-30 min for academic papers and va
 [Justification]
 ```
 
-## Step 6: Auto-Save to Spec (if `AUTO_SAVE=true`)
+## Auto-Save to Spec (Auto in Spec Context)
 
-When saving is enabled and spec context is detected:
-
-### 6.1 Check for Existing Research
-
-```bash
-RESEARCH_FILE="$SPEC_DIR/research/research.md"
-if [ -f "$RESEARCH_FILE" ]; then
-  EXISTING=true
-  # Read existing content for comparison
-else
-  EXISTING=false
-fi
+```python
+checkpoint.transition(ResearchState.SAVING)
 ```
 
-### 6.2 Apply Save Mode
+When in spec context, saves automatically using **smart merge**:
 
-**SAVE_MODE=merge (default - Smart Merge):**
 1. If no existing file → create new
 2. If existing file:
    - Create backup: `research.md.bak`
-   - Compare new findings with existing
    - Add only NEW findings (avoid duplicates)
    - Update PMW if new threats found
-   - Merge sources (existing + new, deduplicated)
+   - Merge sources (deduplicated)
    - Update date and confidence scores
    - Preserve existing validated content
 
-**SAVE_MODE=append:**
-1. If no existing file → create new
-2. If existing file:
-   - Keep all existing content
-   - Add separator: `---\n## Research Update (YYYY-MM-DD)\n`
-   - Append all new findings below
-
-**SAVE_MODE=fresh:**
-1. Create backup: `research.md.bak`
-2. Overwrite completely with new research
-
-**SAVE_MODE=version:**
-1. If existing file:
-   - Rename to: `research_YYYY-MM-DD_HH-MM.md`
-2. Create new `research.md` with fresh content
-
-### 6.3 Generate research.md Content
-
-Use the template as base structure:
-
 **Template SSOT:** `~/.claude/templates/research-template.md`
 
-Create a complete markdown document with:
-- Header (feature name, date, method, status)
-- Research query
-- All key findings with sources
-- PMW analysis (SWOT + verdict)
-- Sources (academic, web, codebase)
-- Confidence scores
-- Academic pipeline status
-- Spec validation table
+### Report Save Status
 
-**Template structure:**
-```markdown
-# Research: [Feature Name]
-
-**Feature**: [spec-id]
-**Research Date**: [date]
-**Method**: CoAT + PMW + Academic Pipeline
-**Status**: Complete
-
----
-
-## Research Query
-[query]
-
-## Key Findings
-[findings with sources]
-
-## PMW: Prove Me Wrong Analysis
-[SWOT + Verdict]
-
-## Sources
-[academic, web, codebase]
-
-## Confidence
-[scores]
-
-## Academic Pipeline
-[status]
-
-## Spec Validation
-[requirements vs academic support]
+```python
+checkpoint.transition(ResearchState.COMPLETED)
+checkpoint.update_metrics(confidence=final_confidence)
+budget.complete()
 ```
-
-### 6.4 Report Save Status
 
 After saving, inform user:
 ```
 Research saved to: specs/XXX/research/research.md
-- Save mode: [merge|append|fresh|version]
-- Existing file: [yes/no]
-- Backup created: [yes/no]
-- Key findings: N (M new, K existing)
-- PMW verdict: GO/WAIT/STOP
-- Academic pipeline: Triggered/Not triggered
+- Backup: research.md.bak
+- Findings: N total (M new)
+- PMW verdict: GO/WAIT/STOP (if academic)
+- Confidence: X%
 ```
 
 ## Configuration
 
 - **Max iterations:** 5
-- **Confidence threshold:** 80%
-- **Sources:** WebSearch, Grep, Read
-- **N8N webhook:** http://localhost:5678/webhook/research-trigger
-- **Discord notifications:** Enabled via DISCORD_WEBHOOK_URL
+- **Max tokens:** 200,000
+- **Confidence threshold:** 95%
+- **Cache TTL:** 1 hour
+- **Sources:** WebSearch, Grep, Read, Academic APIs
+
+## Error Recovery
+
+If research fails at any point:
+1. Checkpoint saves current state automatically
+2. Next `/research` with same query auto-detects incomplete checkpoint
+3. Claude prompts: "Found incomplete research. Resume?"
+4. Research continues from last successful phase
 
 ## Examples
 
-**General query (CoAT only):**
+**General query:**
 ```
 /research "Best practices for Python async error handling"
 ```
-→ WebSearch + codebase, fast (~2-3 min)
+→ WebSearch + codebase, auto-saves if in spec directory
 
-**With academic enrichment + PMW + auto-save:**
+**Academic query (auto-detected from keywords):**
 ```
-/research --academic "Kelly Criterion optimal bet sizing"
-/research -a "volatility modeling GARCH"
+/research "Kelly Criterion academic paper analysis"
+/research "GARCH volatility study methodology"
 ```
-→ CoAT + PMW + N8N pipeline + smart merge to `specs/XXX/research/research.md`
+→ Keywords trigger: Academic APIs + PMW + auto-save
 
-**Skip auto-save:**
+**Force fresh results (skip cache):**
 ```
-/research --academic --no-save "general topic not tied to spec"
+/research fresh "latest Python 3.12 features"
 ```
-→ CoAT + PMW + N8N pipeline, output to screen only
+→ Bypasses 1-hour cache
 
-**Append to existing research:**
+**Resume (auto-prompted):**
 ```
-/research --academic --append "Kelly criterion multi-asset correlation"
+/research "same query as before"
 ```
-→ Keeps existing findings, appends new section with date separator
-
-**Fresh overwrite (with backup):**
-```
-/research --academic --fresh "complete new research direction"
-```
-→ Creates backup, then overwrites with fresh research
-
-**Create versioned file:**
-```
-/research --academic --version "updated findings after paper review"
-```
-→ Renames existing to `research_2026-01-13_14-30.md`, creates fresh `research.md`
-
-**Codebase-focused:**
-```
-/research "How does NautilusTrader handle order matching?"
-```
-→ Heavy Grep/Read, targeted WebSearch
+→ If incomplete checkpoint exists, Claude asks: "Resume previous research?"

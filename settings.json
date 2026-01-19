@@ -1,4 +1,19 @@
 {
+  "env": {
+    "ENABLE_TOOL_SEARCH": "auto:5",
+    "USE_BUILTIN_RIPGREP": "1",
+    "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1",
+    "CLAUDE_CODE_DISABLE_TERMINAL_TITLE": "0",
+    "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1",
+    "DISABLE_COST_WARNINGS": "1",
+    "QUESTDB_HOST": "localhost",
+    "QUESTDB_ILP_PORT": "9009",
+    "PG_HOST": "localhost",
+    "PG_PORT": "5433",
+    "PG_USER": "n8n",
+    "PG_PASS": "n8n",
+    "PG_DB": "n8n"
+  },
   "permissions": {
     "allow": [
       "WebSearch",
@@ -84,25 +99,6 @@
   },
   "model": "opus",
   "enableAllProjectMcpServers": true,
-  "alwaysThinkingEnabled": true,
-  "env": {
-    "USE_BUILTIN_RIPGREP": "1",
-    "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1",
-    "CLAUDE_CODE_DISABLE_TERMINAL_TITLE": "0",
-    "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1",
-    "DISABLE_COST_WARNINGS": "1",
-    "QUESTDB_HOST": "localhost",
-    "QUESTDB_ILP_PORT": "9009",
-    "PG_HOST": "localhost",
-    "PG_PORT": "5433",
-    "PG_USER": "n8n",
-    "PG_PASS": "n8n",
-    "PG_DB": "n8n"
-  },
-  "statusLine": {
-    "type": "command",
-    "command": "python3 /media/sam/1TB/claude-hooks-shared/scripts/context-monitor.py"
-  },
   "hooks": {
     "PreToolUse": [
       {
@@ -161,6 +157,16 @@
         ]
       },
       {
+        "matcher": "Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/quality/plan_validator.py",
+            "timeout": 3
+          }
+        ]
+      },
+      {
         "matcher": "Task",
         "hooks": [
           {
@@ -200,6 +206,11 @@
       {
         "matcher": "Bash",
         "hooks": [
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/metrics/quality-score-tracker.py",
+            "timeout": 5
+          },
           {
             "type": "command",
             "command": "/media/sam/1TB/claude-hooks-shared/hooks/productivity/architecture-validator.py",
@@ -251,7 +262,7 @@
           },
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/core/context-preservation.py",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/intelligence/strategy_router.py",
             "timeout": 5
           },
           {
@@ -278,6 +289,11 @@
             "type": "command",
             "command": "/media/sam/1TB/claude-hooks-shared/hooks/control/ralph-loop.py",
             "timeout": 30
+          },
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/metrics/claudeflow-sync.py",
+            "timeout": 10
           }
         ]
       }
@@ -300,13 +316,18 @@
         "hooks": [
           {
             "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/ux/tips-auto-inject.py",
+            "timeout": 5
+          },
+          {
+            "type": "command",
             "command": "/media/sam/1TB/claude-hooks-shared/hooks/intelligence/session_start_tracker.py",
-            "timeout": 3
+            "timeout": 5
           },
           {
             "type": "command",
             "command": "/media/sam/1TB/claude-hooks-shared/hooks/intelligence/ci_status_injector.py",
-            "timeout": 3
+            "timeout": 5
           },
           {
             "type": "command",
@@ -332,9 +353,23 @@
             "type": "command",
             "command": "/media/sam/1TB/claude-hooks-shared/hooks/productivity/repo-health-notify.py",
             "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/intelligence/framework-detector.py",
+            "timeout": 5
           }
         ]
       }
     ]
-  }
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "python3 /media/sam/1TB/claude-hooks-shared/scripts/context-monitor.py"
+  },
+  "enabledPlugins": {
+    "pyright-lsp@claude-plugins-official": true,
+    "code-simplifier@claude-plugins-official": true
+  },
+  "alwaysThinkingEnabled": true
 }

@@ -5,23 +5,29 @@
 See: .planning/PROJECT.md (updated 2026-01-19)
 
 **Core value:** Every project gets production-grade validation with zero friction
-**Current focus:** Phase 1 — Core Framework
+**Current focus:** Phase 2 — CI Workflows
 
 ## Current Position
 
-Phase: 1 of 5 (Core Framework)
-Plan: 01-01 (JSON Schema + scaffold)
-Status: Plans created, ready to execute
-Last activity: 2026-01-19 — Phase 1 planning complete
+Phase: 2 of 5 (CI Workflows)
+Plan: 02-01 (CI workflow templates)
+Status: Ready to plan
+Last activity: 2026-01-19 — Phase 1 complete
 
-Progress: ░░░░░░░░░░ 0%
+Progress: ██░░░░░░░░ 20% (1/5 phases)
 
-## Phase 1 Plans
+## Phase 1 Complete
 
 | Plan | Description | Status |
 |------|-------------|--------|
-| 01-01 | JSON Schema and scaffold script | Ready |
-| 01-02 | Smoke test Jinja2 templates | Ready |
+| 01-01 | JSON Schema and scaffold script | Complete |
+| 01-02 | Smoke test Jinja2 templates | Complete |
+
+**Deliverables:**
+- `~/.claude/templates/validation/config.schema.json`
+- `~/.claude/templates/validation/scaffold.sh`
+- `~/.claude/templates/validation/README.md`
+- `~/.claude/templates/validation/smoke/*.j2` (4 templates)
 
 ## Performance Metrics
 
@@ -62,10 +68,10 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-01-19
-Stopped at: Phase 1 planning complete
-Resume file: .planning/phases/01-core-framework/PLAN-01-01.md
+Stopped at: Phase 1 complete, ready for Phase 2
+Resume file: None (start Phase 2 planning)
 
-## Discovery Summary
+## Discovery Summary (Phase 1)
 
 **Existing resources checked:**
 - `~/.claude/templates/validation-config.json` — Spec-pipeline config (different purpose)
@@ -73,4 +79,4 @@ Resume file: .planning/phases/01-core-framework/PLAN-01-01.md
 - `/media/sam/1TB/nautilus_dev/tests/` — No smoke tests (gap confirmed)
 - `/media/sam/1TB/nautilus_dev/.github/workflows/ci-cd-pipeline.yml` — 6-stage reference
 
-**Conclusion:** No existing smoke test templates or validation pipeline config. Proceed with full implementation.
+**Conclusion:** No existing smoke test templates or validation pipeline config. Full implementation completed.

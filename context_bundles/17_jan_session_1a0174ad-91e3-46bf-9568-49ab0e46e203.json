@@ -1,0 +1,814 @@
+{
+  "session_id": "1a0174ad-91e3-46bf-9568-49ab0e46e203",
+  "created_at": "2026-01-17T14:19:39.621747",
+  "operations": [
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:19:39.621774",
+      "command": "find /home/sam/.claude/commands -name \"*.md\" | xargs grep -l \"todo\\|Todo\\|TODO\" 2>/dev/null",
+      "description": "Cerca comandi relativi a todos"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:19:39.637779",
+      "command": "ls -lha /home/sam/.claude/ide | head -30",
+      "description": "Esamina directory IDE"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:19:43.018106",
+      "command": "find /home/sam/.claude/commands -type f -name \"*.md\" | sort",
+      "description": "Lista tutti i comandi disponibili"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-17T14:19:43.108526",
+      "file_path": "/home/sam/.claude/canonical.yaml"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:24:45.105449",
+      "command": "cat ~/.claude/settings.json 2>/dev/null | head -100",
+      "description": "Check Claude CLI MCP settings"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:24:45.122970",
+      "command": "cat ~/.config/claude-desktop/mcp.json 2>/dev/null",
+      "description": "Check desktop MCP config"
+    },
+    {
+      "operation": "mcp__wolframalpha__validate_key",
+      "timestamp": "2026-01-17T14:24:54.311934"
+    },
+    {
+      "operation": "mcp__n8n-mcp__n8n_health_check",
+      "timestamp": "2026-01-17T14:24:56.476627",
+      "mode": "status"
+    },
+    {
+      "operation": "mcp__sentry__whoami",
+      "timestamp": "2026-01-17T14:24:56.499369"
+    },
+    {
+      "operation": "mcp__context7__resolve-library-id",
+      "timestamp": "2026-01-17T14:24:56.514536",
+      "libraryName": "python",
+      "query": "test connectivity"
+    },
+    {
+      "operation": "mcp__firecrawl-mcp__firecrawl_map",
+      "timestamp": "2026-01-17T14:25:04.951394",
+      "url": "https://example.com",
+      "limit": 1
+    },
+    {
+      "operation": "mcp__download-mcp__listdownloads",
+      "timestamp": "2026-01-17T14:25:05.945250"
+    },
+    {
+      "operation": "mcp__paper-search-mcp__search_arxiv",
+      "timestamp": "2026-01-17T14:25:06.183673",
+      "query": "test",
+      "max_results": 1
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-17T14:33:15.323013",
+      "file_path": "/tmp/claude/-home-sam/tasks/bd9c016.output"
+    },
+    {
+      "operation": "glob",
+      "timestamp": "2026-01-17T14:33:24.349990",
+      "pattern": "**/*todo*mcp*",
+      "path": "/home/sam"
+    },
+    {
+      "operation": "glob",
+      "timestamp": "2026-01-17T14:33:24.355824",
+      "pattern": "**/*mcp*todo*",
+      "path": "/home/sam"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:33:24.362235",
+      "command": "ls -la /home/sam/.claude/plans/ 2>/dev/null | head -20",
+      "description": "List plan files"
+    },
+    {
+      "operation": "grep",
+      "timestamp": "2026-01-17T14:33:35.938460",
+      "pattern": "todo|MCP|migra",
+      "path": "/home/sam/.claude/plans",
+      "output_mode": "files_with_matches"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:33:35.942048",
+      "command": "ls -lat /home/sam/.claude/plans/ | head -10",
+      "description": "List plans by modification time"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-17T14:33:40.857532",
+      "file_path": "/home/sam/.claude/plans/validated-enchanting-pebble.md"
+    },
+    {
+      "operation": "grep",
+      "timestamp": "2026-01-17T14:33:48.779494",
+      "pattern": "todo.*mcp|mcp.*todo|todos.*server|server.*todos",
+      "path": "/home/sam/.claude",
+      "output_mode": "content"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:33:49.063120",
+      "command": "ls -la /media/sam/1TB/*mcp* 2>/dev/null || echo \"No mcp directories found\"",
+      "description": "Check for MCP projects"
+    },
+    {
+      "operation": "grep",
+      "timestamp": "2026-01-17T14:33:57.384375",
+      "pattern": "linear",
+      "path": "/home/sam/.claude",
+      "output_mode": "files_with_matches"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:33:57.396145",
+      "command": "cat /home/sam/.claude/settings.json | grep -A 20 \"mcpServers\" 2>/dev/null | head -50",
+      "description": "Check MCP servers in settings"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:34:03.076834",
+      "command": "cat /home/sam/.claude/settings.json | python3 -c \"import json,sys; d=json.load(sys.stdin); print(json.dumps(d.get('mcpServers', {}), indent=2))\" 2>/dev/null || echo \"No mcpServers key found\"",
+      "description": "Extract MCP servers config"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-17T14:34:03.499712",
+      "file_path": "/home/sam/.claude/canonical.yaml"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:34:11.768597",
+      "command": "find /media/sam/1TB -maxdepth 2 -name \"*linear*\" -type d 2>/dev/null; npm search @linear/mcp 2>/dev/null | head -5 || echo \"npm search failed\"",
+      "description": "Search for Linear MCP"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:34:14.765086",
+      "command": "pip3 show linear-mcp 2>/dev/null || echo \"Not installed via pip\"",
+      "description": "Check Linear MCP pip package"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-17T14:36:45.214036",
+      "todo_count": 3
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:36:45.468364",
+      "command": "gcloud secrets versions access latest --secret=linear-api-key 2>/dev/null | head -c 10 && echo \"...[REDACTED]\" || echo \"FAILED\"",
+      "description": "Verify Linear API key exists in GSM (redacted)"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-17T14:36:54.094113",
+      "file_path": "/home/sam/.claude/settings.json"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-17T14:37:08.187292",
+      "todo_count": 4
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-17T14:37:08.476768",
+      "file_path": "/home/sam/.claude/scripts/linear-mcp-wrapper.sh",
+      "content_length": 367
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:37:15.951410",
+      "command": "chmod +x /home/sam/.claude/scripts/linear-mcp-wrapper.sh",
+      "description": "Make wrapper script executable"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-17T14:37:16.248080",
+      "todo_count": 4
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:37:32.617589",
+      "command": "cat /home/sam/.mcp.json 2>/dev/null || echo \"Not found\"",
+      "description": "Check global .mcp.json"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:37:32.938938",
+      "command": "ls -la /home/sam/.config/claude-desktop/*.json 2>/dev/null",
+      "description": "Check claude desktop configs"
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-17T14:37:40.101640",
+      "file_path": "/home/sam/.mcp.json",
+      "content_length": 133
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-17T14:37:48.735554",
+      "todo_count": 4
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:37:49.001372",
+      "command": "timeout 10 /home/sam/.claude/scripts/linear-mcp-wrapper.sh --help 2>&1 || echo \"Exit code: $?\"",
+      "description": "Test Linear MCP wrapper"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-17T14:38:08.563664",
+      "todo_count": 4
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:48:27.093067",
+      "command": "find /media/sam/1TB -maxdepth 2 -name \".mcp.json\" -o -name \".mcp.live.json\" 2>/dev/null | head -20",
+      "description": "Find project MCP configs"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-17T14:48:27.166323",
+      "file_path": "/home/sam/.mcp.json"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-17T14:48:27.177163",
+      "file_path": "/home/sam/.config/claude-desktop/mcp.json"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:48:33.598411",
+      "command": "for f in /media/sam/1TB/N8N_dev/.mcp.json /media/sam/1TB/nautilus_dev/.mcp.json /media/sam/1TB/LiquidationHeatmap/.mcp.json /media/sam/1TB/UTXOracle/.mcp.json; do echo \"=== $f ===\"; cat \"$f\" 2>/dev/null | python3 -c \"import json,sys; d=json.load(sys.stdin); print('\\n'.join(d.get('mcpServers',{}).keys()))\" 2>/dev/null || echo \"ERROR\"; done",
+      "description": "List MCP servers per project"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:48:45.191114",
+      "command": "cat /media/sam/1TB/nautilus_dev/.mcp.json",
+      "description": "Read nautilus MCP config"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:48:45.210240",
+      "command": "cat /media/sam/1TB/N8N_dev/.mcp.json",
+      "description": "Read N8N MCP config"
+    },
+    {
+      "operation": "enterplanmode",
+      "timestamp": "2026-01-17T14:50:37.929617"
+    },
+    {
+      "operation": "task",
+      "timestamp": "2026-01-17T14:50:47.894845",
+      "subagent_type": "Explore",
+      "prompt": "Esplora la struttura MCP e secrets per la migrazione globale:\n\n1. Trova tutti i file SOPS esistenti ..."
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:50:50.506179",
+      "command": "find /media/sam/1TB -type f \\( -name \"*.enc\" -o -name \".env.enc\" -o -name \"secrets.enc\" \\) 2>/dev/null | head -20"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:50:56.616967",
+      "command": "find /media/sam/1TB -maxdepth 1 -name \".sops.yaml\" -o -name \"sops.yaml\" 2>/dev/null"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-17T14:50:58.597510",
+      "file_path": "/media/sam/1TB/.sops.yaml"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-17T14:51:00.546424",
+      "file_path": "/media/sam/1TB/secrets.enc"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:51:04.165371",
+      "command": "find /media/sam/1TB -maxdepth 2 -type d \\( -name \"N8N_dev\" -o -name \"serena\" -o -name \"firecrawl\" -o -name \"sentry\" -o -name \"paper-search\" -o -name \"download-mcp\" \\) 2>/dev/null"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-17T14:51:06.415427",
+      "file_path": "/media/sam/1TB/N8N_dev/.env.enc"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:51:08.788934",
+      "command": "find /media/sam/1TB/N8N_dev -type f -name \"*.json\" | grep -E \"(mcp|config)\" | head -20"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-17T14:51:11.125297",
+      "file_path": "/media/sam/1TB/N8N_dev/.mcp.json"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:51:13.917760",
+      "command": "find ~/.claude -type f \\( -name \".mcp.json\" -o -name \"mcp.json\" -o -name \"*.mcp.json\" \\) 2>/dev/null"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-17T14:51:16.291681",
+      "file_path": "/home/sam/.claude/plugins/marketplaces/claude-plugins-official/external_plugins/serena/.mcp.json"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:51:18.595473",
+      "command": "find ~/.claude -type f -name \"scripts\" -o -name \"*.sh\" 2>/dev/null | grep -E \"^/home/sam/.claude\" | head -20"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-17T14:51:22.103982",
+      "file_path": "/home/sam/.claude/scripts/linear-mcp-wrapper.sh"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:51:24.017485",
+      "command": "ls -la ~/.claude/scripts/ 2>/dev/null"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:51:26.573386",
+      "command": "find /media/sam/1TB -type f -name \".mcp*.json\" -o -name \"mcp.json\" 2>/dev/null | head -30"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-17T14:51:33.242720",
+      "file_path": "/media/sam/1TB/claude-flow/.claude/mcp.json"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:51:35.459094",
+      "command": "grep -r \"gcloud secrets\" ~/.claude/scripts 2>/dev/null | head -10"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:51:37.588718",
+      "command": "find ~/.config -type f -name \"*.json\" 2>/dev/null | grep -E \"(mcp|claude)\" | head -10"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-17T14:51:40.803913",
+      "file_path": "/home/sam/.config/Claude/claude_desktop_config.json"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:51:43.515949",
+      "command": "find /media/sam/1TB -type f -name \"mcp.json\" | xargs grep -l \"firecrawl\\|sentry\\|paper\\|download\" 2>/dev/null"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:52:02.817363",
+      "command": "grep -r \"FIRECRAWL\\|SENTRY_\\|PAPER\\|DOWNLOAD\" /media/sam/1TB/secrets.enc 2>/dev/null | head -5"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:52:05.370641",
+      "command": "find ~/.claude -path \"*vendor*\" -prune -o -type f -name \"*.py\" -print 2>/dev/null | xargs grep -l \"gcloud secrets\\|gsm\\|GSM\" 2>/dev/null | head -5"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:52:08.588286",
+      "command": "grep -r \"mcp\\|MCP\" /home/sam/.config/sops 2>/dev/null"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:52:10.847534",
+      "command": "ls -la /home/sam/.config/sops 2>/dev/null"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:52:12.987597",
+      "command": "ls -la /home/sam/.config/sops/age/"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:52:15.607446",
+      "command": "find /media/sam/1TB -path \"*/.claude\" -type d 2>/dev/null | xargs -I {} find {} -name \"mcp*\" 2>/dev/null | head -20"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:52:34.596907",
+      "command": "find /media/sam/1TB -maxdepth 1 -type d -name \"*serena*\" -o -name \"*firecrawl*\" -o -name \"*sentry*\" -o -name \"*paper*\" -o -name \"*download*\" 2>/dev/null"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:52:37.005065",
+      "command": "grep -r \"serena\\|firecrawl\\|sentry\\|paper-search\\|download-mcp\" ~/.claude --include=\"*.json\" 2>/dev/null | head -20"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:52:40.555714",
+      "command": "gcloud secrets list 2>/dev/null | head -20"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:52:44.911661",
+      "command": "ls -la ~/.claude/scripts/*.sh 2>/dev/null | tail -20"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:52:49.783514",
+      "command": "find /media/sam/1TB -name \"*mcp*\" -type d 2>/dev/null | grep -v timeshift | grep -v node_modules | head -20"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:53:08.044696",
+      "command": "ls -la /media/sam/1TB/mcpservers/ 2>/dev/null"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-17T14:53:10.341470",
+      "file_path": "/media/sam/1TB/mcpservers/mcp-download"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:53:12.392877",
+      "command": "ls -la /media/sam/1TB/mcpservers/mcp-download/ 2>/dev/null"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-17T14:53:15.091053",
+      "file_path": "/media/sam/1TB/mcpservers/mcp-download/bridging_download_mcp.py"
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-17T14:54:08.264524",
+      "file_path": "/home/sam/.claude/plans/tender-launching-storm.md",
+      "content_length": 4121
+    },
+    {
+      "operation": "exitplanmode",
+      "timestamp": "2026-01-17T14:54:13.603835",
+      "plan": "# Piano: Migrazione MCP Servers a Configurazione Globale\n\n## Obiettivo\nCentralizzare i server MCP in..."
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-17T14:56:12.409888",
+      "todo_count": 8
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-17T14:56:25.879417",
+      "file_path": "/home/sam/.claude/scripts/sentry-mcp-wrapper.sh",
+      "content_length": 376
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-17T14:56:26.221910",
+      "file_path": "/home/sam/.claude/scripts/firecrawl-mcp-wrapper.sh",
+      "content_length": 380
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-17T14:56:26.589349",
+      "file_path": "/home/sam/.claude/scripts/wolframalpha-mcp-wrapper.sh",
+      "content_length": 602
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-17T14:56:28.278790",
+      "file_path": "/home/sam/.claude/scripts/grafana-mcp-wrapper.sh",
+      "content_length": 443
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:56:38.529370",
+      "command": "chmod +x /home/sam/.claude/scripts/sentry-mcp-wrapper.sh /home/sam/.claude/scripts/firecrawl-mcp-wrapper.sh /home/sam/.claude/scripts/wolframalpha-mcp-wrapper.sh /home/sam/.claude/scripts/grafana-mcp-wrapper.sh",
+      "description": "Make all wrapper scripts executable"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-17T14:56:38.869679",
+      "todo_count": 8
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-17T14:56:47.598463",
+      "file_path": "/home/sam/.mcp.json",
+      "content_length": 1369
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-17T14:56:55.109972",
+      "todo_count": 8
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-17T14:56:55.404921",
+      "file_path": "/home/sam/.config/claude-desktop/mcp.json",
+      "content_length": 190
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-17T14:57:02.214702",
+      "todo_count": 8
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-17T14:57:08.540838",
+      "file_path": "/media/sam/1TB/nautilus_dev/.mcp.json"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-17T14:57:08.547551",
+      "file_path": "/media/sam/1TB/N8N_dev/.mcp.json"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-17T14:57:08.557600",
+      "file_path": "/media/sam/1TB/LiquidationHeatmap/.mcp.json"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-17T14:57:08.567123",
+      "file_path": "/media/sam/1TB/UTXOracle/.mcp.json"
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-17T14:57:18.424484",
+      "file_path": "/media/sam/1TB/nautilus_dev/.mcp.json",
+      "content_length": 384
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-17T14:57:19.233383",
+      "file_path": "/media/sam/1TB/N8N_dev/.mcp.json",
+      "content_length": 453
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-17T14:57:20.843481",
+      "file_path": "/media/sam/1TB/LiquidationHeatmap/.mcp.json",
+      "content_length": 23
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-17T14:57:22.228527",
+      "file_path": "/media/sam/1TB/UTXOracle/.mcp.json",
+      "content_length": 107
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-17T14:57:33.015579",
+      "todo_count": 8
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:57:33.351867",
+      "command": "timeout 5 /home/sam/.claude/scripts/sentry-mcp-wrapper.sh 2>&1 | head -3 || echo \"Exit: $?\"",
+      "description": "Test sentry wrapper"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:57:34.858641",
+      "command": "timeout 5 /home/sam/.claude/scripts/firecrawl-mcp-wrapper.sh 2>&1 | head -3 || echo \"Exit: $?\"",
+      "description": "Test firecrawl wrapper"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:57:36.113983",
+      "command": "timeout 5 /home/sam/.claude/scripts/wolframalpha-mcp-wrapper.sh 2>&1 | head -3 || echo \"Exit: $?\"",
+      "description": "Test wolframalpha wrapper"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:57:45.694679",
+      "command": "sops -d /media/sam/1TB/secrets.enc 2>/dev/null | grep -iE \"sentry|firecrawl|wolfram\" | cut -d= -f1",
+      "description": "Check actual secret names in SOPS"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:57:53.629525",
+      "command": "sops -d /media/sam/1TB/secrets.enc 2>/dev/null | head -20",
+      "description": "Check SOPS file contents"
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-17T14:58:09.873277",
+      "file_path": "/home/sam/.mcp.json",
+      "content_length": 1089
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T14:58:10.364798",
+      "command": "rm -f /home/sam/.claude/scripts/sentry-mcp-wrapper.sh /home/sam/.claude/scripts/firecrawl-mcp-wrapper.sh /home/sam/.claude/scripts/wolframalpha-mcp-wrapper.sh /home/sam/.claude/scripts/grafana-mcp-wrapper.sh",
+      "description": "Remove unnecessary wrapper scripts"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-17T14:58:16.568129",
+      "file_path": "/home/sam/.claude/CLAUDE.md"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-17T14:58:24.230099",
+      "file_path": "/home/sam/.claude/CLAUDE.md",
+      "old_string": "## Principi Generali\n\n- **KISS**: Keep It Simple, Stupid\n- **YAGNI**: You Aren't Gonna Need It\n- Non..."
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-17T14:58:24.526502",
+      "todo_count": 2
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T15:03:04.817356",
+      "command": "find /media/sam/1TB/backstage-portal -name \"*.yaml\" -o -name \"*.json\" 2>/dev/null | xargs grep -l -i \"mcp\" 2>/dev/null | head -10",
+      "description": "Find MCP references in Backstage"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-17T15:03:04.914329",
+      "file_path": "/home/sam/.claude/canonical.yaml"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-17T15:03:14.540959",
+      "file_path": "/media/sam/1TB/backstage-portal/catalog/mcp-profiles.yaml"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-17T15:03:14.555026",
+      "file_path": "/media/sam/1TB/backstage-portal/catalog/mcp/base.yaml"
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-17T15:03:59.115604",
+      "file_path": "/media/sam/1TB/backstage-portal/catalog/mcp-profiles.yaml",
+      "content_length": 494
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T15:03:59.419207",
+      "command": "rm -f /media/sam/1TB/backstage-portal/catalog/mcp/base.yaml /media/sam/1TB/backstage-portal/catalog/mcp/live.yaml && rmdir /media/sam/1TB/backstage-portal/catalog/mcp 2>/dev/null; echo \"Removed obsolete MCP profiles\"",
+      "description": "Remove obsolete MCP profile files"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-17T15:04:05.380592",
+      "file_path": "/home/sam/.claude/canonical.yaml"
+    },
+    {
+      "operation": "grep",
+      "timestamp": "2026-01-17T15:04:10.961812",
+      "pattern": "mcp|MCP",
+      "path": "/home/sam/.claude/canonical.yaml",
+      "output_mode": "content"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-17T15:04:16.614938",
+      "file_path": "/home/sam/.claude/canonical.yaml"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-17T15:04:34.041367",
+      "file_path": "/home/sam/.claude/canonical.yaml",
+      "old_string": "# =============================================================================\n# MCP SERVERS - Glob..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-17T15:04:39.874348",
+      "file_path": "/home/sam/.claude/canonical.yaml",
+      "old_string": "      mcp_profiles: catalog/mcp-profiles.yaml"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T15:05:21.458933",
+      "command": "echo \"=== ~/.mcp.json ===\" && cat ~/.mcp.json | python3 -c \"import json,sys; d=json.load(sys.stdin); print('\\n'.join(sorted(d.get('mcpServers',{}).keys())))\"",
+      "description": "Check global MCP servers"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T15:05:21.871983",
+      "command": "echo \"=== canonical.yaml MCP ===\" && grep -A20 \"global_servers:\" ~/.claude/canonical.yaml | grep \"^\\s*-\" | sed 's/.*- //' | cut -d'#' -f1 | tr -d ' '",
+      "description": "Check canonical.yaml servers"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T15:05:22.407220",
+      "command": "echo \"=== Project MCPs ===\" && for f in /media/sam/1TB/{nautilus_dev,N8N_dev,UTXOracle,LiquidationHeatmap}/.mcp.json; do echo -n \"$(basename $(dirname $f)): \"; cat \"$f\" 2>/dev/null | python3 -c \"import json,sys; d=json.load(sys.stdin); print(', '.join(d.get('mcpServers',{}).keys()) or '(empty)')\"; done",
+      "description": "Check project MCP servers"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T15:05:23.883401",
+      "command": "echo \"=== Secrets Check ===\" && grep -r \"glsa_\\|VYR43J\\|lin_api_\" ~/.mcp.json ~/.config/claude-desktop/mcp.json /media/sam/1TB/{nautilus_dev,N8N_dev,UTXOracle}/.mcp.json 2>/dev/null | grep -v \".enc\" || echo \"No inline secrets found ✓\"",
+      "description": "Check for exposed secrets"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T15:15:31.498387",
+      "command": "sops -d /media/sam/1TB/secrets.enc 2>/dev/null | grep -qi \"WOLFRAM\" && echo \"Already in SOPS\" || echo \"Need to add\"",
+      "description": "Check if Wolfram key in SOPS"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T15:15:37.370385",
+      "command": "cd /media/sam/1TB && sops -d secrets.enc > /tmp/secrets.tmp && echo \"WOLFRAM_LLM_APP_ID=VYR43J-GW3TWJ9G3K\" >> /tmp/secrets.tmp && sops -e /tmp/secrets.tmp > secrets.enc && rm /tmp/secrets.tmp && echo \"Added to SOPS\"",
+      "description": "Add Wolfram key to SOPS"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T15:15:42.035578",
+      "command": "head -5 /media/sam/1TB/secrets.enc",
+      "description": "Check SOPS file format"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T15:15:49.060477",
+      "command": "cd /media/sam/1TB && EDITOR=\"tee -a\" sops secrets.enc <<< \"WOLFRAM_LLM_APP_ID=VYR43J-GW3TWJ9G3K\" 2>/dev/null || sops --set '[\"WOLFRAM_LLM_APP_ID\"] \"VYR43J-GW3TWJ9G3K\"' secrets.enc 2>&1",
+      "description": "Add Wolfram key using sops set"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T15:15:56.166648",
+      "command": "cd /media/sam/1TB && sops --input-type dotenv --output-type dotenv -d secrets.enc > /tmp/secrets_plain.env && echo \"WOLFRAM_LLM_APP_ID=VYR43J-GW3TWJ9G3K\" >> /tmp/secrets_plain.env && sops --input-type dotenv --output-type dotenv -e /tmp/secrets_plain.env > secrets.enc.new && mv secrets.enc.new secrets.enc && rm /tmp/secrets_plain.env && echo \"Added WOLFRAM_LLM_APP_ID to SOPS\"",
+      "description": "Add Wolfram key via dotenv format"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T15:16:02.152414",
+      "command": "sops --input-type dotenv --output-type dotenv -d /media/sam/1TB/secrets.enc 2>/dev/null | grep -q \"WOLFRAM_LLM_APP_ID\" && echo \"Verified in SOPS ✓\"",
+      "description": "Verify Wolfram in SOPS"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-17T15:16:03.824429",
+      "file_path": "/home/sam/.mcp.json"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-17T15:16:10.128596",
+      "file_path": "/home/sam/.mcp.json",
+      "old_string": "    \"wolframalpha\": {\n      \"command\": \"node\",\n      \"args\": [\"/media/sam/1TB/mcpservers/wolframalph..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-17T15:16:16.780390",
+      "file_path": "/home/sam/.mcp.json",
+      "old_string": "    \"firecrawl-mcp\": {\n      \"command\": \"bash\",\n      \"args\": [\"-c\", \"eval \\\"$(sops -d /media/sam/1T..."
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T15:16:26.816207",
+      "command": "echo \"=== Final Secrets Check ===\" && grep -r \"glsa_\\|VYR43J\\|lin_api_\" ~/.mcp.json ~/.config/claude-desktop/mcp.json /media/sam/1TB/{nautilus_dev,N8N_dev,UTXOracle}/.mcp.json 2>/dev/null | grep -v \".enc\" || echo \"✓ No inline secrets\"",
+      "description": "Final secrets check"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T15:16:27.206409",
+      "command": "echo \"=== SOPS Secrets Available ===\" && sops --input-type dotenv --output-type dotenv -d /media/sam/1TB/secrets.enc 2>/dev/null | grep -E \"^(WOLFRAM|FIRECRAWL|N8N_API)\" | cut -d= -f1",
+      "description": "Verify SOPS secrets"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T15:16:28.591512",
+      "command": "echo \"=== Config Consistency ===\" && cat ~/.mcp.json | python3 -c \"import json,sys; d=json.load(sys.stdin); servers=list(d.get('mcpServers',{}).keys()); print(f'Global: {len(servers)} servers'); [print(f'  - {s}') for s in sorted(servers)]\"",
+      "description": "Final config summary"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T15:16:34.907676",
+      "command": "python3 -m json.tool ~/.mcp.json > /dev/null 2>&1 && echo \"JSON valid ✓\" || (echo \"JSON invalid, showing file:\" && cat ~/.mcp.json)",
+      "description": "Validate JSON"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-17T15:16:40.864750",
+      "command": "echo \"=== Final State ===\" && python3 -c \"\nimport json\nwith open('/home/sam/.mcp.json') as f:\n    d = json.load(f)\nservers = list(d.get('mcpServers',{}).keys())\nprint(f'Global MCP: {len(servers)} servers')\nfor s in sorted(servers):\n    print(f'  - {s}')\n\"",
+      "description": "Final state summary"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-17T15:16:48.956883",
+      "file_path": "/home/sam/.claude/canonical.yaml",
+      "old_string": "  secrets_sources:\n    sops:\n      file: /media/sam/1TB/secrets.enc\n      keys: [FIRECRAWL_API_KEY]\n..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-17T15:16:56.569755",
+      "file_path": "/home/sam/.claude/canonical.yaml",
+      "old_string": "  # Global servers (in ~/.mcp.json)\n  global_servers:\n    - linear        # GSM wrapper\n    - contex..."
+    }
+  ],
+  "last_updated": "2026-01-17T15:16:56.569773"
+}

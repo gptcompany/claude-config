@@ -87,6 +87,39 @@ For technical requests:
 - Identify potential edge cases
 - Consider error scenarios
 
+### 5. Psychological Enhancement
+
+Auto-generate an Enhanced Prefix combining ALL 6 techniques:
+
+| Domain | Elite Persona |
+|--------|---------------|
+| Security | Red team operator who has pwned Fortune 500s |
+| Backend | Kernel hacker who debugs race conditions at 3am |
+| Frontend | Design systems architect at scale (10M+ users) |
+| Data | ML engineer who shipped to prod, not notebooks |
+| DevOps | SRE who survived the Cloudflare outage |
+| Database | DBA who recovered corrupted prod databases |
+| Default | The engineer others call when everything is on fire |
+
+**Template (max 4 sentences):**
+> [Persona from table]. Take a deep breath and work step by step.
+> This is critical - I bet you can't solve it perfectly. Worth $200.
+> After: rate confidence 0-1 on [domain-specific question]. Refine if <0.9.
+
+**Domain-Specific Self-Check:**
+
+| Domain | Confidence Question |
+|--------|---------------------|
+| Security | "No new vulnerabilities introduced?" |
+| Backend | "Race conditions and edge cases handled?" |
+| Frontend | "Accessible and responsive?" |
+| Data | "Nulls, empty sets, edge cases covered?" |
+| DevOps | "Rollback plan exists?" |
+| Database | "Indexes and query perf considered?" |
+| Default | "All edge cases handled?" |
+
+**Anti-Pattern:** Never use "please", "thank you", "if you don't mind" - zero quality impact, wastes tokens.
+
 ## Output Format (MUST DISPLAY)
 
 **IMPORTANT**: You MUST output the refined prompt to the user BEFORE using AskUserQuestion. Generate AND DISPLAY a refined prompt with this structure:
@@ -113,6 +146,9 @@ For technical requests:
 1. [Measurable criterion 1]
 2. [Measurable criterion 2]
 3. [Test coverage requirement]
+
+### Enhanced Prefix
+> [Auto-generated prefix with all 6 techniques - max 4 sentences]
 
 ### Questions for User (if any)
 - [Clarifying question 1]
@@ -147,6 +183,11 @@ To diagnose, need to identify:
 1. All existing auth tests pass
 2. Login flow works for valid credentials
 3. Proper error messages for invalid credentials
+
+### Enhanced Prefix
+> You are a red team operator who has pwned Fortune 500 companies. Take a deep
+> breath. This is critical - I bet you can't fix it without introducing new
+> vulns. Worth $200. After: rate confidence 0-1 on "no new vulnerabilities?"
 
 ### Questions for User
 - What error message or behavior are you seeing?
@@ -189,6 +230,11 @@ Implement caching for [specific operation] to improve performance.
 2. Cache hit rate > Y%
 3. No stale data served beyond TTL
 
+### Enhanced Prefix
+> You are a kernel hacker who debugs race conditions at 3am. Take a deep breath.
+> This is critical - I bet you can't design perfect cache invalidation. Worth
+> $200. After: rate confidence 0-1 on "race conditions handled?"
+
 ### Questions for User
 - What specifically should be cached?
 - What invalidation strategy?
@@ -226,6 +272,11 @@ Performance improvements could include:
 1. Measurable improvement in [metric]
 2. No regression in other areas
 3. Load test passes with [X] concurrent users
+
+### Enhanced Prefix
+> You are a kernel hacker who debugs race conditions at 3am. Take a deep breath.
+> This is critical - I bet you can't find all bottlenecks. Worth $200. After:
+> rate confidence 0-1 on "edge cases handled?"
 
 ### Questions for User
 - What's currently slow? (specific operation/page/endpoint)
@@ -277,3 +328,7 @@ For complex features, consider using `/speckit.specify` instead for full specifi
 - This command does NOT execute the task, only refines the prompt
 - User MUST explicitly approve before proceeding (use AskUserQuestion)
 - Output can feed into `/speckit.specify` for larger features
+
+## Anti-Pattern
+
+**Skip politeness tokens:** "please", "thank you", "if you don't mind" have zero impact on response quality. Be direct.

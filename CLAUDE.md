@@ -29,6 +29,7 @@
 
 - **KISS**: Keep It Simple, Stupid
 - **YAGNI**: You Aren't Gonna Need It
+- **NO FRICTION**: Non aggiungere layer di indirezione inutili (wrapper, abstrazioni premature)
 - Non over-engineerare
 - Preferisci modifiche minimali e incrementali
 
@@ -48,12 +49,56 @@
 2. **SOPS/age per tutti i secrets**:
    - Credenziali Discord, API keys, tokens -> `.env.enc`
    - MAI credenziali inline in crontab
-   - Script devono caricare da SOPS: `eval "$(sops -d .env.enc)"`
+   - Script devono caricare da SOPS: `eval "$(sops --input-type dotenv --output-type dotenv -d .env.enc)"`
 
 3. **Locations**:
    - Secrets cifrati: `/media/sam/1TB/<repo>/.env.enc`
    - Age keys: `~/.config/sops/age/keys.txt`
    - SOPS config: `/media/sam/1TB/.sops.yaml`
+
+### Secrets SSOT (Single Source of Truth)
+
+**SSOT Location:** `/media/sam/1TB/.env.enc` (SOPS+age encrypted)
+
+| Key | Usage |
+|-----|-------|
+| `GITHUB_PAT` | GitHub API, CI/CD |
+| `GITHUB_TOKEN` | GitHub MCP |
+| `LINEAR_API_KEY` | Linear MCP |
+| `SENTRY_AUTH_TOKEN` | Sentry MCP |
+| `OPENAI_API_KEY` | OpenAI API |
+| `GEMINI_API_KEY` | Vertex AI |
+| `N8N_API_KEY` | N8N MCP |
+| `DISCORD_TOKEN` | Discord bot |
+| `DISCORD_WEBHOOK_URL` | Pipeline alerts |
+| `GRAFANA_URL/USERNAME/PASSWORD` | Grafana MCP |
+| `FIRECRAWL_API_KEY` | Firecrawl MCP |
+| `LANGSMITH_*` | LangSmith tracing |
+| `WOLFRAM_LLM_APP_ID` | WolframAlpha (in .mcp.json env) |
+
+**Total:** 34 keys in SSOT
+
+**Comandi SOPS:**
+```bash
+# Decrypt to view (keys only, no values!)
+sops -d /media/sam/1TB/.env.enc | cut -d= -f1
+
+# Add new secret
+sops /media/sam/1TB/.env.enc  # opens editor
+
+# Verify key exists
+sops -d /media/sam/1TB/.env.enc 2>/dev/null | grep -q "KEY_NAME" && echo "Exists"
+```
+
+**⚠️ DEPRECATO:**
+- GSM (Google Secret Manager) - non usare
+- `/media/sam/1TB/secrets.enc` - migrato a .env.enc
+- `~/.claude/.env.enc` - migrato a /media/sam/1TB/.env.enc
+- `/media/sam/1TB/.env` (plaintext) - eliminato
+
+## MCP Server Configuration
+
+**Config location:** `~/.mcp.json` (NON settings.json)
 
 ## Testing Requirements (MANDATORY)
 

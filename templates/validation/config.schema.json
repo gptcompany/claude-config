@@ -1,0 +1,115 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://claude.ai/validation/config.schema.json",
+  "title": "Validation Pipeline Config",
+  "description": "Configuration schema for universal validation pipeline framework",
+  "type": "object",
+  "required": ["project_name", "domain", "smoke_tests"],
+  "properties": {
+    "project_name": {
+      "type": "string",
+      "description": "Project identifier used in generated code"
+    },
+    "domain": {
+      "type": "string",
+      "enum": ["trading", "workflow", "data", "general"],
+      "description": "Domain type determines which extension templates are included"
+    },
+    "smoke_tests": {
+      "type": "object",
+      "description": "Configuration for smoke test generation",
+      "properties": {
+        "critical_imports": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Python import paths that must succeed (e.g., 'strategies.common.risk')",
+          "default": []
+        },
+        "config_files": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Config files to validate exist and parse (e.g., 'config/canonical.yaml')",
+          "default": []
+        },
+        "external_services": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "External services to check connectivity (format: 'host:port')",
+          "default": []
+        }
+      },
+      "additionalProperties": false
+    },
+    "k8s": {
+      "type": "object",
+      "description": "Kubernetes deployment configuration",
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "default": false,
+          "description": "Enable K8s templates and local cluster testing"
+        },
+        "namespace": {
+          "type": "string",
+          "default": "default",
+          "description": "Kubernetes namespace for deployment"
+        },
+        "rollout_strategy": {
+          "type": "string",
+          "enum": ["canary", "blue-green", "rolling"],
+          "default": "canary",
+          "description": "Argo Rollouts deployment strategy"
+        }
+      },
+      "additionalProperties": false
+    },
+    "rollback_triggers": {
+      "type": "array",
+      "description": "Metrics that trigger automatic rollback",
+      "items": {
+        "type": "object",
+        "required": ["metric", "threshold", "operator"],
+        "properties": {
+          "metric": {
+            "type": "string",
+            "description": "Prometheus metric name (e.g., 'error_rate', 'latency_p99_ms')"
+          },
+          "threshold": {
+            "type": "number",
+            "description": "Threshold value for the metric"
+          },
+          "operator": {
+            "type": "string",
+            "enum": ["<", ">", "==", "!=", "<=", ">="],
+            "description": "Comparison operator"
+          }
+        },
+        "additionalProperties": false
+      },
+      "default": []
+    },
+    "ci": {
+      "type": "object",
+      "description": "CI/CD workflow configuration",
+      "properties": {
+        "smoke_timeout_minutes": {
+          "type": "integer",
+          "default": 5,
+          "description": "Timeout for smoke test stage"
+        },
+        "test_timeout_minutes": {
+          "type": "integer",
+          "default": 10,
+          "description": "Timeout for unit/integration test stages"
+        },
+        "python_version": {
+          "type": "string",
+          "default": "3.12",
+          "description": "Python version for CI runners"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}
