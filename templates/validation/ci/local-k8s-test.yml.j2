@@ -1,0 +1,117 @@
+# Local K8s Validation Workflow - Generated from validation-framework template
+# Project: {{ project_name }}
+# Generated for domain: {{ domain }}
+#
+# Purpose: Validates K8s manifests and canary rollouts in ephemeral k3d cluster
+# Trigger: Manual only (workflow_dispatch) - local K8s tests are expensive
+#
+# Prerequisites in repository:
+#   - k8s/k3d-config.yaml
+#   - k8s/setup-local-cluster.sh
+#   - k8s/mock-prometheus.yaml
+#   - k8s/test-rollout-local.sh
+#   - k8s/teardown.sh
+
+name: Local K8s Validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      skip_teardown:
+        description: 'Skip cluster teardown (for debugging)'
+        required: false
+        default: 'false'
+        type: boolean
+      test_timeout:
+        description: 'Test timeout in minutes'
+        required: false
+        default: '15'
+        type: string
+
+jobs:
+  local-k8s:
+    name: "K8s Validation"
+    runs-on: ubuntu-latest
+    timeout-minutes: ${{ '{{' }} inputs.test_timeout || {{ k8s.ci_timeout_minutes | default(30) }} {{ '}}' }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install k3d
+        run: |
+          curl -s https://raw.githubusercontent.com/k3d-io/k3d/main/install.sh | bash
+          k3d version
+
+      - name: Install kubectl
+        run: |
+          curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+          chmod +x kubectl
+          sudo mv kubectl /usr/local/bin/
+          kubectl version --client
+
+      - name: Install Argo Rollouts kubectl plugin
+        run: |
+          curl -LO https://github.com/argoproj/argo-rollouts/releases/latest/download/kubectl-argo-rollouts-linux-amd64
+          chmod +x kubectl-argo-rollouts-linux-amd64
+          sudo mv kubectl-argo-rollouts-linux-amd64 /usr/local/bin/kubectl-argo-rollouts
+          kubectl argo rollouts version
+
+      - name: Setup k3d cluster
+        run: |
+          chmod +x k8s/setup-local-cluster.sh
+          ./k8s/setup-local-cluster.sh
+        env:
+          KUBECONFIG: ${{ '{{' }} github.workspace {{ '}}' }}/.kube/config
+
+      - name: Verify cluster is ready
+        run: |
+          kubectl cluster-info
+          kubectl get nodes
+          kubectl get pods -A
+        env:
+          KUBECONFIG: ${{ '{{' }} github.workspace {{ '}}' }}/.kube/config
+
+      - name: Apply mock Prometheus
+        run: |
+          if [ -f k8s/mock-prometheus.yaml ]; then
+            kubectl apply -f k8s/mock-prometheus.yaml
+            echo "Waiting for mock Prometheus to be ready..."
+            kubectl wait --for=condition=Available deployment/mock-prometheus -n monitoring --timeout=120s || true
+          else
+            echo "mock-prometheus.yaml not found, skipping"
+          fi
+        env:
+          KUBECONFIG: ${{ '{{' }} github.workspace {{ '}}' }}/.kube/config
+
+      - name: Run canary rollout test
+        run: |
+          chmod +x k8s/test-rollout-local.sh
+          ./k8s/test-rollout-local.sh
+        env:
+          KUBECONFIG: ${{ '{{' }} github.workspace {{ '}}' }}/.kube/config
+
+      - name: Collect cluster logs on failure
+        if: failure()
+        run: |
+          echo "=== Pod Status ==="
+          kubectl get pods -A
+          echo ""
+          echo "=== Events ==="
+          kubectl get events -A --sort-by='.lastTimestamp' | tail -50
+          echo ""
+          echo "=== Rollout Status ==="
+          kubectl argo rollouts list rollouts -A || true
+        env:
+          KUBECONFIG: ${{ '{{' }} github.workspace {{ '}}' }}/.kube/config
+
+      - name: Teardown cluster
+        if: ${{ '{{' }} always() && inputs.skip_teardown != 'true' {{ '}}' }}
+        run: |
+          if [ -f k8s/teardown.sh ]; then
+            chmod +x k8s/teardown.sh
+            ./k8s/teardown.sh
+          else
+            echo "teardown.sh not found, cleaning up directly"
+            k3d cluster delete {{ project_name }}-local || true
+          fi
