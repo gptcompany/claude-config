@@ -11,10 +11,16 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 
 Phase: 2 of 5 (CI Workflows)
 Plan: 02-01 (CI workflow templates)
-Status: Ready to plan
-Last activity: 2026-01-19 — Phase 1 complete
+Status: Plan created, ready to execute
+Last activity: 2026-01-19 — Phase 2 planned
 
 Progress: ██░░░░░░░░ 20% (1/5 phases)
+
+## Phase 2 Plan
+
+| Plan | Description | Status |
+|------|-------------|--------|
+| 02-01 | CI workflow templates (smoke + integration) | Ready |
 
 ## Phase 1 Complete
 

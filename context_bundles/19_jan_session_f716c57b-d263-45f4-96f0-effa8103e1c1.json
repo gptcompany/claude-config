@@ -1505,7 +1505,53 @@
       "timestamp": "2026-01-19T18:04:55.848483",
       "command": "cd ~/.claude && python3 scripts/roadmaptoissues.py --roadmap validation-framework/.planning/ROADMAP.md --auto-project --create-project 2>&1",
       "description": "Run GSD sync for validation-framework"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-19T18:05:33.925414",
+      "todo_count": 4
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-19T18:05:39.346407",
+      "command": "cd ~/.claude && gh issue list --repo gptcompany/claude-config --state all --json number,title,state,milestone --limit 10 2>&1",
+      "description": "Verify issues in claude-config"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-19T18:05:47.326530",
+      "command": "cd ~/.claude && gh project list --owner gptcompany --format json 2>&1 | head -20 || gh project list --owner gptcompany 2>&1",
+      "description": "Verify project board"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-19T18:05:55.030855",
+      "todo_count": 4
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-19T18:07:20.486400",
+      "command": "cd ~/.claude/validation-framework && echo \"=== Checking for Speckit ===\" && ls -la .specify/ 2>&1 || echo \"No .specify/ directory\" && echo -e \"\\n=== Checking for tasks.md ===\" && find . -name \"tasks.md\" 2>/dev/null",
+      "description": "Check for Speckit in validation-framework"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-19T18:07:30.680320",
+      "command": "cd /media/sam/1TB/github-sync-test && echo \"=== Speckit Status (github-sync-test) ===\" && echo \"Tasks:\" && grep -c \"^\\s*-\\s*\\[\" .specify/tasks.md && echo \"Issues on GitHub:\" && gh issue list --search \"label:auto-generated [T0\" --json number --jq 'length' 2>/dev/null && echo -e \"\\n=== Recent test results ===\" && gh issue list --limit 5 --json number,title,milestone | python3 -c \"\nimport json,sys\nfor i in json.load(sys.stdin):\n    ms = i['milestone']['title'] if i['milestone'] else 'null'\n    print(f\\\"#{i['number']}: {i['title'][:40]}... → {ms}\\\")\"",
+      "description": "Quick Speckit status check"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-19T18:07:36.866724",
+      "command": "cd /media/sam/1TB/github-sync-test && echo \"=== Speckit in github-sync-test ===\" && echo \"Local tasks:\" && grep -E \"^\\s*-\\s*\\[.\\]\\s*T0\" .specify/tasks.md && echo -e \"\\n=== GitHub Issues (Speckit) ===\" && gh issue list --search \"[T0\" --limit 12 2>&1",
+      "description": "Check Speckit status"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-19T18:07:44.518401",
+      "command": "echo \"=== github-sync-test Project Board ===\" && gh project field-list 6 --owner gptcompany --format json 2>&1 | python3 -c \"\nimport json,sys\ndata = json.load(sys.stdin)\nprint('Fields:')\nfor f in data.get('fields', []):\n    print(f\\\"  - {f['name']} ({f['dataType']})\\\")\" 2>/dev/null || echo \"Could not get fields\"\n\necho -e \"\\n=== claude-config Project Board ===\" && gh project field-list 7 --owner gptcompany --format json 2>&1 | python3 -c \"\nimport json,sys\ndata = json.load(sys.stdin)\nprint('Fields:')\nfor f in data.get('fields', []):\n    print(f\\\"  - {f['name']} ({f['dataType']})\\\")\" 2>/dev/null || echo \"Could not get fields\"",
+      "description": "Check project board columns"
     }
   ],
-  "last_updated": "2026-01-19T18:04:55.848503"
+  "last_updated": "2026-01-19T18:07:44.518424"
 }
