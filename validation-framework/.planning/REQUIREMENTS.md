@@ -131,10 +131,10 @@ Production-ready validation pipeline framework with domain-specific extensions.
 | EXT-TRADING-01 | Phase 4 | Complete |
 | EXT-TRADING-02 | Phase 4 | Complete |
 | EXT-TRADING-03 | Phase 4 | Complete |
-| EXT-WORKFLOW-01 | Phase 5 | Pending |
-| EXT-WORKFLOW-02 | Phase 5 | Pending |
-| EXT-DATA-01 | Phase 5 | Pending |
-| EXT-DATA-02 | Phase 5 | Pending |
+| EXT-WORKFLOW-01 | Phase 5 | Complete |
+| EXT-WORKFLOW-02 | Phase 5 | Complete |
+| EXT-DATA-01 | Phase 5 | Complete |
+| EXT-DATA-02 | Phase 5 | Complete |
 
 **Coverage:**
 - v1 requirements: 22 total
