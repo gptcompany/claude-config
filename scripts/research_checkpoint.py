@@ -141,7 +141,7 @@ class ResearchCheckpoint:
 
     def __init__(
         self,
-        run_id: str = None,
+        run_id: str | None = None,
         query: str = "",
     ):
         self.run_id = run_id or str(uuid.uuid4())[:8]
@@ -216,7 +216,7 @@ class ResearchCheckpoint:
         allowed = STATE_TRANSITIONS.get(current, [])
         return new_state in allowed
 
-    def transition(self, new_state: ResearchState, error: str = None) -> bool:
+    def transition(self, new_state: ResearchState, error: str | None = None) -> bool:
         """
         Transition to new state.
 
@@ -269,7 +269,9 @@ class ResearchCheckpoint:
         self._data.state_data[self._data.state][key] = data
         self._save()
 
-    def get_data(self, state: ResearchState = None, key: str = None) -> Any:
+    def get_data(
+        self, state: ResearchState | None = None, key: str | None = None
+    ) -> Any:
         """
         Get saved data.
 
@@ -289,10 +291,10 @@ class ResearchCheckpoint:
 
     def update_metrics(
         self,
-        iteration: int = None,
-        confidence: float = None,
-        sources_searched: int = None,
-        findings_count: int = None,
+        iteration: int | None = None,
+        confidence: float | None = None,
+        sources_searched: int | None = None,
+        findings_count: int | None = None,
     ):
         """Update research metrics."""
         if iteration is not None:
@@ -310,13 +312,13 @@ class ResearchCheckpoint:
         self._data.metadata[key] = value
         self._save()
 
-    def get_metadata(self, key: str = None) -> Any:
+    def get_metadata(self, key: str | None = None) -> Any:
         """Get metadata."""
         if key:
             return self._data.metadata.get(key)
         return self._data.metadata
 
-    def complete(self, confidence: float = None):
+    def complete(self, confidence: float | None = None):
         """Mark research as completed."""
         if confidence is not None:
             self._data.confidence = confidence

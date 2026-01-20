@@ -261,7 +261,9 @@ def create_github_labels(repo_path: Path):
     print(f"Created {created} labels ({len(labels) - created} already existed)")
 
 
-def setup_project(repo_path: Path, language: str = None, framework: str = None):
+def setup_project(
+    repo_path: Path, language: str | None = None, framework: str | None = None
+):
     """Set up Claude Code skeleton for project."""
     print(f"Setting up Claude Code for: {repo_path}")
     print("=" * 50)

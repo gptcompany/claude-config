@@ -94,7 +94,7 @@ class ResearchCache:
         """Ensure cache directory exists."""
         self.cache_dir.mkdir(parents=True, exist_ok=True)
 
-    def get(self, query: str, source: str = None) -> Optional[Dict[str, Any]]:
+    def get(self, query: str, source: str | None = None) -> Optional[Dict[str, Any]]:
         """
         Get cached result for query.
 
@@ -138,7 +138,11 @@ class ResearchCache:
             return None
 
     def set(
-        self, query: str, result: Any, source: str = None, ttl_hours: int = None
+        self,
+        query: str,
+        result: Any,
+        source: str | None = None,
+        ttl_hours: int | None = None,
     ) -> bool:
         """
         Cache result for query.

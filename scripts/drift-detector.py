@@ -393,7 +393,7 @@ def check_services(canonical: dict) -> list[Issue]:
         services = systemd_config.get(severity_level, [])
         for svc in services:
             name = svc.get("name") if isinstance(svc, dict) else svc
-            if not is_service_active(name):
+            if name and not is_service_active(str(name)):
                 issue_severity = "critical" if severity_level == "critical" else "high"
                 issues.append(
                     Issue(
@@ -467,9 +467,9 @@ def check_containers(canonical: dict) -> list[Issue]:
                         fix_command=f"docker start {name}",
                     )
                 )
-            else:
+            elif name:
                 # Check health if running
-                health = get_container_health(name)
+                health = get_container_health(str(name))
                 if health == "unhealthy":
                     issues.append(
                         Issue(

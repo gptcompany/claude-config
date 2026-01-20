@@ -163,7 +163,7 @@ class ClaudeFlowCircuitBreaker:
 
         self._save_state()
 
-    def record_failure(self, error: str = None):
+    def record_failure(self, error: str | None = None):
         """Record failed ClaudeFlow execution."""
         self._state.total_calls += 1
         self._state.total_failures += 1
@@ -250,7 +250,7 @@ def _escape_tag(value: str) -> str:
 
 
 def log_claudeflow_metric(
-    mode: str, duration_ms: int, status: str, error_type: str = None
+    mode: str, duration_ms: int, status: str, error_type: str | None = None
 ) -> bool:
     """Log ClaudeFlow execution metric to QuestDB."""
     sock = _get_questdb_socket()

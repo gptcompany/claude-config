@@ -156,7 +156,7 @@ class CircuitBreaker:
         self._state.failure_count = 0
         self._state.state = "closed"
 
-    def record_failure(self, error: str = None):
+    def record_failure(self, error: str | None = None):
         """Record failed call."""
         self._state.failure_count += 1
         self._state.last_failure_at = datetime.now()
@@ -271,7 +271,7 @@ class Paper:
 
     id: str
     title: str
-    authors: List[str]
+    authors: list[str]
     abstract: str
     year: Optional[int]
     url: str
@@ -347,8 +347,13 @@ def search_arxiv(query: str, max_results: int = 10) -> List[Paper]:
             papers = []
             for entry in root.findall("atom:entry", ns):
                 # Extract paper ID from id URL
-                id_url = entry.find("atom:id", ns).text
-                paper_id = id_url.split("/abs/")[-1] if "/abs/" in id_url else id_url
+                id_elem = entry.find("atom:id", ns)
+                id_url = id_elem.text if id_elem is not None else ""
+                paper_id = (
+                    id_url.split("/abs/")[-1]
+                    if id_url and "/abs/" in id_url
+                    else id_url
+                )
 
                 # Extract authors
                 authors = []
@@ -383,16 +388,16 @@ def search_arxiv(query: str, max_results: int = 10) -> List[Paper]:
                 abstract_elem = entry.find("atom:summary", ns)
 
                 paper = Paper(
-                    id=paper_id,
-                    title=title_elem.text.strip().replace("\n", " ")
+                    id=paper_id or "",
+                    title=(title_elem.text or "").strip().replace("\n", " ")
                     if title_elem is not None
                     else "",
                     authors=authors,
-                    abstract=abstract_elem.text.strip().replace("\n", " ")
+                    abstract=(abstract_elem.text or "").strip().replace("\n", " ")
                     if abstract_elem is not None
                     else "",
                     year=year,
-                    url=id_url,
+                    url=id_url or "",
                     source="arxiv",
                     pdf_url=pdf_url,
                     categories=categories,
@@ -416,7 +421,7 @@ def search_arxiv(query: str, max_results: int = 10) -> List[Paper]:
 
 @retry(max_attempts=3, base_delay=2.0, max_delay=60.0)
 def search_semantic_scholar(
-    query: str, max_results: int = 10, year: str = None
+    query: str, max_results: int = 10, year: str | None = None
 ) -> List[Paper]:
     """
     Search Semantic Scholar using their API.
@@ -615,7 +620,7 @@ def search_crossref(query: str, max_results: int = 10) -> List[Paper]:
 
 
 def search_all(
-    query: str, max_results: int = 10, sources: List[str] = None
+    query: str, max_results: int = 10, sources: list[str] | None = None
 ) -> Dict[str, List[Paper]]:
     """
     Search all configured academic sources.

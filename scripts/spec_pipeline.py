@@ -53,7 +53,7 @@ except ImportError:
 
 
 @contextmanager
-def trace_step(name: str, attributes: dict = None):
+def trace_step(name: str, attributes: dict | None = None):
     """Context manager for tracing pipeline steps. Graceful fallback if no OpenTelemetry."""
     if OTEL_ENABLED and TRACER:
         with TRACER.start_as_current_span(name, attributes=attributes or {}) as span:
@@ -272,7 +272,7 @@ class CircuitBreaker:
         self._state.failure_count = 0
         self._state.state = "closed"
 
-    def record_failure(self, error: str = None):
+    def record_failure(self, error: str | None = None):
         """Record failed call."""
         self._state.failure_count += 1
         self._state.last_failure_at = datetime.now()
@@ -353,7 +353,7 @@ def log_pipeline_metric(
     duration_ms: int,
     status: str,
     retry_count: int = 0,
-    error_type: str = None,
+    error_type: str | None = None,
 ) -> bool:
     """Log pipeline step metric to QuestDB."""
     if CIRCUITS["questdb"].is_open():
@@ -472,7 +472,7 @@ class PipelineRun:
 
     run_id: str
     project: str
-    feature_description: str
+    feature_description: str | None
     current_state: PipelineState
     created_at: datetime = field(default_factory=datetime.now)
     updated_at: datetime = field(default_factory=datetime.now)
@@ -657,13 +657,15 @@ class StepResult:
 
     success: bool
     skipped: bool = False
-    skip_reason: str = None
-    error: str = None
-    output: str = None
+    skip_reason: str | None = None
+    error: str | None = None
+    output: str | None = None
     duration_ms: int = 0
 
 
-def _run_skill(skill_name: str, args: str = None, timeout: int = 300) -> StepResult:
+def _run_skill(
+    skill_name: str, args: str | None = None, timeout: int = 300
+) -> StepResult:
     """
     Run a SpecKit skill.
 
@@ -840,7 +842,7 @@ def step_research(run: PipelineRun) -> StepResult:
     if trigger_script.exists():
         try:
             result = subprocess.run(
-                [str(trigger_script), run.feature_description],
+                [str(trigger_script), run.feature_description or ""],
                 capture_output=True,
                 text=True,
                 timeout=30,
@@ -955,7 +957,7 @@ def _extract_technologies_from_spec(run: PipelineRun) -> list[str]:
 
     if not spec_content:
         # Use feature description as fallback
-        spec_content = run.feature_description.lower()
+        spec_content = (run.feature_description or "").lower()
 
     # Find matching technologies
     found = []
@@ -1075,7 +1077,7 @@ STEP_EXECUTORS = {
 class SpecPipelineOrchestrator:
     """Main orchestrator for spec pipeline."""
 
-    def __init__(self, project: str = None, dry_run: bool = False):
+    def __init__(self, project: str | None = None, dry_run: bool = False):
         self.project = project or self._detect_project()
         self.dry_run = dry_run
         self.checkpoint = CheckpointManager()
@@ -1096,7 +1098,9 @@ class SpecPipelineOrchestrator:
 
         return Path.cwd().name
 
-    def run(self, feature_description: str, run_id: str = None) -> PipelineRun:
+    def run(
+        self, feature_description: str | None, run_id: str | None = None
+    ) -> PipelineRun:
         """
         Run the pipeline for a feature.
 

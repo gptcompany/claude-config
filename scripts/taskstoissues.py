@@ -47,14 +47,14 @@ try:
         run_gh_command,
         get_repo_info,
         ensure_labels_exist,
-        ensure_project_exists,
+        ensure_project_exists,  # pyright: ignore[reportAssignmentType]
         add_issue_to_project,
         get_issue_node_id,
         get_existing_milestones,
         get_existing_issues as core_get_existing_issues,
         set_issue_status,
         get_issue_status,
-        get_project_by_name,
+        get_project_by_name,  # pyright: ignore[reportAssignmentType]
     )
 except ImportError:
     # Fallback for standalone usage - define minimal versions
@@ -99,11 +99,11 @@ except ImportError:
     def ensure_labels_exist(labels: list[str], dry_run: bool = False) -> list[str]:
         return []  # Fallback does nothing
 
-    def ensure_project_exists(owner: str, name: str, dry_run: bool = False):
+    def ensure_project_exists(owner: str, project_name: str, dry_run: bool = False):
         return None
 
     def add_issue_to_project(
-        project_id: str, issue_id: str, dry_run: bool = False
+        project_id: str, issue_node_id: str, dry_run: bool = False
     ) -> str | None:
         return None
 
@@ -128,7 +128,7 @@ except ImportError:
     def get_issue_status(project_id: str, issue_number: int) -> str | None:
         return None  # Fallback does nothing
 
-    def get_project_by_name(owner: str, name: str):
+    def get_project_by_name(owner: str, project_name: str):
         return None  # Fallback does nothing
 
 

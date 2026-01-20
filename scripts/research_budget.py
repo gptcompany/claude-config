@@ -80,7 +80,7 @@ class BudgetGuard:
 
     def __init__(
         self,
-        session_id: str = None,
+        session_id: str | None = None,
         query: str = "",
         max_tokens: int = DEFAULT_MAX_TOKENS,
         max_iterations: int = DEFAULT_MAX_ITERATIONS,
@@ -181,7 +181,9 @@ class BudgetGuard:
 
         return True
 
-    def record(self, tokens: int = 0, iteration: bool = False, step_name: str = None):
+    def record(
+        self, tokens: int = 0, iteration: bool = False, step_name: str | None = None
+    ):
         """
         Record resource usage.
 
@@ -257,7 +259,7 @@ class BudgetGuard:
             "last_activity": self._session.last_activity,
         }
 
-    def _log_metric(self, tokens: int, iteration: bool, step_name: str = None):
+    def _log_metric(self, tokens: int, iteration: bool, step_name: str | None = None):
         """Log metric to QuestDB."""
         try:
             sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
