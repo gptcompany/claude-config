@@ -213,6 +213,11 @@
           },
           {
             "type": "command",
+            "command": "/media/sam/1TB/claude-hooks-shared/hooks/quality/ci-autofix.py",
+            "timeout": 10
+          },
+          {
+            "type": "command",
             "command": "/media/sam/1TB/claude-hooks-shared/hooks/productivity/architecture-validator.py",
             "timeout": 10
           },
