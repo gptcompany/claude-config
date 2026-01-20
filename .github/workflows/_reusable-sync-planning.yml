@@ -10,7 +10,7 @@ name: Sync Planning to GitHub
 #     sync:
 #       uses: gptcompany/.github/.github/workflows/_reusable-sync-planning.yml@main
 
-on:
+"on":
   workflow_call:
     inputs:
       framework:
