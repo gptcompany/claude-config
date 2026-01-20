@@ -63,6 +63,38 @@ Production-ready validation pipeline framework with domain-specific extensions.
 | EXT-DATA-01 | `test_data_integrity.py.j2` — Data integrity validation | P2 |
 | EXT-DATA-02 | `test_api_endpoints.py.j2` — API endpoint tests | P2 |
 
+### HYBRID: Hybrid UAT Framework
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| HYBRID-01 | Hybrid verify-work workflow with auto-check + confidence scoring + human filter | P1 |
+| HYBRID-02 | Multi-mode dashboard (live monitor, review station, report viewer) | P1 |
+| HYBRID-03 | Four-round UAT workflow (Auto → Human-All → Fix → Edge+Regression) | P1 |
+
+### A11Y: Accessibility Validation
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| A11Y-01 | `accessibility.yml.j2` — GitHub Actions workflow for axe-core + Playwright | P1 |
+| A11Y-02 | `axe.config.js.j2` — axe-core configuration template | P1 |
+| A11Y-03 | `test_a11y.spec.ts.j2` — Playwright accessibility test template | P1 |
+
+### SEC: Security Scanning
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| SEC-01 | `security.yml.j2` — GitHub Actions workflow for Trivy scanning | P1 |
+| SEC-02 | `trivy.yaml.j2` — Trivy configuration template | P1 |
+| SEC-03 | `.trivyignore.j2` — Known issues exclusion template | P1 |
+
+### PERF: Performance Validation
+
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| PERF-01 | `performance.yml.j2` — GitHub Actions workflow for Lighthouse CI | P1 |
+| PERF-02 | `lighthouserc.js.j2` — Lighthouse CI configuration template | P1 |
+| PERF-03 | `budgets.json.j2` — Performance budgets template | P1 |
+
 ## v2 Requirements (Future)
 
 | ID | Requirement | Notes |
@@ -135,8 +167,20 @@ Production-ready validation pipeline framework with domain-specific extensions.
 | EXT-WORKFLOW-02 | Phase 5 | Complete |
 | EXT-DATA-01 | Phase 5 | Complete |
 | EXT-DATA-02 | Phase 5 | Complete |
+| HYBRID-01 | Phase 6 | Pending |
+| HYBRID-02 | Phase 6 | Pending |
+| HYBRID-03 | Phase 6 | Pending |
+| A11Y-01 | Phase 6 | Pending |
+| A11Y-02 | Phase 6 | Pending |
+| A11Y-03 | Phase 6 | Pending |
+| SEC-01 | Phase 6 | Pending |
+| SEC-02 | Phase 6 | Pending |
+| SEC-03 | Phase 6 | Pending |
+| PERF-01 | Phase 6 | Pending |
+| PERF-02 | Phase 6 | Pending |
+| PERF-03 | Phase 6 | Pending |
 
 **Coverage:**
-- v1 requirements: 22 total
-- Mapped to phases: 22
+- v1 requirements: 34 total
+- Mapped to phases: 34
 - Unmapped: 0 ✓
