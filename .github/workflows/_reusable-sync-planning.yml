@@ -1,14 +1,86 @@
-name: Simple Sync Test
+name: Sync Planning to GitHub
 
 "on":
   workflow_call:
     inputs:
       framework:
+        description: 'Framework to sync: auto, gsd, or speckit'
         type: string
         default: 'auto'
+      create-project:
+        description: 'Create GitHub Project board if missing'
+        type: boolean
+        default: false
+      sync-todos:
+        description: 'Also sync todos from .planning/todos/'
+        type: boolean
+        default: false
 
 jobs:
-  test:
+  sync:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
+
     steps:
-      - run: echo "Framework is ${{ inputs.framework }}"
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Download sync scripts
+        run: |
+          mkdir -p .github/scripts
+          curl -sL https://raw.githubusercontent.com/gptcompany/claude-config/main/scripts/github_sync_core.py -o .github/scripts/github_sync_core.py
+          curl -sL https://raw.githubusercontent.com/gptcompany/claude-config/main/scripts/roadmaptoissues.py -o .github/scripts/roadmaptoissues.py
+          curl -sL https://raw.githubusercontent.com/gptcompany/claude-config/main/scripts/taskstoissues.py -o .github/scripts/taskstoissues.py
+
+      - name: Detect framework
+        id: detect
+        run: |
+          if [ "${{ inputs.framework }}" != "auto" ]; then
+            echo "framework=${{ inputs.framework }}" >> $GITHUB_OUTPUT
+          elif [ -f .planning/ROADMAP.md ]; then
+            echo "framework=gsd" >> $GITHUB_OUTPUT
+          elif [ -f tasks.md ]; then
+            echo "framework=speckit" >> $GITHUB_OUTPUT
+          else
+            echo "framework=none" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Sync GSD to GitHub
+        if: steps.detect.outputs.framework == 'gsd'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd .github/scripts
+          ARGS="--roadmap ../../.planning/ROADMAP.md --auto-project"
+          if [ "${{ inputs.create-project }}" == "true" ]; then
+            ARGS="$ARGS --create-project"
+          fi
+          if [ "${{ inputs.sync-todos }}" == "true" ]; then
+            ARGS="$ARGS --sync-todos"
+          fi
+          python roadmaptoissues.py $ARGS
+
+      - name: Sync Speckit to GitHub
+        if: steps.detect.outputs.framework == 'speckit'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cd .github/scripts
+          ARGS="../../tasks.md --auto-project"
+          if [ "${{ inputs.create-project }}" == "true" ]; then
+            ARGS="$ARGS --create-project"
+          fi
+          python taskstoissues.py $ARGS
+
+      - name: No framework detected
+        if: steps.detect.outputs.framework == 'none'
+        run: |
+          echo "No planning framework detected."
+          echo "Expected: .planning/ROADMAP.md (GSD) or tasks.md (Speckit)"
