@@ -64,6 +64,7 @@
 |-----|-------|
 | `GITHUB_PAT` | GitHub API, CI/CD |
 | `GITHUB_TOKEN` | GitHub MCP |
+| `GH_PROJECT_PAT` | GitHub org secret for project boards (= GITHUB_TOKEN) |
 | `LINEAR_API_KEY` | Linear MCP |
 | `SENTRY_AUTH_TOKEN` | Sentry MCP |
 | `OPENAI_API_KEY` | OpenAI API |
@@ -76,7 +77,7 @@
 | `LANGSMITH_*` | LangSmith tracing |
 | `WOLFRAM_LLM_APP_ID` | WolframAlpha (in .mcp.json env) |
 
-**Total:** 34 keys in SSOT
+**Total:** 35 keys in SSOT
 
 **Comandi SOPS:**
 ```bash
@@ -219,3 +220,69 @@ Combinazione ottimale per tracking completo:
    - Sincronizza Phases → Milestones
    - Sincronizza Plans → Issues
    - Applica labels standard
+
+## Academic Research Pipeline (N8N)
+
+### /research - Flusso Asincrono
+
+Le fonti in `research.md` sono **metadata** (titolo, abstract, DOI) da API search.
+
+Il contenuto RAG dei papers viene processato in **15-30 min** (N8N pipeline).
+
+### Accesso ai dati RAG
+
+Dopo processing completato (notifica Discord):
+
+```bash
+/research-papers "query"    # Query RAG knowledge base
+```
+
+### Validazione CAS (W4.1 - solo se paper ha formule)
+
+| Engine | Status | Note |
+|--------|--------|------|
+| SymPy | ✅ Attivo | Sempre disponibile |
+| Wolfram | ✅ Attivo | API cloud |
+| SageMath | ✅ Attivo | Via CAS microservice (systemd) |
+| MATLAB | ✅ Attivo | Via CAS microservice (systemd) |
+
+**CAS Microservice**: `systemctl --user status cas-microservice`
+
+### Validazione Formule On-Demand
+
+Claude può validare formule autonomamente chiamando il CAS microservice:
+
+```bash
+# Validare una formula (cas: maxima, sagemath, matlab)
+curl -s -X POST http://localhost:8769/validate \
+  -H "Content-Type: application/json" \
+  -d '{"latex": "x^2 + 2*x + 1", "cas": "maxima"}' | jq .
+
+# Response:
+# {
+#   "cas": "maxima",
+#   "success": true,
+#   "simplified": "(x + 1)^2",
+#   "confidence": "HIGH"
+# }
+```
+
+**Quando usare**: Quando incontri formule matematiche in papers/specs e vuoi verificarne la correttezza.
+
+### Query Formule Validate (PostgreSQL)
+
+Le formule validate dalla pipeline N8N sono in `finance_papers.validations`:
+
+```sql
+-- Query formule validate per paper
+SELECT f.latex, v.confidence, v.consensus_result
+FROM finance_papers.formulas f
+JOIN finance_papers.validations v ON f.formula_id = v.formula_id
+WHERE f.paper_id = '<paper_id>';
+
+-- Cerca formule con alta confidence
+SELECT * FROM finance_papers.validations
+WHERE confidence IN ('UNANIMOUS', 'VERY_HIGH');
+```
+
+**Workflow SQL**: `[Tool] Execute SQL Query` (w0GrwuSQb3o6j6jw)

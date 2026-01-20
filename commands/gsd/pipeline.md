@@ -271,6 +271,11 @@ Skill(skill="gsd:research-phase", args=phase_num)
 Skill(skill="gsd:plan-phase", args=phase_num)
 ```
 
+**⚠️ Accesso ai dati RAG completi:**
+Le fonti in research output sono metadata. Per il contenuto RAG dei papers:
+1. Attendi notifica Discord (processing 15-30 min)
+2. Usa `/research-papers "query"` per query semantiche
+
 ## Resume Mode (--resume)
 
 ```

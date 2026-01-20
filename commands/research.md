@@ -486,3 +486,14 @@ If research fails at any point:
 /research "same query as before"
 ```
 → If incomplete checkpoint exists, Claude asks: "Resume previous research?"
+
+## ⚠️ Academic Papers: Flusso Asincrono
+
+Le fonti in `research.md` sono **metadata** (titolo, abstract, DOI) da API search.
+
+**Per accedere al contenuto RAG completo dei papers:**
+
+1. Attendi notifica Discord (processing 15-30 min)
+2. Usa `/research-papers "query"` per query semantiche sul knowledge base
+
+**Validazione CAS** (se paper contiene formule): SymPy, Wolfram, SageMath, MATLAB

@@ -113,6 +113,11 @@ Then trigger research:
 - **WAIT**: Fix issues before proceeding
 - **STOP**: Rethink approach entirely
 
+**⚠️ Accesso ai dati RAG completi:**
+Le fonti in `research.md` sono metadata. Per il contenuto RAG dei papers:
+1. Attendi notifica Discord (processing 15-30 min)
+2. Usa `/research-papers "query"` per query semantiche
+
 **If not beneficial**: Skip and proceed to Step 4.
 
 ### Step 4: Implementation Plan
