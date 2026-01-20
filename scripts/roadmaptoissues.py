@@ -538,6 +538,15 @@ def sync_roadmap_to_github(
                     f"Warning: Project '{project_name}' not found. Use --create-project to create it.\n"
                 )
 
+    # Pre-flight: ensure required labels exist
+    required_labels = ["gsd-phase", "gsd-plan", "auto-generated", "todo"]
+    # Add phase-specific labels
+    required_labels += [f"phase-{p.number}" for p in phases]
+    if not dry_run:
+        created = ensure_labels_exist(required_labels)
+        if created:
+            print(f"Created {len(created)} labels: {', '.join(created)}\n")
+
     # Get existing issues to avoid duplicates
     existing_issues = get_existing_issues("gsd-plan")
     existing_todo_issues = get_existing_issues("todo")

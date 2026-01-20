@@ -985,8 +985,15 @@ def close_issue(
     code, _, _ = run_gh_command(["issue", "close", str(issue_number)], check=False)
 
     # Move to Done on project board if project_id provided
+    # Retry up to 3 times since GraphQL can be flaky
     if code == 0 and project_id:
-        set_issue_status(project_id, issue_number, "Done", dry_run=False)
+        import time
+
+        for attempt in range(3):
+            if set_issue_status(project_id, issue_number, "Done", dry_run=False):
+                break
+            if attempt < 2:
+                time.sleep(1)  # Wait before retry
 
     return code == 0
 
