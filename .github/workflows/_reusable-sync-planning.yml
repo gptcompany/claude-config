@@ -14,10 +14,10 @@ name: Sync Planning Minimal
         default: false
 
 jobs:
-  test:
+  sync:
     runs-on: ubuntu-latest
+    permissions:
+      issues: write
+      contents: read
     steps:
-      - run: |
-          echo "Framework: ${{ inputs.framework }}"
-          echo "Create Project: ${{ inputs.create-project }}"
-          echo "Sync Todos: ${{ inputs.sync-todos }}"
+      - run: echo "Test with permissions"
