@@ -1,0 +1,151 @@
+{# Playwright Visual Regression Tests #}
+{# Generated for: {{ project_name }} #}
+{# Domain: {{ domain | default('general') }} #}
+
+import { test, expect } from '@playwright/test';
+
+// Visual regression test suite for {{ project_name }}
+
+test.describe('Visual Regression: Core Pages', () => {
+
+  test('homepage matches baseline', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    await expect(page).toHaveScreenshot('homepage.png', {
+      fullPage: true,
+    });
+  });
+
+{% if domain == 'trading' %}
+  test('dashboard matches baseline', async ({ page }) => {
+    await page.goto('/dashboard');
+    await page.waitForLoadState('networkidle');
+    // Wait for charts to render
+    await page.waitForSelector('[data-testid="chart-container"]', { state: 'visible' });
+    await page.waitForTimeout(1000); // Chart animation settle
+
+    await expect(page).toHaveScreenshot('dashboard.png', {
+      fullPage: true,
+    });
+  });
+
+  test('trading chart renders correctly', async ({ page }) => {
+    await page.goto('/trading');
+    await page.waitForSelector('canvas', { state: 'visible' });
+    await page.waitForTimeout(500);
+
+    const chart = page.locator('[data-testid="price-chart"]');
+    await expect(chart).toHaveScreenshot('price-chart.png');
+  });
+
+  test('order book displays correctly', async ({ page }) => {
+    await page.goto('/trading');
+    const orderBook = page.locator('[data-testid="order-book"]');
+    await expect(orderBook).toHaveScreenshot('order-book.png');
+  });
+{% endif %}
+
+{% if domain == 'workflow' %}
+  test('workflow editor matches baseline', async ({ page }) => {
+    await page.goto('/editor');
+    await page.waitForLoadState('networkidle');
+    await page.waitForSelector('[data-testid="workflow-canvas"]');
+
+    await expect(page).toHaveScreenshot('workflow-editor.png', {
+      fullPage: true,
+    });
+  });
+
+  test('node palette renders correctly', async ({ page }) => {
+    await page.goto('/editor');
+    const palette = page.locator('[data-testid="node-palette"]');
+    await expect(palette).toHaveScreenshot('node-palette.png');
+  });
+{% endif %}
+
+{% if domain == 'data' %}
+  test('data table renders correctly', async ({ page }) => {
+    await page.goto('/data');
+    await page.waitForSelector('table', { state: 'visible' });
+
+    await expect(page).toHaveScreenshot('data-table.png', {
+      fullPage: true,
+    });
+  });
+
+  test('chart visualizations match baseline', async ({ page }) => {
+    await page.goto('/analytics');
+    await page.waitForSelector('[data-testid="chart"]', { state: 'visible' });
+    await page.waitForTimeout(1000);
+
+    await expect(page).toHaveScreenshot('analytics-charts.png', {
+      fullPage: true,
+    });
+  });
+{% endif %}
+
+});
+
+test.describe('Visual Regression: Components', () => {
+
+  test('navigation header', async ({ page }) => {
+    await page.goto('/');
+    const header = page.locator('header, [data-testid="navbar"]');
+    await expect(header).toHaveScreenshot('header.png');
+  });
+
+  test('footer', async ({ page }) => {
+    await page.goto('/');
+    const footer = page.locator('footer, [data-testid="footer"]');
+    await expect(footer).toHaveScreenshot('footer.png');
+  });
+
+  test('buttons and controls', async ({ page }) => {
+    await page.goto('/components'); // Storybook or component showcase
+    await expect(page).toHaveScreenshot('components.png', {
+      fullPage: true,
+    });
+  });
+
+});
+
+test.describe('Visual Regression: States', () => {
+
+  test('loading state', async ({ page }) => {
+    await page.goto('/');
+    // Intercept to delay response
+    await page.route('**/api/**', route =>
+      new Promise(resolve => setTimeout(() => resolve(route.continue()), 100))
+    );
+    await page.reload();
+
+    const loader = page.locator('[data-testid="loader"], .loading');
+    if (await loader.isVisible()) {
+      await expect(loader).toHaveScreenshot('loading-state.png');
+    }
+  });
+
+  test('error state', async ({ page }) => {
+    await page.route('**/api/**', route => route.abort());
+    await page.goto('/data');
+
+    const error = page.locator('[data-testid="error"], .error-message');
+    if (await error.isVisible()) {
+      await expect(error).toHaveScreenshot('error-state.png');
+    }
+  });
+
+  test('empty state', async ({ page }) => {
+    await page.route('**/api/**', route =>
+      route.fulfill({ status: 200, body: JSON.stringify([]) })
+    );
+    await page.goto('/data');
+
+    const empty = page.locator('[data-testid="empty-state"]');
+    if (await empty.isVisible()) {
+      await expect(empty).toHaveScreenshot('empty-state.png');
+    }
+  });
+
+});

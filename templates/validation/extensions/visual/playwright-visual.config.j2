@@ -1,0 +1,71 @@
+// Playwright Visual Testing Configuration
+// Generated for: {{ project_name }}
+// Domain: {{ domain | default('general') }}
+
+import { defineConfig, devices } from '@playwright/test';
+
+export default defineConfig({
+  testDir: './tests/visual',
+  snapshotDir: './.visual/snapshots',
+
+  // Screenshot comparison settings
+  expect: {
+    toHaveScreenshot: {
+      // Pixel difference threshold (0.1% tolerance for anti-aliasing)
+      maxDiffPixelRatio: 0.001,
+      // Animation stability
+      animations: 'disabled',
+      // Consistent rendering
+      caret: 'hide',
+    },
+  },
+
+  // Viewport matrix for responsive testing
+  projects: [
+    {
+      name: 'desktop-chrome',
+      use: {
+        ...devices['Desktop Chrome'],
+        viewport: { width: 1920, height: 1080 },
+      },
+    },
+    {
+      name: 'tablet',
+      use: {
+        ...devices['iPad Pro'],
+        viewport: { width: 1024, height: 768 },
+      },
+    },
+    {
+      name: 'mobile',
+      use: {
+        ...devices['iPhone 14'],
+        viewport: { width: 390, height: 844 },
+      },
+    },
+  ],
+
+  // Output directories
+  outputDir: './.visual/results',
+
+  // CI settings
+  reporter: [
+    ['html', { outputFolder: './.visual/report' }],
+    ['json', { outputFile: './.visual/results.json' }],
+  ],
+
+  // Base URL from config
+  use: {
+    baseURL: '{{ base_url | default("http://localhost:3000") }}',
+    screenshot: 'only-on-failure',
+    trace: 'retain-on-failure',
+  },
+
+  // Web server for local testing
+  webServer: {
+    command: '{{ dev_command | default("npm run dev") }}',
+    url: '{{ base_url | default("http://localhost:3000") }}',
+    reuseExistingServer: !process.env.CI,
+    timeout: 120000,
+  },
+});

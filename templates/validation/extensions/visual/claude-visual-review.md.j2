@@ -1,0 +1,117 @@
+# Claude Visual Review Prompt
+
+Use this template to have Claude Code semantically analyze UI screenshots.
+
+## Usage
+
+```bash
+# In Claude Code session:
+claude "Review the visual diff between baseline and current screenshots"
+```
+
+## Prompt Template
+
+---
+
+**Task:** Semantic visual review of {{ project_name }} UI
+
+**Context:** Compare screenshots in `.visual/` directory:
+- Baseline: `.visual/baseline/`
+- Current: `.visual/current/`
+- Diff report: `.visual/results.json`
+
+**Review Checklist:**
+
+### 1. Layout & Structure
+- [ ] Component alignment consistent
+- [ ] Spacing follows design system
+- [ ] Responsive breakpoints correct
+- [ ] No overlapping elements
+
+### 2. Typography
+- [ ] Font families correct
+- [ ] Font sizes consistent
+- [ ] Line heights appropriate
+- [ ] Text truncation handled
+
+### 3. Colors & Branding
+- [ ] Brand colors accurate
+- [ ] Contrast ratios accessible (WCAG AA: 4.5:1)
+- [ ] Hover/active states visible
+- [ ] Dark mode consistency (if applicable)
+
+### 4. Charts & Data Visualization
+- [ ] Axes labeled correctly
+- [ ] Legend present and accurate
+- [ ] Data points readable
+- [ ] Tooltips functional
+- [ ] Colors distinguishable
+
+### 5. Forms & Inputs
+- [ ] Field labels visible
+- [ ] Error states clear
+- [ ] Focus indicators present
+- [ ] Placeholder text appropriate
+
+### 6. Navigation
+- [ ] Active state visible
+- [ ] Breadcrumbs accurate
+- [ ] Mobile menu functional
+
+{% if domain == 'trading' %}
+### 7. Trading-Specific
+- [ ] Price display precision
+- [ ] Order book depth visible
+- [ ] Chart timeframe controls
+- [ ] Position indicators clear
+- [ ] P&L colors (green/red) correct
+{% endif %}
+
+{% if domain == 'workflow' %}
+### 7. Workflow-Specific
+- [ ] Node connections clear
+- [ ] Execution status indicators
+- [ ] Error badges visible
+- [ ] Canvas zoom controls
+{% endif %}
+
+{% if domain == 'data' %}
+### 7. Data-Specific
+- [ ] Table headers sticky
+- [ ] Sorting indicators
+- [ ] Pagination controls
+- [ ] Filter states visible
+{% endif %}
+
+---
+
+## Output Format
+
+```markdown
+## Visual Review: {{ project_name }}
+
+### Summary
+[PASS/FAIL] - [Brief summary]
+
+### Issues Found
+1. **[Severity: Critical/Major/Minor/Cosmetic]** - [Description]
+   - Location: [Screenshot/Component]
+   - Expected: [What should be]
+   - Actual: [What is observed]
+
+### Recommendations
+- [Actionable fix]
+```
+
+---
+
+## Automation Integration
+
+```yaml
+# .github/workflows/visual-review.yml
+- name: Claude Visual Review
+  run: |
+    npx playwright test --update-snapshots=missing
+    claude --print "Review visual changes in .visual/current vs .visual/baseline.
+    Output JSON: {pass: bool, issues: [{severity, description, location}]}"
+```
