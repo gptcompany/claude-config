@@ -1,0 +1,342 @@
+"""
+{{ dashboard_title | default('Validation Dashboard') }} - Textual TUI
+
+Three modes:
+1. Live Monitor - Real-time validation progress
+2. Review Station - Human UAT interface
+3. Report Viewer - Historical results browser
+
+Project: {{ project_name | default('Project') }}
+"""
+from enum import Enum
+from dataclasses import dataclass, field
+from typing import Optional
+from datetime import datetime
+
+from textual.app import App, ComposeResult
+from textual.binding import Binding
+from textual.containers import Container, Horizontal, Vertical
+from textual.widgets import (
+    DataTable,
+    Footer,
+    Header,
+    Label,
+    Log,
+    ProgressBar,
+    Static,
+    TabbedContent,
+    TabPane,
+)
+
+from confidence import ConfidenceLevel, ConfidenceResult, calculate_confidence
+
+
+class DashboardMode(Enum):
+    """Dashboard operating modes."""
+    LIVE_MONITOR = "live"
+    REVIEW_STATION = "review"
+    REPORT_VIEWER = "reports"
+
+
+@dataclass
+class ValidationRun:
+    """A single validation run."""
+    run_id: str
+    started_at: datetime
+    ended_at: Optional[datetime] = None
+    validator: str = "pytest"
+    total_tests: int = 0
+    passed: int = 0
+    failed: int = 0
+    skipped: int = 0
+    confidence: Optional[ConfidenceResult] = None
+    status: str = "running"
+
+
+@dataclass
+class HumanReview:
+    """Human review task."""
+    review_id: str
+    test_name: str
+    validator: str
+    auto_result: str  # pass/fail
+    human_verdict: Optional[str] = None  # pass/fail/skip
+    notes: str = ""
+    reviewed_at: Optional[datetime] = None
+
+
+class ConfidenceWidget(Static):
+    """Widget displaying confidence score with color coding."""
+
+    def __init__(self, result: Optional[ConfidenceResult] = None, **kwargs):
+        super().__init__(**kwargs)
+        self.result = result
+
+    def update_confidence(self, result: ConfidenceResult) -> None:
+        self.result = result
+        self.refresh()
+
+    def render(self) -> str:
+        if not self.result:
+            return "Confidence: [dim]N/A[/dim]"
+
+        score = self.result.score
+        level = self.result.level
+
+        # Color based on level
+        if level == ConfidenceLevel.HIGH:
+            color = "green"
+        elif level == ConfidenceLevel.MEDIUM:
+            color = "yellow"
+        else:
+            color = "red"
+
+        return f"Confidence: [{color}]{score}% ({level.value})[/{color}]"
+
+
+class LiveMonitorPane(Container):
+    """Real-time validation monitoring."""
+
+    def compose(self) -> ComposeResult:
+        yield Static("Live Validation Monitor", classes="pane-title")
+        yield Horizontal(
+            Vertical(
+                Static("Current Run", classes="section-title"),
+                ProgressBar(id="progress", total=100),
+                Static(id="progress-label"),
+                ConfidenceWidget(id="confidence"),
+                classes="left-panel",
+            ),
+            Vertical(
+                Static("Test Results", classes="section-title"),
+                DataTable(id="results-table"),
+                classes="right-panel",
+            ),
+        )
+        yield Log(id="live-log", highlight=True)
+
+    def on_mount(self) -> None:
+        table = self.query_one("#results-table", DataTable)
+        table.add_columns("Validator", "Test", "Status", "Duration")
+
+
+class ReviewStationPane(Container):
+    """Human UAT review interface."""
+
+    def compose(self) -> ComposeResult:
+        yield Static("Human Review Station", classes="pane-title")
+        yield Static(
+            "[bold]'Prove Me Wrong'[/bold] - Even HIGH confidence needs human review",
+            classes="philosophy",
+        )
+        yield Horizontal(
+            Vertical(
+                Static("Pending Reviews", classes="section-title"),
+                DataTable(id="review-queue"),
+                classes="left-panel",
+            ),
+            Vertical(
+                Static("Review Details", classes="section-title"),
+                Static(id="review-detail"),
+                Static("[p]ass / [f]ail / [s]kip / [n]otes", classes="controls"),
+                classes="right-panel",
+            ),
+        )
+
+    def on_mount(self) -> None:
+        table = self.query_one("#review-queue", DataTable)
+        table.add_columns("ID", "Test", "Auto Result", "Validator", "Status")
+
+
+class ReportViewerPane(Container):
+    """Historical report browser."""
+
+    def compose(self) -> ComposeResult:
+        yield Static("Report Viewer", classes="pane-title")
+        yield Horizontal(
+            Vertical(
+                Static("Past Runs", classes="section-title"),
+                DataTable(id="runs-table"),
+                classes="left-panel",
+            ),
+            Vertical(
+                Static("Run Details", classes="section-title"),
+                Static(id="run-detail"),
+                ConfidenceWidget(id="run-confidence"),
+                classes="right-panel",
+            ),
+        )
+
+    def on_mount(self) -> None:
+        table = self.query_one("#runs-table", DataTable)
+        table.add_columns("Run ID", "Date", "Validator", "Pass Rate", "Confidence")
+
+
+class ValidationDashboard(App):
+    """
+    {{ dashboard_title | default('Validation Dashboard') }}
+
+    Three-mode TUI for hybrid validation workflow.
+    """
+
+    CSS = """
+    .pane-title {
+        text-align: center;
+        text-style: bold;
+        background: $primary;
+        padding: 1;
+    }
+
+    .section-title {
+        text-style: bold;
+        padding: 0 1;
+        background: $surface;
+    }
+
+    .philosophy {
+        text-align: center;
+        color: $warning;
+        padding: 1;
+    }
+
+    .controls {
+        dock: bottom;
+        background: $surface;
+        padding: 1;
+    }
+
+    .left-panel {
+        width: 50%;
+    }
+
+    .right-panel {
+        width: 50%;
+    }
+
+    #live-log {
+        height: 10;
+        border: solid $primary;
+    }
+
+    ProgressBar {
+        padding: 1;
+    }
+    """
+
+    BINDINGS = [
+        Binding("1", "switch_mode('live')", "Live Monitor"),
+        Binding("2", "switch_mode('review')", "Review Station"),
+        Binding("3", "switch_mode('reports')", "Report Viewer"),
+        Binding("q", "quit", "Quit"),
+        Binding("r", "refresh", "Refresh"),
+        # Review bindings
+        Binding("p", "review_pass", "Pass", show=False),
+        Binding("f", "review_fail", "Fail", show=False),
+        Binding("s", "review_skip", "Skip", show=False),
+        Binding("n", "review_notes", "Notes", show=False),
+    ]
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.current_mode = DashboardMode.LIVE_MONITOR
+        self.current_run: Optional[ValidationRun] = None
+        self.reviews: list[HumanReview] = []
+        self.past_runs: list[ValidationRun] = []
+        # Supported validators from template
+        self.validators = {{ validators | default(['pytest', 'playwright']) | tojson }}
+
+    def compose(self) -> ComposeResult:
+        yield Header(show_clock=True)
+        yield TabbedContent(
+            TabPane("Live Monitor", LiveMonitorPane(), id="tab-live"),
+            TabPane("Review Station", ReviewStationPane(), id="tab-review"),
+            TabPane("Report Viewer", ReportViewerPane(), id="tab-reports"),
+        )
+        yield Footer()
+
+    def action_switch_mode(self, mode: str) -> None:
+        """Switch dashboard mode."""
+        self.current_mode = DashboardMode(mode)
+        tabs = self.query_one(TabbedContent)
+        tabs.active = f"tab-{mode}"
+
+    def action_refresh(self) -> None:
+        """Refresh current view."""
+        self.notify("Refreshing...")
+        # Trigger data refresh based on mode
+        if self.current_mode == DashboardMode.LIVE_MONITOR:
+            self._refresh_live()
+        elif self.current_mode == DashboardMode.REVIEW_STATION:
+            self._refresh_reviews()
+        else:
+            self._refresh_reports()
+
+    def action_review_pass(self) -> None:
+        """Mark current review as passed."""
+        self._submit_review("pass")
+
+    def action_review_fail(self) -> None:
+        """Mark current review as failed."""
+        self._submit_review("fail")
+
+    def action_review_skip(self) -> None:
+        """Skip current review."""
+        self._submit_review("skip")
+
+    def action_review_notes(self) -> None:
+        """Add notes to current review."""
+        # Would open input dialog in full implementation
+        self.notify("Notes dialog not implemented in template")
+
+    def _submit_review(self, verdict: str) -> None:
+        """Submit human review verdict."""
+        self.notify(f"Review submitted: {verdict}")
+        # Would update review in storage in full implementation
+
+    def _refresh_live(self) -> None:
+        """Refresh live monitor data."""
+        pass  # Implemented by subclass or runtime
+
+    def _refresh_reviews(self) -> None:
+        """Refresh review queue."""
+        pass  # Implemented by subclass or runtime
+
+    def _refresh_reports(self) -> None:
+        """Refresh past runs."""
+        pass  # Implemented by subclass or runtime
+
+    def update_progress(self, current: int, total: int, status: str = "") -> None:
+        """Update progress bar and label."""
+        try:
+            progress = self.query_one("#progress", ProgressBar)
+            label = self.query_one("#progress-label", Static)
+            progress.update(total=total, progress=current)
+            label.update(f"{current}/{total} - {status}")
+        except Exception:
+            pass  # Widget may not be mounted
+
+    def update_confidence(self, result: ConfidenceResult) -> None:
+        """Update confidence display."""
+        try:
+            widget = self.query_one("#confidence", ConfidenceWidget)
+            widget.update_confidence(result)
+        except Exception:
+            pass  # Widget may not be mounted
+
+    def log_message(self, message: str) -> None:
+        """Add message to live log."""
+        try:
+            log = self.query_one("#live-log", Log)
+            log.write_line(f"[{datetime.now().strftime('%H:%M:%S')}] {message}")
+        except Exception:
+            pass  # Widget may not be mounted
+
+
+def main():
+    """Run the dashboard."""
+    app = ValidationDashboard()
+    app.run()
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,195 @@
+"""
+Confidence Scoring Module for {{ project_name | default('Project') }}
+
+Calculates confidence scores (0-100) based on:
+- Flaky test rate
+- Test coverage percentage
+- Known issues count
+- Historical pass rate
+"""
+from dataclasses import dataclass, field
+from enum import Enum
+from typing import Optional
+
+
+class ConfidenceLevel(Enum):
+    """Confidence classification based on score thresholds."""
+    HIGH = "HIGH"      # >= {{ confidence_thresholds.high | default(80) }}
+    MEDIUM = "MEDIUM"  # >= {{ confidence_thresholds.medium | default(50) }}
+    LOW = "LOW"        # < {{ confidence_thresholds.medium | default(50) }}
+
+
+@dataclass
+class ValidationMetrics:
+    """Metrics used for confidence calculation."""
+    total_tests: int = 0
+    passed_tests: int = 0
+    failed_tests: int = 0
+    flaky_tests: int = 0
+    coverage_percent: float = 0.0
+    known_issues: int = 0
+    historical_pass_rate: float = 0.0  # 0-1
+
+
+@dataclass
+class ConfidenceResult:
+    """Result of confidence calculation."""
+    score: int  # 0-100
+    level: ConfidenceLevel
+    breakdown: dict = field(default_factory=dict)
+    recommendation: str = ""
+
+
+class ConfidenceScorer:
+    """
+    Calculate confidence scores for validation results.
+
+    Philosophy: "Prove me wrong" - even HIGH confidence gets human review.
+    """
+
+    # Thresholds from template variables
+    HIGH_THRESHOLD = {{ confidence_thresholds.high | default(80) }}
+    MEDIUM_THRESHOLD = {{ confidence_thresholds.medium | default(50) }}
+
+    # Weights for score calculation
+    WEIGHTS = {
+        "pass_rate": 0.35,
+        "coverage": 0.25,
+        "flaky_penalty": 0.20,
+        "issues_penalty": 0.10,
+        "historical": 0.10,
+    }
+
+    def __init__(self, metrics: Optional[ValidationMetrics] = None):
+        self.metrics = metrics or ValidationMetrics()
+
+    def calculate(self, metrics: Optional[ValidationMetrics] = None) -> ConfidenceResult:
+        """Calculate confidence score from metrics."""
+        m = metrics or self.metrics
+
+        # Component scores (0-100 each)
+        pass_rate_score = self._calc_pass_rate(m)
+        coverage_score = self._calc_coverage(m)
+        flaky_penalty = self._calc_flaky_penalty(m)
+        issues_penalty = self._calc_issues_penalty(m)
+        historical_score = self._calc_historical(m)
+
+        # Weighted sum
+        raw_score = (
+            pass_rate_score * self.WEIGHTS["pass_rate"] +
+            coverage_score * self.WEIGHTS["coverage"] -
+            flaky_penalty * self.WEIGHTS["flaky_penalty"] -
+            issues_penalty * self.WEIGHTS["issues_penalty"] +
+            historical_score * self.WEIGHTS["historical"]
+        )
+
+        # Clamp to 0-100
+        score = max(0, min(100, int(raw_score)))
+
+        # Classify
+        level = self._classify(score)
+
+        # Build breakdown
+        breakdown = {
+            "pass_rate_component": round(pass_rate_score * self.WEIGHTS["pass_rate"], 1),
+            "coverage_component": round(coverage_score * self.WEIGHTS["coverage"], 1),
+            "flaky_penalty": round(flaky_penalty * self.WEIGHTS["flaky_penalty"], 1),
+            "issues_penalty": round(issues_penalty * self.WEIGHTS["issues_penalty"], 1),
+            "historical_component": round(historical_score * self.WEIGHTS["historical"], 1),
+        }
+
+        return ConfidenceResult(
+            score=score,
+            level=level,
+            breakdown=breakdown,
+            recommendation=self._get_recommendation(level, m),
+        )
+
+    def _calc_pass_rate(self, m: ValidationMetrics) -> float:
+        """Current test pass rate (0-100)."""
+        if m.total_tests == 0:
+            return 0.0
+        return (m.passed_tests / m.total_tests) * 100
+
+    def _calc_coverage(self, m: ValidationMetrics) -> float:
+        """Coverage percentage (0-100)."""
+        return m.coverage_percent
+
+    def _calc_flaky_penalty(self, m: ValidationMetrics) -> float:
+        """Penalty for flaky tests (0-100)."""
+        if m.total_tests == 0:
+            return 0.0
+        flaky_rate = m.flaky_tests / m.total_tests
+        # Exponential penalty: 10% flaky = 50 penalty, 20% = 80 penalty
+        return min(100, flaky_rate * 500)
+
+    def _calc_issues_penalty(self, m: ValidationMetrics) -> float:
+        """Penalty for known issues (0-100)."""
+        # Each known issue = 10 point penalty, max 100
+        return min(100, m.known_issues * 10)
+
+    def _calc_historical(self, m: ValidationMetrics) -> float:
+        """Historical pass rate bonus (0-100)."""
+        return m.historical_pass_rate * 100
+
+    def _classify(self, score: int) -> ConfidenceLevel:
+        """Classify score into confidence level."""
+        if score >= self.HIGH_THRESHOLD:
+            return ConfidenceLevel.HIGH
+        elif score >= self.MEDIUM_THRESHOLD:
+            return ConfidenceLevel.MEDIUM
+        else:
+            return ConfidenceLevel.LOW
+
+    def _get_recommendation(self, level: ConfidenceLevel, m: ValidationMetrics) -> str:
+        """Get human-readable recommendation based on confidence level."""
+        if level == ConfidenceLevel.HIGH:
+            return (
+                "High confidence. Proceed with human review to 'prove me wrong'. "
+                "Focus on edge cases and integration points."
+            )
+        elif level == ConfidenceLevel.MEDIUM:
+            return (
+                "Medium confidence. Requires thorough human validation. "
+                f"Address {m.flaky_tests} flaky tests and {m.known_issues} known issues."
+            )
+        else:
+            return (
+                "Low confidence. Do not proceed without fixing critical issues. "
+                f"Current pass rate: {m.passed_tests}/{m.total_tests}."
+            )
+
+
+def calculate_confidence(
+    total_tests: int,
+    passed_tests: int,
+    flaky_tests: int = 0,
+    coverage_percent: float = 0.0,
+    known_issues: int = 0,
+    historical_pass_rate: float = 0.0,
+) -> ConfidenceResult:
+    """
+    Convenience function to calculate confidence score.
+
+    Args:
+        total_tests: Total number of tests run
+        passed_tests: Number of passing tests
+        flaky_tests: Number of tests marked as flaky
+        coverage_percent: Code coverage percentage (0-100)
+        known_issues: Count of known/tracked issues
+        historical_pass_rate: Historical pass rate (0-1)
+
+    Returns:
+        ConfidenceResult with score, level, breakdown, and recommendation
+    """
+    metrics = ValidationMetrics(
+        total_tests=total_tests,
+        passed_tests=passed_tests,
+        failed_tests=total_tests - passed_tests,
+        flaky_tests=flaky_tests,
+        coverage_percent=coverage_percent,
+        known_issues=known_issues,
+        historical_pass_rate=historical_pass_rate,
+    )
+    scorer = ConfidenceScorer(metrics)
+    return scorer.calculate()

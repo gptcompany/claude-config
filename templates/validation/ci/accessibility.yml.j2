@@ -1,0 +1,196 @@
+{# GitHub Actions Accessibility Testing Workflow #}
+{# Generated for: {{ project_name }} #}
+{# WCAG Level: {{ wcag_level | default('wcag21aa') }} #}
+
+name: Accessibility Tests
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+    paths:
+      - 'src/**/*.tsx'
+      - 'src/**/*.jsx'
+      - 'src/**/*.vue'
+      - 'src/**/*.svelte'
+      - 'src/**/*.html'
+      - 'src/**/*.css'
+      - 'src/**/*.scss'
+      - 'public/**'
+      - 'package.json'
+      - 'tests/accessibility/**'
+
+concurrency:
+  group: {% raw %}${{ github.workflow }}-${{ github.ref }}{% endraw %}
+  cancel-in-progress: true
+
+jobs:
+  accessibility:
+    name: WCAG Compliance Check
+    runs-on: ubuntu-latest
+    container:
+      image: mcr.microsoft.com/playwright:v1.40.0-jammy
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '{{ node_version | default('20') }}'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: |
+          npm ci
+          # Ensure axe-core and reporter are installed
+          npm install --save-dev @axe-core/playwright axe-html-reporter
+
+      - name: Install Playwright browsers
+        run: npx playwright install chromium --with-deps
+
+      - name: Start application server
+        run: |
+          {{ start_command | default('npm run dev') }} &
+          # Wait for server to be ready
+          npx wait-on {{ base_url | default('http://localhost:3000') }} --timeout 120000
+        env:
+          CI: true
+          NODE_ENV: test
+
+      - name: Run accessibility tests
+        id: a11y-test
+        run: |
+          # Run Playwright accessibility tests
+          {{ test_command | default('npx playwright test tests/accessibility --project=accessibility') }} \
+            --reporter=json,html \
+            --output=./a11y-results
+        env:
+          CI: true
+          BASE_URL: {{ base_url | default('http://localhost:3000') }}
+        continue-on-error: true
+
+      - name: Generate accessibility HTML report
+        if: always()
+        run: |
+          # Create detailed HTML report using axe-html-reporter
+          node << 'EOF'
+          const createHtmlReport = require('axe-html-reporter').createHtmlReport;
+          const fs = require('fs');
+          const path = require('path');
+
+          const resultsDir = './a11y-results';
+          const outputDir = './a11y-report';
+
+          if (!fs.existsSync(outputDir)) {
+            fs.mkdirSync(outputDir, { recursive: true });
+          }
+
+          // Find JSON results from Playwright
+          const jsonFiles = fs.readdirSync(resultsDir)
+            .filter(f => f.endsWith('.json'));
+
+          for (const file of jsonFiles) {
+            const results = JSON.parse(fs.readFileSync(path.join(resultsDir, file)));
+            if (results.violations) {
+              createHtmlReport({
+                results,
+                options: {
+                  projectKey: '{{ project_name }}',
+                  outputDir,
+                  reportFileName: file.replace('.json', '.html'),
+                },
+              });
+            }
+          }
+
+          console.log('HTML reports generated in:', outputDir);
+          EOF
+
+      - name: Upload accessibility report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: accessibility-report
+          path: |
+            ./a11y-results/
+            ./a11y-report/
+            ./playwright-report/
+          retention-days: 30
+
+      - name: Comment on PR with accessibility summary
+        if: github.event_name == 'pull_request' && (failure() || steps.a11y-test.outcome == 'failure')
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+
+            // Try to read results
+            let summary = '## Accessibility Test Results\n\n';
+            summary += ':x: **WCAG violations detected**\n\n';
+            summary += 'This PR introduces accessibility issues that must be fixed before merging.\n\n';
+
+            try {
+              const resultsDir = './a11y-results';
+              const files = fs.readdirSync(resultsDir).filter(f => f.endsWith('.json'));
+
+              for (const file of files) {
+                const results = JSON.parse(fs.readFileSync(`${resultsDir}/${file}`));
+                if (results.violations && results.violations.length > 0) {
+                  summary += `### ${file}\n\n`;
+                  summary += `| Impact | Rule | Count |\n|--------|------|-------|\n`;
+
+                  const violationCounts = {};
+                  for (const v of results.violations) {
+                    const key = `${v.impact}|${v.id}`;
+                    violationCounts[key] = (violationCounts[key] || 0) + v.nodes.length;
+                  }
+
+                  for (const [key, count] of Object.entries(violationCounts)) {
+                    const [impact, rule] = key.split('|');
+                    const emoji = impact === 'critical' ? ':red_circle:' :
+                                  impact === 'serious' ? ':orange_circle:' :
+                                  impact === 'moderate' ? ':yellow_circle:' : ':white_circle:';
+                    summary += `| ${emoji} ${impact} | ${rule} | ${count} |\n`;
+                  }
+                  summary += '\n';
+                }
+              }
+            } catch (e) {
+              summary += `Error reading results: ${e.message}\n`;
+            }
+
+            summary += '\n---\n';
+            summary += `[View full report]({% raw %}${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}{% endraw %})\n`;
+            summary += '\n### How to fix\n';
+            summary += '1. Download the accessibility report artifact\n';
+            summary += '2. Open the HTML report for detailed violation info\n';
+            summary += '3. Follow the "Help URL" links for guidance on each issue\n';
+
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: summary
+            });
+
+      - name: Check for violations and fail if found
+        if: steps.a11y-test.outcome == 'failure'
+        run: |
+          echo "::error::Accessibility violations detected. This PR cannot be merged until all WCAG violations are fixed."
+          echo ""
+          echo "To view the detailed report:"
+          echo "1. Go to the Actions tab"
+          echo "2. Download the 'accessibility-report' artifact"
+          echo "3. Open the HTML report in your browser"
+          echo ""
+          exit 1
+
+      - name: Success summary
+        if: steps.a11y-test.outcome == 'success'
+        run: |
+          echo "::notice::All accessibility tests passed! WCAG compliance verified."
+          echo ""
+          echo "Checked against WCAG tags: {{ wcag_level | default('wcag21aa') }}"

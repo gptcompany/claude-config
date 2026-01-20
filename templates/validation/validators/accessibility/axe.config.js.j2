@@ -1,0 +1,103 @@
+{# axe-core Configuration Template #}
+{# Generated for: {{ project_name }} #}
+{# WCAG Level: {{ wcag_level | default('wcag21aa') }} #}
+
+/**
+ * axe-core Configuration
+ * Project: {{ project_name }}
+ *
+ * This configuration defines accessibility rules and exclusions
+ * for automated WCAG compliance testing with axe-core.
+ */
+
+/**
+ * WCAG tags to check based on compliance level
+ * - wcag2a: WCAG 2.0 Level A
+ * - wcag2aa: WCAG 2.0 Level AA
+ * - wcag21a: WCAG 2.1 Level A
+ * - wcag21aa: WCAG 2.1 Level AA
+ */
+const wcagTags = {
+{% if wcag_level | default('wcag21aa') == 'wcag21aa' %}
+  tags: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'],
+  description: 'WCAG 2.1 AA (Recommended for most applications)',
+{% elif wcag_level | default('wcag21aa') == 'wcag21a' %}
+  tags: ['wcag2a', 'wcag21a'],
+  description: 'WCAG 2.1 A (Minimum compliance)',
+{% elif wcag_level | default('wcag21aa') == 'wcag2aa' %}
+  tags: ['wcag2a', 'wcag2aa'],
+  description: 'WCAG 2.0 AA (Legacy standard)',
+{% elif wcag_level | default('wcag21aa') == 'wcag2a' %}
+  tags: ['wcag2a'],
+  description: 'WCAG 2.0 A (Minimum legacy compliance)',
+{% else %}
+  tags: ['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa'],
+  description: 'WCAG 2.1 AA (Default)',
+{% endif %}
+};
+
+/**
+ * Selectors to exclude from accessibility checks
+ * Use for third-party widgets, embedded content, or known exceptions
+ */
+const excludedSelectors = [
+{% for selector in excluded_selectors | default([]) %}
+  '{{ selector }}',
+{% endfor %}
+  // Common third-party exclusions (remove if not applicable)
+  // '[data-third-party]',
+  // '.external-widget',
+  // 'iframe[src*="youtube.com"]',
+];
+
+/**
+ * Rules to disable with justification
+ * Only disable rules when there's a valid accessibility reason
+ * Document why each rule is disabled
+ */
+const disabledRules = {
+{% for rule in disabled_rules | default([]) %}
+  '{{ rule.id }}': {
+    enabled: false,
+    reason: '{{ rule.reason | default("No reason provided") }}',
+  },
+{% endfor %}
+  // Example disabled rules (uncomment and justify if needed):
+  // 'color-contrast': {
+  //   enabled: false,
+  //   reason: 'Using brand colors with alternative accessibility features',
+  // },
+};
+
+/**
+ * axe-core configuration object
+ * Used with AxeBuilder.configure() in Playwright tests
+ */
+const axeConfig = {
+  // Reporter configuration
+  reporter: 'v2',
+
+  // Rule overrides
+  rules: Object.entries(disabledRules)
+    .filter(([_, config]) => config.enabled === false)
+    .map(([id, config]) => ({
+      id,
+      enabled: false,
+    })),
+};
+
+/**
+ * Export configuration for use in Playwright tests
+ */
+module.exports = {
+  wcagTags,
+  excludedSelectors,
+  disabledRules,
+  axeConfig,
+
+  // Helper function to get tags array
+  getTags: () => wcagTags.tags,
+
+  // Helper function to get exclude selectors
+  getExcludeSelectors: () => excludedSelectors.filter(s => s && !s.startsWith('//')),
+};

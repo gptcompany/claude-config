@@ -1,0 +1,130 @@
+{
+  "$schema": "https://raw.githubusercontent.com/AlaSQL/AlaSQL/main/types/package.json",
+  "_comment": "Performance budgets for {{ project_name }} - enforces resource limits",
+  "budgets": [
+    {
+      "path": "{{ budget_path | default('/*') }}",
+      "name": "{{ project_name }} - Default Budget",
+      "resourceSizes": [
+        {
+          "resourceType": "script",
+          "budget": {{ script_budget_kb | default(300) }}
+        },
+        {
+          "resourceType": "stylesheet",
+          "budget": {{ css_budget_kb | default(100) }}
+        },
+        {
+          "resourceType": "image",
+          "budget": {{ image_budget_kb | default(500) }}
+        },
+        {
+          "resourceType": "font",
+          "budget": {{ font_budget_kb | default(100) }}
+        },
+        {
+          "resourceType": "media",
+          "budget": {{ media_budget_kb | default(200) }}
+        },
+        {
+          "resourceType": "document",
+          "budget": {{ document_budget_kb | default(50) }}
+        },
+        {
+          "resourceType": "other",
+          "budget": {{ other_budget_kb | default(50) }}
+        },
+        {
+          "resourceType": "total",
+          "budget": {{ total_budget_kb | default(1500) }}
+        },
+        {
+          "resourceType": "third-party",
+          "budget": {{ third_party_budget_kb | default(200) }}
+        }
+      ],
+      "resourceCounts": [
+        {
+          "resourceType": "script",
+          "budget": {{ script_count_max | default(15) }}
+        },
+        {
+          "resourceType": "stylesheet",
+          "budget": {{ css_count_max | default(5) }}
+        },
+        {
+          "resourceType": "image",
+          "budget": {{ image_count_max | default(30) }}
+        },
+        {
+          "resourceType": "font",
+          "budget": {{ font_count_max | default(5) }}
+        },
+        {
+          "resourceType": "third-party",
+          "budget": {{ third_party_count_max | default(10) }}
+        },
+        {
+          "resourceType": "total",
+          "budget": {{ total_count_max | default(100) }}
+        }
+      ],
+      "timings": [
+        {
+          "metric": "first-contentful-paint",
+          "budget": {{ fcp_max | default(2000) }},
+          "_comment": "FCP: Time to first content render (ms)"
+        },
+        {
+          "metric": "largest-contentful-paint",
+          "budget": {{ lcp_max | default(2500) }},
+          "_comment": "LCP: Time to largest content render (ms)"
+        },
+        {
+          "metric": "cumulative-layout-shift",
+          "budget": {{ cls_max | default(0.1) }},
+          "_comment": "CLS: Visual stability score (unitless, lower is better)"
+        },
+        {
+          "metric": "total-blocking-time",
+          "budget": {{ tbt_max | default(300) }},
+          "_comment": "TBT: Time main thread blocked (ms)"
+        },
+        {
+          "metric": "interactive",
+          "budget": {{ tti_max | default(3500) }},
+          "_comment": "TTI: Time to Interactive (ms)"
+        },
+        {
+          "metric": "speed-index",
+          "budget": {{ si_max | default(3000) }},
+          "_comment": "SI: Visual progress speed (ms)"
+        }
+      ]
+    }
+    {% if additional_budgets is defined %}
+    {% for budget in additional_budgets %}
+    ,{
+      "path": "{{ budget.path }}",
+      "name": "{{ budget.name }}",
+      "resourceSizes": [
+        {
+          "resourceType": "script",
+          "budget": {{ budget.script_kb | default(300) }}
+        },
+        {
+          "resourceType": "total",
+          "budget": {{ budget.total_kb | default(1500) }}
+        }
+      ],
+      "timings": [
+        {
+          "metric": "largest-contentful-paint",
+          "budget": {{ budget.lcp_max | default(2500) }}
+        }
+      ]
+    }
+    {% endfor %}
+    {% endif %}
+  ]
+}

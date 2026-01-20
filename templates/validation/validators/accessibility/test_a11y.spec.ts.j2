@@ -1,0 +1,259 @@
+{# Playwright Accessibility Tests with axe-core #}
+{# Generated for: {{ project_name }} #}
+{# WCAG Level: {{ wcag_level | default('wcag21aa') }} #}
+
+import { test, expect } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
+import type { AxeResults, Result } from 'axe-core';
+
+// Test configuration
+const TEST_TIMEOUT = {{ timeout | default(30000) }};
+
+// WCAG tags to check
+const WCAG_TAGS = [
+{% if wcag_level | default('wcag21aa') == 'wcag21aa' %}
+  'wcag2a',
+  'wcag2aa',
+  'wcag21a',
+  'wcag21aa',
+{% elif wcag_level | default('wcag21aa') == 'wcag21a' %}
+  'wcag2a',
+  'wcag21a',
+{% elif wcag_level | default('wcag21aa') == 'wcag2aa' %}
+  'wcag2a',
+  'wcag2aa',
+{% else %}
+  'wcag2a',
+  'wcag2aa',
+  'wcag21a',
+  'wcag21aa',
+{% endif %}
+];
+
+// Selectors to exclude from a11y checks
+const EXCLUDED_SELECTORS = [
+{% for selector in excluded_selectors | default([]) %}
+  '{{ selector }}',
+{% endfor %}
+];
+
+// Pages to test for accessibility
+const PAGES_TO_TEST = [
+{% for page in pages | default(['/']) %}
+  '{{ page }}',
+{% endfor %}
+];
+
+/**
+ * Format violation details for readable test output
+ */
+function formatViolations(violations: Result[]): string {
+  if (violations.length === 0) return 'No violations found';
+
+  return violations
+    .map((violation, index) => {
+      const nodes = violation.nodes
+        .map((node) => {
+          return `    - Target: ${node.target.join(' > ')}
+      HTML: ${node.html.substring(0, 100)}${node.html.length > 100 ? '...' : ''}
+      Fix: ${node.failureSummary}`;
+        })
+        .join('\n');
+
+      return `
+[${index + 1}] ${violation.id} (${violation.impact})
+    Description: ${violation.description}
+    Help: ${violation.help}
+    Help URL: ${violation.helpUrl}
+    Affected nodes (${violation.nodes.length}):
+${nodes}`;
+    })
+    .join('\n');
+}
+
+/**
+ * Create detailed JSON report for CI artifacts
+ */
+function createViolationReport(results: AxeResults, pageUrl: string) {
+  return {
+    url: pageUrl,
+    timestamp: new Date().toISOString(),
+    violations: results.violations.map((v) => ({
+      id: v.id,
+      impact: v.impact,
+      description: v.description,
+      help: v.help,
+      helpUrl: v.helpUrl,
+      nodes: v.nodes.map((n) => ({
+        target: n.target,
+        html: n.html,
+        failureSummary: n.failureSummary,
+      })),
+    })),
+    passes: results.passes.length,
+    inapplicable: results.inapplicable.length,
+    incomplete: results.incomplete.length,
+  };
+}
+
+test.describe('Accessibility Tests: {{ project_name }}', () => {
+  test.setTimeout(TEST_TIMEOUT);
+
+  // Test each configured page for accessibility violations
+{% for page in pages | default(['/']) %}
+  test('Page "{{ page }}" should have no accessibility violations', async ({ page }) => {
+    // Navigate to the page
+    await page.goto('{{ page }}');
+
+    // Wait for the page to be fully loaded
+    await page.waitForLoadState('networkidle');
+
+    // Additional wait for dynamic content
+    await page.waitForTimeout(500);
+
+    // Build axe accessibility checker
+    let axeBuilder = new AxeBuilder({ page }).withTags(WCAG_TAGS);
+
+    // Apply exclusions if configured
+    if (EXCLUDED_SELECTORS.length > 0) {
+      axeBuilder = axeBuilder.exclude(EXCLUDED_SELECTORS);
+    }
+
+    // Run accessibility analysis
+    const results = await axeBuilder.analyze();
+
+    // Generate detailed report for failures
+    if (results.violations.length > 0) {
+      const report = createViolationReport(results, '{{ page }}');
+
+      // Log violations in a readable format
+      console.error('\n=== ACCESSIBILITY VIOLATIONS ===');
+      console.error(formatViolations(results.violations));
+      console.error('\n=== FULL REPORT (JSON) ===');
+      console.error(JSON.stringify(report, null, 2));
+    }
+
+    // Assert no violations
+    expect(
+      results.violations,
+      `Found ${results.violations.length} accessibility violation(s) on "{{ page }}"`
+    ).toEqual([]);
+  });
+
+{% endfor %}
+});
+
+test.describe('Accessibility Tests: Component States', () => {
+  test.setTimeout(TEST_TIMEOUT);
+
+  test('Loading states should be accessible', async ({ page }) => {
+    await page.goto('/');
+
+    // Find any loading indicators
+    const loadingIndicators = page.locator('[aria-busy="true"], [role="progressbar"], .loading, .spinner');
+    const count = await loadingIndicators.count();
+
+    if (count > 0) {
+      // Run axe on loading state
+      const results = await new AxeBuilder({ page })
+        .withTags(WCAG_TAGS)
+        .include('[aria-busy="true"], [role="progressbar"], .loading, .spinner')
+        .analyze();
+
+      if (results.violations.length > 0) {
+        console.error('\n=== LOADING STATE VIOLATIONS ===');
+        console.error(formatViolations(results.violations));
+      }
+
+      expect(results.violations).toEqual([]);
+    }
+  });
+
+  test('Interactive elements should be keyboard accessible', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    // Focus the first interactive element
+    await page.keyboard.press('Tab');
+
+    // Check that focus is visible
+    const focusedElement = page.locator(':focus');
+    const hasFocus = await focusedElement.count();
+
+    expect(hasFocus, 'Page should have at least one focusable element').toBeGreaterThan(0);
+
+    // Run axe specifically on focusable elements
+    const results = await new AxeBuilder({ page })
+      .withTags(['wcag2a', 'wcag21a'])
+      .analyze();
+
+    // Filter for keyboard-related violations
+    const keyboardViolations = results.violations.filter(
+      (v) => v.id.includes('keyboard') || v.id.includes('focus') || v.id.includes('tabindex')
+    );
+
+    if (keyboardViolations.length > 0) {
+      console.error('\n=== KEYBOARD ACCESSIBILITY VIOLATIONS ===');
+      console.error(formatViolations(keyboardViolations));
+    }
+
+    expect(keyboardViolations).toEqual([]);
+  });
+
+  test('Forms should have proper labels and error handling', async ({ page }) => {
+    // Find pages with forms
+    const formPages = PAGES_TO_TEST.filter(
+      (p) => p.includes('form') || p.includes('login') || p.includes('contact') || p.includes('register')
+    );
+
+    for (const formPage of formPages.length > 0 ? formPages : ['/']) {
+      await page.goto(formPage);
+      await page.waitForLoadState('networkidle');
+
+      const hasForm = await page.locator('form').count();
+      if (hasForm === 0) continue;
+
+      const results = await new AxeBuilder({ page })
+        .withTags(WCAG_TAGS)
+        .include('form')
+        .analyze();
+
+      if (results.violations.length > 0) {
+        console.error(`\n=== FORM VIOLATIONS ON ${formPage} ===`);
+        console.error(formatViolations(results.violations));
+      }
+
+      expect(
+        results.violations,
+        `Form accessibility violations on ${formPage}`
+      ).toEqual([]);
+    }
+  });
+});
+
+test.describe('Accessibility Tests: Color and Contrast', () => {
+  test.setTimeout(TEST_TIMEOUT);
+
+  test('Text should have sufficient color contrast', async ({ page }) => {
+    await page.goto('/');
+    await page.waitForLoadState('networkidle');
+
+    const results = await new AxeBuilder({ page })
+      .withTags(['wcag2aa', 'wcag21aa'])
+      .analyze();
+
+    // Filter for color contrast violations
+    const contrastViolations = results.violations.filter((v) =>
+      v.id.includes('color-contrast')
+    );
+
+    if (contrastViolations.length > 0) {
+      console.error('\n=== COLOR CONTRAST VIOLATIONS ===');
+      console.error(formatViolations(contrastViolations));
+      console.error('\nNote: Ensure text has at least 4.5:1 contrast ratio for normal text');
+      console.error('and 3:1 for large text (18pt+ or 14pt+ bold)');
+    }
+
+    expect(contrastViolations).toEqual([]);
+  });
+});

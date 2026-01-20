@@ -19,7 +19,7 @@ Build a reusable validation pipeline framework starting with core templates, the
 - [x] **Phase 3: Local K8s** - k3d cluster setup, Argo Rollouts, mock Prometheus
 - [x] **Phase 4: Trading Extension** - Paper trading, risk limits, analysis templates
 - [x] **Phase 5: Other Extensions** - Workflow and data domain templates
-- [ ] **Phase 6: Hybrid UAT & Validators** - Hybrid verify-work, accessibility, security, performance
+- [x] **Phase 6: Hybrid UAT & Validators** - Hybrid verify-work, accessibility, security, performance
 
 ## Phase Details
 
@@ -85,10 +85,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 06-01: Hybrid verify-work (auto-check + confidence + manual filter)
-- [ ] 06-02: Accessibility validation (axe-core + Playwright)
-- [ ] 06-03: Security scanning (Trivy container + dependency)
-- [ ] 06-04: Performance validation (Lighthouse CI + Core Web Vitals)
+- [x] 06-01: Hybrid verify-work (auto-check + confidence + manual filter)
+- [x] 06-02: Accessibility validation (axe-core + Playwright)
+- [x] 06-03: Security scanning (Trivy container + dependency)
+- [x] 06-04: Performance validation (Lighthouse CI + Core Web Vitals)
 
 ## Progress
 
@@ -102,4 +102,4 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
 | 3. Local K8s | 2/2 | Complete | 2026-01-19 |
 | 4. Trading Extension | 1/1 | Complete | 2026-01-19 |
 | 5. Other Extensions | 1/1 | Complete | 2026-01-19 |
-| 6. Hybrid UAT & Validators | 0/4 | In Progress | - |
+| 6. Hybrid UAT & Validators | 4/4 | Complete | 2026-01-20 |

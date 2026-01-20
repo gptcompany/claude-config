@@ -1,0 +1,372 @@
+"""
+Four-Round UAT Orchestrator for {{ project_name | default('Project') }}
+
+Workflow:
+1. Auto Round - Run all automated validators
+2. Human-All Round - Human reviews ALL results (even HIGH confidence)
+3. Fix Round - Address issues found, re-validate
+4. Edge+Regression Round - Edge cases and regression tests
+
+Philosophy: "Prove me wrong" - Never trust automation blindly.
+"""
+import asyncio
+from dataclasses import dataclass, field
+from datetime import datetime
+from enum import Enum
+from pathlib import Path
+from typing import Callable, Optional
+
+from confidence import (
+    ConfidenceLevel,
+    ConfidenceResult,
+    ConfidenceScorer,
+    ValidationMetrics,
+    calculate_confidence,
+)
+
+
+class Round(Enum):
+    """Four-round workflow stages."""
+    AUTO = 1
+    HUMAN_ALL = 2
+    FIX = 3
+    EDGE_REGRESSION = 4
+
+
+class ValidatorType(Enum):
+    """Supported validator types."""
+    {%- for v in validators | default(['pytest', 'playwright']) %}
+    {{ v | upper }} = "{{ v }}"
+    {%- endfor %}
+
+
+@dataclass
+class TestResult:
+    """Single test result."""
+    test_id: str
+    name: str
+    validator: ValidatorType
+    passed: bool
+    duration_ms: int = 0
+    error_message: str = ""
+    is_flaky: bool = False
+    is_edge_case: bool = False
+    is_regression: bool = False
+
+
+@dataclass
+class RoundResult:
+    """Results from a single round."""
+    round: Round
+    started_at: datetime
+    ended_at: Optional[datetime] = None
+    tests: list[TestResult] = field(default_factory=list)
+    confidence: Optional[ConfidenceResult] = None
+    human_overrides: dict = field(default_factory=dict)
+    issues_found: list[str] = field(default_factory=list)
+
+    @property
+    def passed_count(self) -> int:
+        return sum(1 for t in self.tests if t.passed)
+
+    @property
+    def failed_count(self) -> int:
+        return sum(1 for t in self.tests if not t.passed)
+
+    @property
+    def total_count(self) -> int:
+        return len(self.tests)
+
+
+@dataclass
+class WorkflowState:
+    """Complete workflow state."""
+    project: str = "{{ project_name | default('Project') }}"
+    started_at: Optional[datetime] = None
+    current_round: Round = Round.AUTO
+    rounds: dict = field(default_factory=dict)
+    final_confidence: Optional[ConfidenceResult] = None
+    approved: bool = False
+    approved_by: str = ""
+
+
+class VerifyWorkOrchestrator:
+    """
+    Orchestrate four-round hybrid UAT workflow.
+
+    "Prove me wrong" philosophy ensures human oversight even when
+    automated confidence is HIGH.
+    """
+
+    # Thresholds
+    HIGH_CONFIDENCE = {{ confidence_thresholds.high | default(80) }}
+    MEDIUM_CONFIDENCE = {{ confidence_thresholds.medium | default(50) }}
+
+    def __init__(
+        self,
+        project_name: str = "{{ project_name | default('Project') }}",
+        validators: Optional[list[ValidatorType]] = None,
+    ):
+        self.project_name = project_name
+        self.validators = validators or [
+            {%- for v in validators | default(['pytest', 'playwright']) %}
+            ValidatorType.{{ v | upper }},
+            {%- endfor %}
+        ]
+        self.state = WorkflowState(project=project_name)
+        self.scorer = ConfidenceScorer()
+
+        # Callbacks for extensibility
+        self._on_round_start: Optional[Callable] = None
+        self._on_round_end: Optional[Callable] = None
+        self._on_test_complete: Optional[Callable] = None
+        self._on_human_input_needed: Optional[Callable] = None
+
+    async def run_workflow(self) -> WorkflowState:
+        """Execute complete four-round workflow."""
+        self.state.started_at = datetime.now()
+
+        # Round 1: Auto
+        await self._run_round(Round.AUTO)
+
+        # Round 2: Human-All (always, regardless of confidence)
+        await self._run_round(Round.HUMAN_ALL)
+
+        # Round 3: Fix (if issues found)
+        if self._has_issues():
+            await self._run_round(Round.FIX)
+
+        # Round 4: Edge + Regression
+        await self._run_round(Round.EDGE_REGRESSION)
+
+        # Calculate final confidence
+        self.state.final_confidence = self._calculate_final_confidence()
+
+        return self.state
+
+    async def _run_round(self, round: Round) -> RoundResult:
+        """Execute a single round."""
+        self.state.current_round = round
+        result = RoundResult(round=round, started_at=datetime.now())
+
+        if self._on_round_start:
+            await self._on_round_start(round)
+
+        if round == Round.AUTO:
+            result = await self._run_auto_round(result)
+        elif round == Round.HUMAN_ALL:
+            result = await self._run_human_round(result)
+        elif round == Round.FIX:
+            result = await self._run_fix_round(result)
+        elif round == Round.EDGE_REGRESSION:
+            result = await self._run_edge_regression_round(result)
+
+        result.ended_at = datetime.now()
+        result.confidence = self._calculate_round_confidence(result)
+        self.state.rounds[round] = result
+
+        if self._on_round_end:
+            await self._on_round_end(round, result)
+
+        return result
+
+    async def _run_auto_round(self, result: RoundResult) -> RoundResult:
+        """Round 1: Run all automated validators."""
+        for validator in self.validators:
+            tests = await self._run_validator(validator)
+            result.tests.extend(tests)
+        return result
+
+    async def _run_human_round(self, result: RoundResult) -> RoundResult:
+        """
+        Round 2: Human reviews ALL results.
+
+        "Prove me wrong" - even HIGH confidence gets human eyes.
+        """
+        auto_result = self.state.rounds.get(Round.AUTO)
+        if not auto_result:
+            return result
+
+        # Copy tests from auto round for human review
+        result.tests = auto_result.tests.copy()
+
+        # Request human review for EVERY test
+        for test in result.tests:
+            if self._on_human_input_needed:
+                override = await self._on_human_input_needed(
+                    test,
+                    auto_result.confidence,
+                    message=self._get_review_prompt(test, auto_result.confidence),
+                )
+                if override:
+                    result.human_overrides[test.test_id] = override
+                    if override.get("verdict") != ("pass" if test.passed else "fail"):
+                        result.issues_found.append(
+                            f"Human override: {test.name} - {override.get('notes', 'No notes')}"
+                        )
+
+        return result
+
+    async def _run_fix_round(self, result: RoundResult) -> RoundResult:
+        """Round 3: Re-run after fixes applied."""
+        # Re-run only failed/overridden tests
+        human_result = self.state.rounds.get(Round.HUMAN_ALL)
+        if not human_result:
+            return result
+
+        tests_to_rerun = [
+            t for t in human_result.tests
+            if not t.passed or t.test_id in human_result.human_overrides
+        ]
+
+        for test in tests_to_rerun:
+            rerun_result = await self._rerun_test(test)
+            result.tests.append(rerun_result)
+
+        return result
+
+    async def _run_edge_regression_round(self, result: RoundResult) -> RoundResult:
+        """Round 4: Edge cases and regression tests."""
+        for validator in self.validators:
+            # Edge case tests
+            edge_tests = await self._run_validator(
+                validator,
+                filter_tags=["edge", "edge-case", "boundary"],
+            )
+            for t in edge_tests:
+                t.is_edge_case = True
+            result.tests.extend(edge_tests)
+
+            # Regression tests
+            regression_tests = await self._run_validator(
+                validator,
+                filter_tags=["regression"],
+            )
+            for t in regression_tests:
+                t.is_regression = True
+            result.tests.extend(regression_tests)
+
+        return result
+
+    async def _run_validator(
+        self,
+        validator: ValidatorType,
+        filter_tags: Optional[list[str]] = None,
+    ) -> list[TestResult]:
+        """Run a specific validator. Override in implementation."""
+        # Placeholder - actual implementation runs pytest/playwright/etc.
+        return []
+
+    async def _rerun_test(self, test: TestResult) -> TestResult:
+        """Re-run a single test. Override in implementation."""
+        # Placeholder - actual implementation re-runs the test
+        return test
+
+    def _get_review_prompt(
+        self,
+        test: TestResult,
+        confidence: Optional[ConfidenceResult],
+    ) -> str:
+        """Generate human review prompt."""
+        conf_str = f"{confidence.score}% ({confidence.level.value})" if confidence else "N/A"
+        status = "PASSED" if test.passed else "FAILED"
+
+        prompt = f"""
+        === HUMAN REVIEW REQUIRED ===
+
+        Test: {test.name}
+        Validator: {test.validator.value}
+        Auto Result: {status}
+        Confidence: {conf_str}
+
+        {'Error: ' + test.error_message if test.error_message else ''}
+
+        "Prove me wrong" - Does this result seem correct?
+
+        [p]ass / [f]ail / [s]kip / [n]otes
+        """
+        return prompt.strip()
+
+    def _has_issues(self) -> bool:
+        """Check if any issues were found requiring fixes."""
+        human_result = self.state.rounds.get(Round.HUMAN_ALL)
+        if not human_result:
+            return False
+        return len(human_result.issues_found) > 0 or human_result.failed_count > 0
+
+    def _calculate_round_confidence(self, result: RoundResult) -> ConfidenceResult:
+        """Calculate confidence for a round."""
+        flaky_count = sum(1 for t in result.tests if t.is_flaky)
+
+        return calculate_confidence(
+            total_tests=result.total_count,
+            passed_tests=result.passed_count,
+            flaky_tests=flaky_count,
+            coverage_percent=0.0,  # Would need coverage data
+            known_issues=len(result.issues_found),
+            historical_pass_rate=0.0,  # Would need historical data
+        )
+
+    def _calculate_final_confidence(self) -> ConfidenceResult:
+        """Calculate final confidence across all rounds."""
+        all_tests = []
+        all_issues = []
+
+        for round_result in self.state.rounds.values():
+            all_tests.extend(round_result.tests)
+            all_issues.extend(round_result.issues_found)
+
+        passed = sum(1 for t in all_tests if t.passed)
+        flaky = sum(1 for t in all_tests if t.is_flaky)
+
+        return calculate_confidence(
+            total_tests=len(all_tests),
+            passed_tests=passed,
+            flaky_tests=flaky,
+            known_issues=len(all_issues),
+        )
+
+    # Callback setters
+    def on_round_start(self, callback: Callable) -> None:
+        self._on_round_start = callback
+
+    def on_round_end(self, callback: Callable) -> None:
+        self._on_round_end = callback
+
+    def on_test_complete(self, callback: Callable) -> None:
+        self._on_test_complete = callback
+
+    def on_human_input_needed(self, callback: Callable) -> None:
+        self._on_human_input_needed = callback
+
+
+async def run_verify_work(
+    project_name: str = "{{ project_name | default('Project') }}",
+    human_input_handler: Optional[Callable] = None,
+) -> WorkflowState:
+    """
+    Convenience function to run verify-work workflow.
+
+    Args:
+        project_name: Name of the project being validated
+        human_input_handler: Async callback for human review input
+
+    Returns:
+        WorkflowState with all round results and final confidence
+    """
+    orchestrator = VerifyWorkOrchestrator(project_name=project_name)
+
+    if human_input_handler:
+        orchestrator.on_human_input_needed(human_input_handler)
+
+    return await orchestrator.run_workflow()
+
+
+if __name__ == "__main__":
+    # Demo run
+    async def demo_handler(test, confidence, message):
+        print(message)
+        return {"verdict": "pass", "notes": "Demo approval"}
+
+    state = asyncio.run(run_verify_work(human_input_handler=demo_handler))
+    print(f"Final confidence: {state.final_confidence}")
