@@ -54,9 +54,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           cd .github/scripts
-          ARGS="--roadmap ../../.planning/ROADMAP.md --auto-project"
+          ARGS="--roadmap ../../.planning/ROADMAP.md"
           if [ "${{ inputs.create-project }}" == "true" ]; then
-            ARGS="$ARGS --create-project"
+            ARGS="$ARGS --auto-project --create-project"
           fi
           if [ "${{ inputs.sync-todos }}" == "true" ]; then
             ARGS="$ARGS --sync-todos"
@@ -69,9 +69,9 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           cd .github/scripts
-          ARGS="../../tasks.md --auto-project"
+          ARGS="../../tasks.md"
           if [ "${{ inputs.create-project }}" == "true" ]; then
-            ARGS="$ARGS --create-project"
+            ARGS="$ARGS --auto-project --create-project"
           fi
           python taskstoissues.py $ARGS
 
