@@ -702,10 +702,10 @@ def ensure_milestone_exists(
         return None
 
     # Create new milestone
-    milestone_num = create_milestone(title, description, dry_run)
-    if milestone_num:
-        print(f"Created milestone: {title} (#{milestone_num})")
-    return milestone_num
+    new_milestone_num = create_milestone(title, description, dry_run)
+    if new_milestone_num:
+        print(f"Created milestone: {title} (#{new_milestone_num})")
+    return new_milestone_num
 
 
 def close_milestone(milestone_number: int, dry_run: bool = False) -> bool:

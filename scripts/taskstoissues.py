@@ -39,6 +39,7 @@ import re
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import Any
 
 # Import shared functions from github_sync_core
 try:
@@ -99,7 +100,9 @@ except ImportError:
     def ensure_labels_exist(labels: list[str], dry_run: bool = False) -> list[str]:
         return []  # Fallback does nothing
 
-    def ensure_project_exists(owner: str, project_name: str, dry_run: bool = False):
+    def ensure_project_exists(  # type: ignore[misc]
+        owner: str, project_name: str, dry_run: bool = False
+    ) -> Any:
         return None
 
     def add_issue_to_project(
@@ -114,7 +117,7 @@ except ImportError:
         )
         return stdout.strip() if code == 0 and stdout else None
 
-    def get_existing_milestones() -> dict[str, int]:
+    def get_existing_milestones(include_closed: bool = False) -> dict[str, int]:
         return {}
 
     def core_get_existing_issues(label_filter: str | None = None) -> dict[str, dict]:
@@ -128,7 +131,7 @@ except ImportError:
     def get_issue_status(project_id: str, issue_number: int) -> str | None:
         return None  # Fallback does nothing
 
-    def get_project_by_name(owner: str, project_name: str):
+    def get_project_by_name(owner: str, project_name: str) -> Any:  # type: ignore[misc]
         return None  # Fallback does nothing
 
 
@@ -544,9 +547,9 @@ def sync_create_issues(
             print(f"Issue exists for {task.id}: #{existing_issues[task.id]['number']}")
             continue
 
-        milestone_title = milestone_map.get(task.story)
+        task_milestone = milestone_map.get(task.story)
         issue_num = create_issue(
-            task, spec_dir, milestone_title, spec_label, project_id, dry_run
+            task, spec_dir, task_milestone, spec_label, project_id, dry_run
         )
         if issue_num or dry_run:
             result.issues_created += 1

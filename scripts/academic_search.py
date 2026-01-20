@@ -356,17 +356,18 @@ def search_arxiv(query: str, max_results: int = 10) -> List[Paper]:
                 )
 
                 # Extract authors
-                authors = []
+                authors: list[str] = []
                 for author in entry.findall("atom:author", ns):
                     name = author.find("atom:name", ns)
-                    if name is not None:
+                    if name is not None and name.text:
                         authors.append(name.text)
 
                 # Extract categories
-                categories = []
+                categories: list[str] = []
                 for category in entry.findall("arxiv:primary_category", ns):
-                    if category.get("term"):
-                        categories.append(category.get("term"))
+                    term = category.get("term")
+                    if term:
+                        categories.append(term)
 
                 # Extract year from published date
                 published = entry.find("atom:published", ns)

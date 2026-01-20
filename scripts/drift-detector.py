@@ -630,7 +630,7 @@ def generate_report(report: HealthReport, canonical: dict) -> str:
 
     if report.issues:
         # Group by severity
-        by_severity = {}
+        by_severity: dict[str, list] = {}
         for issue in report.issues:
             by_severity.setdefault(issue.severity, []).append(issue)
 

@@ -580,15 +580,17 @@ def sync_roadmap_to_github(
 
         # Find phase for this plan (normalize for comparison)
         normalized = _normalize_phase(plan.phase_num)
-        phase = next(
+        matched_phase = next(
             (p for p in phases if _normalize_phase(p.number) == normalized), None
         )
-        if not phase:
+        if not matched_phase:
             result.errors.append(f"No phase found for plan {plan.id}")
             continue
 
-        milestone_title = milestone_map.get(phase.number)
-        issue_num = create_plan_issue(plan, phase, milestone_title, project_id, dry_run)
+        plan_milestone = milestone_map.get(matched_phase.number)
+        issue_num = create_plan_issue(
+            plan, matched_phase, plan_milestone, project_id, dry_run
+        )
 
         if issue_num or dry_run:
             result.issues_created += 1

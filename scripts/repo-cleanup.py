@@ -120,7 +120,7 @@ def find_obsolete_files(repo_path: Path) -> list[Path]:
 
 def find_stale_specs(repo_path: Path) -> list[dict]:
     """Find specs that are completed or abandoned."""
-    stale = []
+    stale: list[dict] = []
     specs_dir = repo_path / "specs"
     if not specs_dir.exists():
         return stale
@@ -170,7 +170,7 @@ def find_stale_specs(repo_path: Path) -> list[dict]:
 
 def find_stale_branches(repo_path: Path) -> list[str]:
     """Find git branches not touched in 60+ days."""
-    stale = []
+    stale: list[str] = []
     try:
         result = subprocess.run(
             [
