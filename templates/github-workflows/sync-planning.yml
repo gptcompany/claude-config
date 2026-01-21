@@ -12,7 +12,8 @@ jobs:
       issues: write
       contents: read
     uses: gptcompany/claude-config/.github/workflows/_reusable-sync-planning.yml@main
-    secrets: inherit
+    secrets:
+      GH_PROJECT_PAT: ${{ secrets.GH_PROJECT_PAT }}
     with:
       framework: 'auto'
       create-project: true

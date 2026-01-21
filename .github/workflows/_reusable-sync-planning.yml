@@ -15,6 +15,10 @@ name: Sync Planning to GitHub
         description: 'Also sync todos from .planning/todos/'
         type: boolean
         default: false
+    secrets:
+      GH_PROJECT_PAT:
+        description: 'GitHub PAT with project:write scope for organization projects'
+        required: false
 
 jobs:
   sync:
