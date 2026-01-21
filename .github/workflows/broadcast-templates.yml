@@ -1,0 +1,171 @@
+name: Broadcast Templates
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'templates/**'
+      - '.sync-manifest.json'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: 'Dry run (preview only)'
+        required: false
+        default: false
+        type: boolean
+      target_repo:
+        description: 'Specific repo to sync (leave empty for all)'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  prepare:
+    runs-on: ubuntu-latest
+    outputs:
+      repos: ${{ steps.parse.outputs.repos }}
+      templates: ${{ steps.parse.outputs.templates }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Parse manifest
+        id: parse
+        run: |
+          # Get enabled repos
+          if [ -n "${{ inputs.target_repo }}" ]; then
+            REPOS='["${{ inputs.target_repo }}"]'
+          else
+            REPOS=$(jq -c '[.repos[] | select(.enabled == true) | .name]' .sync-manifest.json)
+          fi
+          echo "repos=$REPOS" >> $GITHUB_OUTPUT
+
+          # Get template mappings
+          TEMPLATES=$(jq -c '.templates' .sync-manifest.json)
+          echo "templates=$TEMPLATES" >> $GITHUB_OUTPUT
+
+          echo "Will sync to repos: $REPOS"
+
+  sync:
+    needs: prepare
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        repo: ${{ fromJson(needs.prepare.outputs.repos) }}
+
+    steps:
+      - name: Checkout template repo
+        uses: actions/checkout@v4
+        with:
+          path: templates
+
+      - name: Checkout target repo
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ matrix.repo }}
+          token: ${{ secrets.GH_PROJECT_PAT }}
+          path: target
+
+      - name: Sync templates
+        id: sync
+        env:
+          TEMPLATES: ${{ needs.prepare.outputs.templates }}
+          DRY_RUN: ${{ inputs.dry_run || 'false' }}
+        run: |
+          cd target
+          CHANGES=0
+
+          # Parse templates and sync
+          echo "$TEMPLATES" | jq -r 'to_entries[] | "\(.key)|\(.value.source)|\(.value.strategy)"' | while IFS='|' read -r target source strategy; do
+            SOURCE_PATH="../templates/$source"
+
+            if [ ! -f "$SOURCE_PATH" ]; then
+              echo "Source not found: $source"
+              continue
+            fi
+
+            mkdir -p "$(dirname "$target")"
+
+            case "$strategy" in
+              "overwrite")
+                if [ "$DRY_RUN" = "true" ]; then
+                  echo "[DRY RUN] Would overwrite: $target"
+                else
+                  cp "$SOURCE_PATH" "$target"
+                  echo "Synced: $target (overwrite)"
+                  CHANGES=$((CHANGES + 1))
+                fi
+                ;;
+              "skip-if-exists")
+                if [ ! -f "$target" ]; then
+                  if [ "$DRY_RUN" = "true" ]; then
+                    echo "[DRY RUN] Would create: $target"
+                  else
+                    cp "$SOURCE_PATH" "$target"
+                    echo "Created: $target"
+                    CHANGES=$((CHANGES + 1))
+                  fi
+                else
+                  echo "Skipped (exists): $target"
+                fi
+                ;;
+              "merge")
+                echo "Merge strategy not yet implemented for: $target"
+                ;;
+            esac
+          done
+
+          echo "changes=$CHANGES" >> $GITHUB_OUTPUT
+
+      - name: Create PR
+        if: steps.sync.outputs.changes > 0 && inputs.dry_run != 'true'
+        env:
+          GH_TOKEN: ${{ secrets.GH_PROJECT_PAT }}
+        run: |
+          cd target
+          BRANCH="chore/template-sync-$(date +%Y%m%d)"
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git checkout -b "$BRANCH"
+          git add -A
+          git diff --cached --quiet && exit 0
+
+          git commit -m "chore: sync templates from claude-config
+
+          Automated template sync triggered by push to gptcompany/claude-config.
+
+          Templates updated:
+          $(git diff --cached --name-only | sed 's/^/- /')
+
+          Source: https://github.com/gptcompany/claude-config/commit/${{ github.sha }}"
+
+          git push -u origin "$BRANCH"
+
+          gh pr create \
+            --title "chore: sync templates from claude-config" \
+            --body "## Template Sync
+
+          Automated PR to sync templates from central config.
+
+          **Source commit:** gptcompany/claude-config@${{ github.sha }}
+
+          ### Changes
+          $(git diff --cached --name-only | sed 's/^/- /')
+
+          ---
+          *This PR was automatically created by the template sync workflow.*" \
+            --label "templates,automated"
+
+      - name: Summary
+        run: |
+          echo "### Template Sync: ${{ matrix.repo }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            echo "**Mode:** Dry run (no changes made)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**Changes:** ${{ steps.sync.outputs.changes }} files" >> $GITHUB_STEP_SUMMARY
+          fi

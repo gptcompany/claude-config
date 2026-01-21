@@ -1,0 +1,55 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "description": "Template sync manifest - repos to keep in sync with central templates",
+  "version": "1.0.0",
+  "templates": {
+    ".claude/validation/config.json": {
+      "source": "templates/validation-config.json",
+      "strategy": "merge",
+      "repos": ["all"]
+    },
+    "catalog-info.yaml": {
+      "source": "templates/catalog-info.yaml",
+      "strategy": "skip-if-exists",
+      "repos": ["all"]
+    },
+    ".github/workflows/sync-planning.yml": {
+      "source": "templates/github-workflows/sync-planning.yml",
+      "strategy": "overwrite",
+      "repos": ["all"]
+    }
+  },
+  "repos": [
+    {
+      "name": "gptcompany/openbb_liquidity",
+      "enabled": true,
+      "domain": "finance"
+    },
+    {
+      "name": "gptcompany/nautilus_dev",
+      "enabled": true,
+      "domain": "trading"
+    },
+    {
+      "name": "gptcompany/N8N_dev",
+      "enabled": true,
+      "domain": "automation"
+    },
+    {
+      "name": "gptcompany/UTXOracle",
+      "enabled": true,
+      "domain": "crypto"
+    },
+    {
+      "name": "gptcompany/LiquidationHeatmap",
+      "enabled": true,
+      "domain": "trading"
+    }
+  ],
+  "strategies": {
+    "overwrite": "Replace target file completely",
+    "merge": "Deep merge JSON/YAML, keep target-specific fields",
+    "skip-if-exists": "Only create if file doesn't exist",
+    "pr-review": "Always create PR for human review"
+  }
+}
