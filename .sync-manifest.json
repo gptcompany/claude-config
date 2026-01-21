@@ -6,17 +6,30 @@
     ".claude/validation/config.json": {
       "source": "templates/validation-config.json",
       "strategy": "merge",
-      "repos": ["all"]
+      "repos": [
+        "all"
+      ]
     },
     "catalog-info.yaml": {
       "source": "templates/catalog-info.yaml",
       "strategy": "skip-if-exists",
-      "repos": ["all"]
+      "repos": [
+        "all"
+      ]
     },
     ".github/workflows/sync-planning.yml": {
       "source": "templates/github-workflows/sync-planning.yml",
       "strategy": "overwrite",
-      "repos": ["all"]
+      "repos": [
+        "all"
+      ]
+    },
+    "scripts/validate-automations.sh": {
+      "source": "templates/scripts/validate-automations.sh.template",
+      "strategy": "skip-if-exists",
+      "repos": [
+        "all"
+      ]
     }
   },
   "repos": [
