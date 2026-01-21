@@ -39,14 +39,6 @@ jobs:
           curl -sL https://raw.githubusercontent.com/gptcompany/claude-config/main/scripts/roadmaptoissues.py -o .github/scripts/roadmaptoissues.py
           curl -sL https://raw.githubusercontent.com/gptcompany/claude-config/main/scripts/taskstoissues.py -o .github/scripts/taskstoissues.py
 
-      - name: Debug token
-        env:
-          GH_TOKEN: ${{ secrets.GH_PROJECT_PAT || github.token }}
-        run: |
-          echo "Token source: $(if [ -n '${{ secrets.GH_PROJECT_PAT }}' ]; then echo 'PAT'; else echo 'github.token'; fi)"
-          echo "Checking token identity..."
-          gh api user --jq '.login' || echo "Token cannot access user API"
-
       - name: Detect framework
         id: detect
         run: |

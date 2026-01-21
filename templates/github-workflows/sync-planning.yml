@@ -1,3 +1,5 @@
+# Sync Planning to GitHub - GSD/Speckit integration
+# NOTE: Uses inline workflow instead of reusable (secret-passing issues with cross-repo reusables)
 name: Sync Planning
 "on":
   push:
@@ -8,12 +10,61 @@ name: Sync Planning
 
 jobs:
   sync:
-    permissions:
-      issues: write
-      contents: read
-    uses: gptcompany/claude-config/.github/workflows/_reusable-sync-planning.yml@main
-    secrets: inherit
-    with:
-      framework: 'auto'
-      create-project: true
-      sync-todos: true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Download sync scripts
+        run: |
+          mkdir -p .github/scripts
+          curl -sL https://raw.githubusercontent.com/gptcompany/claude-config/main/scripts/github_sync_core.py -o .github/scripts/github_sync_core.py
+          curl -sL https://raw.githubusercontent.com/gptcompany/claude-config/main/scripts/roadmaptoissues.py -o .github/scripts/roadmaptoissues.py
+          curl -sL https://raw.githubusercontent.com/gptcompany/claude-config/main/scripts/taskstoissues.py -o .github/scripts/taskstoissues.py
+
+      - name: Verify token
+        env:
+          GH_TOKEN: ${{ secrets.GH_PROJECT_PAT }}
+        run: |
+          if [ -z "$GH_TOKEN" ]; then
+            echo "::warning::GH_PROJECT_PAT secret not set. Project board sync will be limited."
+            echo "Set GH_PROJECT_PAT secret with 'project' scope for full functionality."
+          fi
+
+      - name: Detect framework
+        id: detect
+        run: |
+          if [ -f .planning/ROADMAP.md ]; then
+            echo "framework=gsd" >> $GITHUB_OUTPUT
+          elif [ -f tasks.md ]; then
+            echo "framework=speckit" >> $GITHUB_OUTPUT
+          else
+            echo "framework=none" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Sync GSD to GitHub
+        if: steps.detect.outputs.framework == 'gsd'
+        env:
+          GH_TOKEN: ${{ secrets.GH_PROJECT_PAT }}
+        run: |
+          cd .github/scripts
+          python roadmaptoissues.py --roadmap ../../.planning/ROADMAP.md --auto-project --create-project --sync-todos
+
+      - name: Sync Speckit to GitHub
+        if: steps.detect.outputs.framework == 'speckit'
+        env:
+          GH_TOKEN: ${{ secrets.GH_PROJECT_PAT }}
+        run: |
+          cd .github/scripts
+          python taskstoissues.py ../../tasks.md --auto-project --create-project
+
+      - name: No framework detected
+        if: steps.detect.outputs.framework == 'none'
+        run: |
+          echo "No planning framework detected."
+          echo "Expected: .planning/ROADMAP.md (GSD) or tasks.md (Speckit)"
