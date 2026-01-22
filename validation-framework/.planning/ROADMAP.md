@@ -116,24 +116,24 @@ Plans:
 Plans:
 - [ ] 07-01: Create ValidationOrchestrator template + wire into Ralph loop
 
-#### Phase 8: Config Schema v2
-**Goal**: Extend config.schema.json with 14 dimensions, tier classification, and enabled flags
+#### Phase 8: Config Schema v2 (COMPLETE)
+**Goal**: Extend config generation tooling to expose all 14 dimensions with sensible defaults
 **Depends on**: Phase 7
 **Research**: Unlikely (JSON Schema extension)
-**Plans**: TBD
+**Plans**: 1 plan
 
 Plans:
-- [ ] 08-01: TBD
+- [x] 08-01: Config generation CLI with domain presets
 
-#### Phase 9: Tier 2 Validators
+#### Phase 9: Tier 2 Validators (COMPLETE)
 **Goal**: Create design_principles (KISS/YAGNI/DRY) and oss_reuse (package suggestions) validators
 **Depends on**: Phase 8
-**Research**: Likely (pypi/npm API, radon complexity metrics)
-**Research topics**: radon for Python complexity, npm registry API, pypi JSON API
-**Plans**: TBD
+**Research**: Completed (radon complexity metrics)
+**Plans**: 2 plans
 
 Plans:
-- [ ] 09-01: TBD
+- [x] 09-01: Create design_principles validator with radon + AST analysis
+- [x] 09-02: Create oss_reuse validator with pattern detection
 
 #### Phase 10: Tier 3 Validators
 **Goal**: Create mathematical (CAS microservice) and api_contract (OpenAPI diff) validators
@@ -167,9 +167,9 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 4. Trading Extension | M1 | 1/1 | Complete | 2026-01-19 |
 | 5. Other Extensions | M1 | 1/1 | Complete | 2026-01-19 |
 | 6. Hybrid UAT & Validators | M2 | 4/4 | Complete | 2026-01-20 |
-| 7. Orchestrator Core | M3 | 0/? | Not started | - |
-| 8. Config Schema v2 | M3 | 0/? | Not started | - |
-| 9. Tier 2 Validators | M3 | 0/? | Not started | - |
+| 7. Orchestrator Core | M3 | 1/1 | Complete | 2026-01-22 |
+| 8. Config Schema v2 | M3 | 1/1 | Complete | 2026-01-22 |
+| 9. Tier 2 Validators | M3 | 2/2 | Complete | 2026-01-22 |
 | 10. Tier 3 Validators | M3 | 0/? | Not started | - |
 | 11. Ralph Integration | M3 | 0/? | Not started | - |
 | 12. Confidence Loop | M3 | 0/? | Not started | - |
