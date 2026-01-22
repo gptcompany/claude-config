@@ -5,66 +5,60 @@
 See: .planning/PROJECT.md (updated 2026-01-19)
 
 **Core value:** Every project gets production-grade validation with zero friction
-**Current focus:** Phase 6 - Hybrid UAT & Validators
+**Current focus:** Phase 7 - Orchestrator Core
 
 ## Current Position
 
-Phase: 6 of 6 (Hybrid UAT & Validators) - COMPLETE
-Plan: 4 of 4 in current phase
-Status: Milestone 2 Complete
-Last activity: 2026-01-20 - Phase 6 completed
+Phase: 7 of 11 (Orchestrator Core)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-01-22 - Milestone 3 created
 
-Progress: ██████████ 100% M1 | ██████████ 100% M2 (4/4 plans)
+Progress: ██████████ 100% M1 | ██████████ 100% M2 | ░░░░░░░░░░ 0% M3 (0/5 phases)
 
-## Phase 6 Overview
+## Phase 7 Overview
 
 | Plan | Description | Status |
 |------|-------------|--------|
-| 06-01 | Hybrid verify-work (auto + confidence + manual) | Complete |
-| 06-02 | Accessibility validation (axe-core) | Complete |
-| 06-03 | Security scanning (Trivy) | Complete |
-| 06-04 | Performance validation (Lighthouse CI) | Complete |
+| 07-01 | TBD | Not started |
 
 **Goals:**
-- Hybrid auto/manual UAT with confidence scoring
-- axe-core accessibility integration with Playwright
-- Trivy container + dependency security scanning
-- Lighthouse CI for Core Web Vitals
+- Create ValidationOrchestrator class with tiered execution
+- Tier 1: Blockers (code quality, types, security, coverage)
+- Tier 2: Warnings (design principles, OSS reuse, architecture, docs)
+- Tier 3: Monitors (performance, a11y, visual, math, data, API)
 
-## Milestone 1 Complete (Phases 1-5)
+## Milestones Complete
 
-All 5 phases complete. Core validation framework delivered:
+### Milestone 1 (Phases 1-5)
+Core validation framework delivered:
+- 24 Jinja2 templates
+- Domains: trading, workflow, data, visual, general
 
-**Deliverables:**
-- `~/.claude/templates/validation/config.schema.json`
-- `~/.claude/templates/validation/scaffold.sh`
-- `~/.claude/templates/validation/smoke/*.j2` (4 templates)
-- `~/.claude/templates/validation/ci/*.yml.j2` (4 templates)
-- `~/.claude/templates/validation/k8s/*.j2` (5 templates)
-- `~/.claude/templates/validation/extensions/trading/*.j2` (3 templates)
-- `~/.claude/templates/validation/extensions/workflow/*.j2` (2 templates)
-- `~/.claude/templates/validation/extensions/data/*.j2` (2 templates)
-- `~/.claude/templates/validation/extensions/visual/*.j2` (4 templates)
-
-**Total templates:** 24 Jinja2 templates
-**Domains supported:** trading, workflow, data, visual, general
+### Milestone 2 (Phase 6)
+Hybrid UAT & Validators:
+- Confidence scoring, TUI dashboard, verify-work orchestrator
+- axe-core accessibility, Trivy security, Lighthouse performance
 
 ## Accumulated Context
 
-### Existing Infrastructure
+### Existing Infrastructure (from Phase 7 onwards)
 
-- AI Validation Service (localhost:3848) with /validate-visual, /validate-data, /validate-domain
-- Playwright MCP for browser automation
-- Chrome integration for live testing
-- Sentry MCP for error tracking
-- Grafana MCP for monitoring
+- Ralph loop hook: `/media/sam/1TB/claude-hooks-shared/hooks/control/ralph-loop.py`
+- Post-commit quality: `/media/sam/1TB/claude-hooks-shared/hooks/quality/post-commit-quality.py`
+- Architecture validator: `/media/sam/1TB/claude-hooks-shared/hooks/productivity/architecture-validator.py`
+- CI templates: `~/.claude/templates/validation/ci/`
+- MCP servers: Playwright, Sentry, Grafana, Claude-flow, WolframAlpha
 
-### Decisions (Phase 6)
+### Reference Plan
 
-- Hybrid UAT: auto-check first, manual only for low-confidence
-- All tools OSS and self-hosted (axe-core, Trivy, Lighthouse)
-- Integration with existing AI Validation Service
-- Confidence scoring: HIGH (>80% auto-pass), MEDIUM (50-80% quick confirm), LOW (<50% manual)
+`/home/sam/.claude/plans/calm-wobbling-ripple.md` - 14-dimension validation architecture
+
+### Decisions (Milestone 3)
+
+- Tiered validation: Tier1=block, Tier2=warn+fix, Tier3=metrics
+- Ralph loop backpressure: 3 CI failures triggers circuit breaker
+- ~80% components exist, focus on integration not creation
 
 ### Blockers/Concerns
 
@@ -72,17 +66,15 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-01-20
-Completed: Phase 6 - All 4 plans executed successfully
+Last session: 2026-01-22
+Stopped at: Milestone 3 initialization
 Resume file: None
 
-## Milestone 2 Complete
+## Roadmap Evolution
 
-Phase 6 delivered:
-- `~/.claude/templates/validation/hybrid/` - Confidence scoring, TUI dashboard, verify-work orchestrator
-- `~/.claude/templates/validation/validators/accessibility/` - axe-core + Playwright templates
-- `~/.claude/templates/validation/validators/security/` - Trivy config and CI workflow
-- `~/.claude/templates/validation/validators/performance/` - Lighthouse CI templates
+- Milestone 1 completed: Core Framework, 5 phases (Phase 1-5)
+- Milestone 2 completed: Hybrid UAT & Validators, 1 phase (Phase 6)
+- Milestone 3 created: Universal 14-Dimension Orchestrator, 5 phases (Phase 7-11)
 
 ## GitHub Sync
 

@@ -8,11 +8,20 @@ Build a reusable validation pipeline framework starting with core templates, the
 
 - None (greenfield framework project)
 
+## Milestones
+
+- ✅ **Milestone 1** - Core Framework (Phases 1-5, shipped 2026-01-19)
+- ✅ **Milestone 2** - Hybrid UAT & Validators (Phase 6, shipped 2026-01-20)
+- 🚧 **Milestone 3** - Universal 14-Dimension Orchestrator (Phases 7-11, in progress)
+
 ## Phases
 
 **Phase Numbering:**
 - Integer phases (1, 2, 3): Planned milestone work
 - Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+
+<details>
+<summary>✅ Milestone 1 & 2 (Phases 1-6) - SHIPPED 2026-01-20</summary>
 
 - [x] **Phase 1: Core Framework** - Schema, scaffold script, base smoke tests
 - [x] **Phase 2: CI Workflows** - GitHub Actions templates for smoke and integration
@@ -20,8 +29,6 @@ Build a reusable validation pipeline framework starting with core templates, the
 - [x] **Phase 4: Trading Extension** - Paper trading, risk limits, analysis templates
 - [x] **Phase 5: Other Extensions** - Workflow and data domain templates
 - [x] **Phase 6: Hybrid UAT & Validators** - Hybrid verify-work, accessibility, security, performance
-
-## Phase Details
 
 ### Phase 1: Core Framework
 **Goal**: Create the foundational templates and scaffold script
@@ -90,16 +97,78 @@ Plans:
 - [x] 06-03: Security scanning (Trivy container + dependency)
 - [x] 06-04: Performance validation (Lighthouse CI + Core Web Vitals)
 
+</details>
+
+## Phase Details
+
+### 🚧 Milestone 3: Universal 14-Dimension Orchestrator (In Progress)
+
+**Milestone Goal:** Integrate existing validation components into a unified 14-dimension orchestrator with tiered execution and Ralph loop backpressure.
+
+**Reference Plan:** `/home/sam/.claude/plans/calm-wobbling-ripple.md`
+
+#### Phase 7: Orchestrator Core
+**Goal**: Create ValidationOrchestrator with tiered execution (Tier1=blockers, Tier2=warnings, Tier3=monitors)
+**Depends on**: Phase 6 (uses existing validators)
+**Research**: Unlikely (internal async Python patterns)
+**Plans**: TBD
+
+Plans:
+- [ ] 07-01: TBD (run /gsd:plan-phase 7 to break down)
+
+#### Phase 8: Config Schema v2
+**Goal**: Extend config.schema.json with 14 dimensions, tier classification, and enabled flags
+**Depends on**: Phase 7
+**Research**: Unlikely (JSON Schema extension)
+**Plans**: TBD
+
+Plans:
+- [ ] 08-01: TBD
+
+#### Phase 9: Tier 2 Validators
+**Goal**: Create design_principles (KISS/YAGNI/DRY) and oss_reuse (package suggestions) validators
+**Depends on**: Phase 8
+**Research**: Likely (pypi/npm API, radon complexity metrics)
+**Research topics**: radon for Python complexity, npm registry API, pypi JSON API
+**Plans**: TBD
+
+Plans:
+- [ ] 09-01: TBD
+
+#### Phase 10: Tier 3 Validators
+**Goal**: Create mathematical (CAS microservice) and api_contract (OpenAPI diff) validators
+**Depends on**: Phase 8
+**Research**: Likely (CAS microservice protocol, openapi-diff libraries)
+**Research topics**: localhost:8769/validate protocol, openapi-diff Python packages
+**Plans**: TBD
+
+Plans:
+- [ ] 10-01: TBD
+
+#### Phase 11: Ralph Integration
+**Goal**: Wire orchestrator into Ralph loop hook + MCP integration (Playwright, Sentry, Grafana)
+**Depends on**: Phases 9, 10
+**Research**: Unlikely (existing hook patterns)
+**Plans**: TBD
+
+Plans:
+- [ ] 11-01: TBD
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
+Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11
 
-| Phase | Plans Complete | Status | Completed |
-|-------|----------------|--------|-----------|
-| 1. Core Framework | 2/2 | Complete | 2026-01-19 |
-| 2. CI Workflows | 1/1 | Complete | 2026-01-19 |
-| 3. Local K8s | 2/2 | Complete | 2026-01-19 |
-| 4. Trading Extension | 1/1 | Complete | 2026-01-19 |
-| 5. Other Extensions | 1/1 | Complete | 2026-01-19 |
-| 6. Hybrid UAT & Validators | 4/4 | Complete | 2026-01-20 |
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1. Core Framework | M1 | 2/2 | Complete | 2026-01-19 |
+| 2. CI Workflows | M1 | 1/1 | Complete | 2026-01-19 |
+| 3. Local K8s | M1 | 2/2 | Complete | 2026-01-19 |
+| 4. Trading Extension | M1 | 1/1 | Complete | 2026-01-19 |
+| 5. Other Extensions | M1 | 1/1 | Complete | 2026-01-19 |
+| 6. Hybrid UAT & Validators | M2 | 4/4 | Complete | 2026-01-20 |
+| 7. Orchestrator Core | M3 | 0/? | Not started | - |
+| 8. Config Schema v2 | M3 | 0/? | Not started | - |
+| 9. Tier 2 Validators | M3 | 0/? | Not started | - |
+| 10. Tier 3 Validators | M3 | 0/? | Not started | - |
+| 11. Ralph Integration | M3 | 0/? | Not started | - |
