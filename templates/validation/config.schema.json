@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://claude.ai/validation/config.schema.json",
   "title": "Validation Pipeline Config",
-  "description": "Configuration schema for universal validation pipeline framework",
+  "description": "Configuration schema for universal 14-dimension validation framework",
   "type": "object",
   "required": ["project_name", "domain", "smoke_tests"],
   "properties": {
@@ -22,13 +22,13 @@
         "critical_imports": {
           "type": "array",
           "items": { "type": "string" },
-          "description": "Python import paths that must succeed (e.g., 'strategies.common.risk')",
+          "description": "Python import paths that must succeed",
           "default": []
         },
         "config_files": {
           "type": "array",
           "items": { "type": "string" },
-          "description": "Config files to validate exist and parse (e.g., 'config/canonical.yaml')",
+          "description": "Config files to validate exist and parse",
           "default": []
         },
         "external_services": {
@@ -44,21 +44,12 @@
       "type": "object",
       "description": "Kubernetes deployment configuration",
       "properties": {
-        "enabled": {
-          "type": "boolean",
-          "default": false,
-          "description": "Enable K8s templates and local cluster testing"
-        },
-        "namespace": {
-          "type": "string",
-          "default": "default",
-          "description": "Kubernetes namespace for deployment"
-        },
+        "enabled": { "type": "boolean", "default": false },
+        "namespace": { "type": "string", "default": "default" },
         "rollout_strategy": {
           "type": "string",
           "enum": ["canary", "blue-green", "rolling"],
-          "default": "canary",
-          "description": "Argo Rollouts deployment strategy"
+          "default": "canary"
         }
       },
       "additionalProperties": false
@@ -70,19 +61,9 @@
         "type": "object",
         "required": ["metric", "threshold", "operator"],
         "properties": {
-          "metric": {
-            "type": "string",
-            "description": "Prometheus metric name (e.g., 'error_rate', 'latency_p99_ms')"
-          },
-          "threshold": {
-            "type": "number",
-            "description": "Threshold value for the metric"
-          },
-          "operator": {
-            "type": "string",
-            "enum": ["<", ">", "==", "!=", "<=", ">="],
-            "description": "Comparison operator"
-          }
+          "metric": { "type": "string" },
+          "threshold": { "type": "number" },
+          "operator": { "type": "string", "enum": ["<", ">", "==", "!=", "<=", ">="] }
         },
         "additionalProperties": false
       },
@@ -92,23 +73,55 @@
       "type": "object",
       "description": "CI/CD workflow configuration",
       "properties": {
-        "smoke_timeout_minutes": {
-          "type": "integer",
-          "default": 5,
-          "description": "Timeout for smoke test stage"
-        },
-        "test_timeout_minutes": {
-          "type": "integer",
-          "default": 10,
-          "description": "Timeout for unit/integration test stages"
-        },
-        "python_version": {
-          "type": "string",
-          "default": "3.12",
-          "description": "Python version for CI runners"
-        }
+        "smoke_timeout_minutes": { "type": "integer", "default": 5 },
+        "test_timeout_minutes": { "type": "integer", "default": 10 },
+        "python_version": { "type": "string", "default": "3.12" }
       },
       "additionalProperties": false
+    },
+    "dimensions": {
+      "type": "object",
+      "description": "14-dimension validation configuration",
+      "properties": {
+        "code_quality": { "$ref": "#/$defs/dimensionConfig", "description": "Tier 1: Code style (ruff)" },
+        "type_safety": { "$ref": "#/$defs/dimensionConfig", "description": "Tier 1: Type checking (pyright)" },
+        "security": { "$ref": "#/$defs/dimensionConfig", "description": "Tier 1: Security scanning" },
+        "coverage": { "$ref": "#/$defs/dimensionConfig", "description": "Tier 1: Test coverage" },
+        "design_principles": { "$ref": "#/$defs/dimensionConfig", "description": "Tier 2: KISS/YAGNI/DRY" },
+        "oss_reuse": { "$ref": "#/$defs/dimensionConfig", "description": "Tier 2: Package suggestions" },
+        "architecture": { "$ref": "#/$defs/dimensionConfig", "description": "Tier 2: ARCHITECTURE.md" },
+        "documentation": { "$ref": "#/$defs/dimensionConfig", "description": "Tier 2: README.md" },
+        "performance": { "$ref": "#/$defs/dimensionConfig", "description": "Tier 3: Lighthouse" },
+        "accessibility": { "$ref": "#/$defs/dimensionConfig", "description": "Tier 3: axe-core" },
+        "visual": { "$ref": "#/$defs/dimensionConfig", "description": "Tier 3: Visual regression" },
+        "mathematical": { "$ref": "#/$defs/dimensionConfig", "description": "Tier 3: CAS validation" },
+        "data_integrity": { "$ref": "#/$defs/dimensionConfig", "description": "Tier 3: Schema validation" },
+        "api_contract": { "$ref": "#/$defs/dimensionConfig", "description": "Tier 3: OpenAPI diff" }
+      },
+      "additionalProperties": false
+    },
+    "backpressure": {
+      "type": "object",
+      "description": "Ralph loop backpressure configuration",
+      "properties": {
+        "max_iterations": { "type": "integer", "default": 15 },
+        "max_budget_usd": { "type": "number", "default": 20.0 },
+        "tier1_max_failures": { "type": "integer", "default": 3 },
+        "min_interval_seconds": { "type": "integer", "default": 10 }
+      },
+      "additionalProperties": false
+    }
+  },
+  "$defs": {
+    "dimensionConfig": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean", "default": true },
+        "tier": { "type": "integer", "enum": [1, 2, 3] },
+        "agent": { "type": "string", "description": "Agent for auto-fix" },
+        "threshold": { "type": "object" }
+      },
+      "additionalProperties": true
     }
   },
   "additionalProperties": false

@@ -1,0 +1,158 @@
+# Tier Configuration for 14-Dimension Validation
+# Generated from: ~/.claude/templates/validation/tier-config.yaml.j2
+# Project: {{ project_name }}
+# Domain: {{ domain }}
+
+dimensions:
+  # ===========================================================================
+  # TIER 1 - BLOCKERS (must pass to merge/deploy)
+  # ===========================================================================
+  
+  code_quality:
+    tier: 1
+    enabled: true
+    description: "Code style and complexity (ruff)"
+    threshold:
+      max_complexity: 10
+      max_lines_per_file: 500
+    tool: "ruff"
+    
+  type_safety:
+    tier: 1
+    enabled: true
+    description: "Static type checking (pyright/mypy)"
+    strict: false
+    tool: "pyright"
+    
+  security:
+    tier: 1
+    enabled: true
+    description: "Security scanning (bandit, gitleaks)"
+    fail_on: ["HIGH", "CRITICAL"]
+    tools: ["bandit", "gitleaks"]
+    
+  coverage:
+    tier: 1
+    enabled: true
+    description: "Test coverage threshold"
+    min_percent: {{ coverage_threshold | default(70) }}
+    tool: "pytest-cov"
+
+  # ===========================================================================
+  # TIER 2 - WARNINGS (auto-suggest fixes, don't block)
+  # ===========================================================================
+  
+  design_principles:
+    tier: 2
+    enabled: true
+    description: "KISS/YAGNI/DRY adherence"
+    agent: "code-simplifier"
+    checks:
+      - max_file_size_kb: 50
+      - max_function_count: 20
+      - max_cyclomatic_complexity: 15
+      
+  oss_reuse:
+    tier: 2
+    enabled: false  # Phase 9
+    description: "Suggest existing packages instead of reimplementing"
+    agent: null
+    registries: ["pypi", "npm"]
+    
+  architecture:
+    tier: 2
+    enabled: true
+    description: "ARCHITECTURE.md consistency"
+    agent: "architecture-validator"
+    required_file: "ARCHITECTURE.md"
+    
+  documentation:
+    tier: 2
+    enabled: true
+    description: "README.md completeness"
+    agent: "readme-generator"
+    required_sections: ["Installation", "Usage"]
+
+  # ===========================================================================
+  # TIER 3 - MONITORS (metrics only, emit to dashboards)
+  # ===========================================================================
+  
+  performance:
+    tier: 3
+    enabled: true
+    description: "Performance budgets (Lighthouse)"
+    budgets_file: "budgets.json"
+    ci_only: true
+    metrics_target: "grafana"
+    
+  accessibility:
+    tier: 3
+    enabled: true
+    description: "WCAG compliance (axe-core)"
+    standard: "WCAG21AA"
+    ci_only: true
+    tool: "playwright + axe"
+    
+  visual:
+    tier: 3
+    enabled: false  # Phase 12
+    description: "Visual regression testing"
+    tool: "playwright"
+    threshold: 0.95  # 95% similarity
+    
+  mathematical:
+    tier: 3
+    enabled: false  # Phase 10
+    description: "Formula validation (CAS)"
+    endpoint: "http://localhost:8769/validate"
+    engines: ["sympy", "maxima", "sagemath"]
+    
+  data_integrity:
+    tier: 3
+    enabled: false  # Phase 10
+    description: "Schema validation"
+    tool: "jsonschema"
+    
+  api_contract:
+    tier: 3
+    enabled: false  # Phase 10
+    description: "OpenAPI/GraphQL diff"
+    tool: "openapi-diff"
+
+# ===========================================================================
+# BACKPRESSURE CONFIGURATION (Ralph Loop Integration)
+# ===========================================================================
+
+backpressure:
+  # Tier 1 failures trigger circuit breaker
+  tier1_max_consecutive_failures: 3
+  
+  # Total validation timeout
+  timeout_seconds: 300
+  
+  # Rate limiting
+  min_interval_seconds: 10
+  max_validations_per_hour: 100
+  
+  # Budget (for Ralph loop)
+  max_iterations: 15
+  max_budget_usd: 20.0
+
+# ===========================================================================
+# METRICS EMISSION
+# ===========================================================================
+
+metrics:
+  questdb:
+    enabled: true
+    host: "localhost"
+    port: 9009
+    table: "validation_results"
+    
+  grafana:
+    enabled: true
+    dashboard_uid: "validation-14d"
+    
+  sentry:
+    enabled: true
+    breadcrumbs: true

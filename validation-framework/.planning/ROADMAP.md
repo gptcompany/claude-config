@@ -114,7 +114,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 07-01: TBD (run /gsd:plan-phase 7 to break down)
+- [ ] 07-01: Create ValidationOrchestrator template + wire into Ralph loop
 
 #### Phase 8: Config Schema v2
 **Goal**: Extend config.schema.json with 14 dimensions, tier classification, and enabled flags
