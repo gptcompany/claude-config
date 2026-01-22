@@ -123,6 +123,34 @@ class Todo:
 
 
 @dataclass
+class UATIssue:
+    """Represents a UAT issue found during testing."""
+
+    id: str  # e.g., "UAT-001"
+    description: str
+    severity: str  # blocker, major, minor, cosmetic
+    test_name: str
+    root_cause: str = ""
+    phase: str = ""
+
+
+@dataclass
+class UATResult:
+    """Represents a UAT file for a phase."""
+
+    phase: str  # e.g., "02-global-cb-collectors"
+    phase_num: str  # e.g., "02"
+    status: str  # testing, complete, diagnosed
+    total: int = 0
+    passed: int = 0
+    issues_count: int = 0
+    pending: int = 0
+    skipped: int = 0
+    issues: list[UATIssue] = field(default_factory=list)
+    file_path: str = ""
+
+
+@dataclass
 class SyncResult:
     """Results from sync operation."""
 
@@ -135,6 +163,8 @@ class SyncResult:
     issues_closed: int = 0
     plans_marked_complete: int = 0
     todos_synced: int = 0
+    uat_issues_created: int = 0
+    uat_phases_verified: int = 0
     errors: list[str] = field(default_factory=list)
 
 
@@ -148,6 +178,131 @@ def _normalize_phase(n: str) -> str:
     parts = n.split(".")
     parts[0] = str(int(parts[0]))
     return ".".join(parts)
+
+
+# =============================================================================
+# UAT Parsing
+# =============================================================================
+
+
+def parse_uat_file(file_path: Path) -> UATResult | None:
+    """Parse a single UAT file and extract status and issues."""
+    if not file_path.exists():
+        return None
+
+    content = file_path.read_text()
+    lines = content.split("\n")
+
+    # Extract phase number from filename (e.g., "02-UAT.md" -> "02")
+    phase_num = file_path.stem.split("-")[0]
+
+    # Parse frontmatter
+    status = "unknown"
+    phase = ""
+    in_frontmatter = False
+
+    for line in lines:
+        if line.strip() == "---":
+            if not in_frontmatter:
+                in_frontmatter = True
+                continue
+            else:
+                break
+        if in_frontmatter:
+            if line.startswith("status:"):
+                status = line.split(":", 1)[1].strip()
+            elif line.startswith("phase:"):
+                phase = line.split(":", 1)[1].strip()
+
+    # Parse summary section
+    total = passed = issues_count = pending = skipped = 0
+    in_summary = False
+
+    for line in lines:
+        if line.strip() == "## Summary":
+            in_summary = True
+            continue
+        if in_summary:
+            if line.startswith("##"):
+                break
+            if line.startswith("total:"):
+                total = int(line.split(":")[1].strip())
+            elif line.startswith("passed:"):
+                passed = int(line.split(":")[1].strip())
+            elif line.startswith("issues:"):
+                issues_count = int(line.split(":")[1].strip())
+            elif line.startswith("pending:"):
+                pending = int(line.split(":")[1].strip())
+            elif line.startswith("skipped:"):
+                skipped = int(line.split(":")[1].strip())
+
+    # Parse issues section
+    issues: list[UATIssue] = []
+    in_issues = False
+    issue_pattern = re.compile(
+        r"^-\s+(UAT-\d+):\s+(.+?)\s+\((\w+)\)\s+-\s+Test\s+(\d+)"
+    )
+
+    for i, line in enumerate(lines):
+        if "## Issues for /gsd:plan-fix" in line:
+            in_issues = True
+            continue
+        if in_issues:
+            if line.startswith("##"):
+                break
+            match = issue_pattern.match(line.strip())
+            if match:
+                issue_id, desc, severity, test_num = match.groups()
+                # Look for root_cause on next line
+                root_cause = ""
+                if i + 1 < len(lines):
+                    next_line = lines[i + 1].strip()
+                    if next_line.startswith("root_cause:"):
+                        root_cause = next_line.split(":", 1)[1].strip()
+
+                issues.append(
+                    UATIssue(
+                        id=issue_id,
+                        description=desc,
+                        severity=severity,
+                        test_name=f"Test {test_num}",
+                        root_cause=root_cause,
+                        phase=phase,
+                    )
+                )
+
+    return UATResult(
+        phase=phase,
+        phase_num=phase_num,
+        status=status,
+        total=total,
+        passed=passed,
+        issues_count=issues_count,
+        pending=pending,
+        skipped=skipped,
+        issues=issues,
+        file_path=str(file_path),
+    )
+
+
+def parse_all_uat_files(planning_dir: Path) -> list[UATResult]:
+    """Find and parse all UAT files in the planning directory."""
+    uat_results = []
+    phases_dir = planning_dir / "phases"
+
+    if not phases_dir.exists():
+        return uat_results
+
+    # Look for XX-UAT.md files in each phase directory
+    for phase_dir in phases_dir.iterdir():
+        if not phase_dir.is_dir():
+            continue
+        for uat_file in phase_dir.glob("*-UAT.md"):
+            result = parse_uat_file(uat_file)
+            if result:
+                uat_results.append(result)
+
+    return uat_results
 
 
 # =============================================================================
@@ -587,6 +742,96 @@ def create_todo_issue(
     return issue_num
 
 
+def create_uat_issue(
+    uat_issue: UATIssue,
+    uat_result: UATResult,
+    milestone_title: str | None,
+    project_id: str | None = None,
+    dry_run: bool = False,
+) -> int | None:
+    """Create a GitHub issue for a UAT failure."""
+    title = f"[{uat_issue.id}] {uat_issue.description}"
+
+    body_parts = [
+        "## UAT Issue Details",
+        "",
+        f"**Issue ID**: {uat_issue.id}",
+        f"**Phase**: {uat_result.phase}",
+        f"**Severity**: {uat_issue.severity}",
+        f"**Test**: {uat_issue.test_name}",
+    ]
+
+    if uat_issue.root_cause:
+        body_parts.extend(["", "### Root Cause", "", uat_issue.root_cause])
+
+    body_parts.extend(
+        [
+            "",
+            "### Source",
+            f"- UAT file: `{uat_result.file_path}`",
+            "",
+            "### Next Steps",
+            "1. Run `/gsd:plan-fix` to create a fix plan",
+            "2. Implement the fix",
+            "3. Re-run UAT verification",
+            "",
+            "---",
+            "*Auto-generated from UAT verification*",
+        ]
+    )
+    body = "\n".join(body_parts)
+
+    # Map severity to labels
+    severity_labels = {
+        "blocker": "priority-critical",
+        "major": "priority-high",
+        "minor": "priority-medium",
+        "cosmetic": "priority-low",
+    }
+    priority_label = severity_labels.get(uat_issue.severity, "priority-medium")
+
+    labels = [
+        "auto-generated",
+        "uat-issue",
+        f"phase-{uat_result.phase_num}",
+        priority_label,
+    ]
+
+    if dry_run:
+        print(f"[DRY RUN] Would create UAT issue: {title}")
+        if project_id:
+            print("[DRY RUN] Would link to project")
+        return None
+
+    ensure_labels_exist(labels, dry_run)
+
+    cmd = ["issue", "create", "--title", title, "--body", body]
+    for label in labels:
+        cmd.extend(["--label", label])
+    if milestone_title:
+        cmd.extend(["--milestone", milestone_title])
+
+    code, stdout, stderr = run_gh_command(cmd, check=False)
+    if code != 0:
+        print(f"Failed to create UAT issue {uat_issue.id}: {stderr}")
+        return None
+
+    match = re.search(r"/issues/(\d+)", stdout)
+    if not match:
+        return None
+
+    issue_num = int(match.group(1))
+
+    # Link to project
+    if project_id:
+        issue_node_id = get_issue_node_id(issue_num)
+        if issue_node_id:
+            add_issue_to_project(project_id, issue_node_id, dry_run)
+            print("  Linked to project")
+
+    return issue_num
+
+
 # =============================================================================
 # Sync Operations
 # =============================================================================
@@ -865,6 +1110,43 @@ def sync_bidirectional(
     if modified and not dry_run:
         roadmap_path.write_text(content)
 
+    # ==========================================================================
+    # UAT Sync: Create issues for UAT failures, track verification status
+    # ==========================================================================
+    uat_results = parse_all_uat_files(planning_dir)
+    existing_uat_issues = get_existing_issues("uat-issue")
+
+    for uat in uat_results:
+        # Track verified phases
+        if uat.status == "complete" and uat.issues_count == 0:
+            result.uat_phases_verified += 1
+            print(
+                f"UAT verified: Phase {uat.phase_num} ({uat.passed}/{uat.total} passed)"
+            )
+
+        # Create issues for UAT failures
+        for uat_issue in uat.issues:
+            issue_key = uat_issue.id  # e.g., "UAT-001"
+            if issue_key in existing_uat_issues:
+                # Issue already exists
+                continue
+
+            # Find milestone for this phase
+            normalized = _normalize_phase(uat.phase_num)
+            matched_phase = next(
+                (p for p in phases if _normalize_phase(p.number) == normalized), None
+            )
+            milestone_title = (
+                milestone_map.get(matched_phase.number) if matched_phase else None
+            )
+
+            issue_num = create_uat_issue(
+                uat_issue, uat, milestone_title, project_id, dry_run
+            )
+            if issue_num or dry_run:
+                result.uat_issues_created += 1
+                print(f"Created UAT issue {uat_issue.id}: #{issue_num}")
+
     return result
 
 
@@ -1080,6 +1362,8 @@ Examples:
         print(f"Issues closed: {result.issues_closed}")
         print(f"Milestones closed: {result.milestones_closed}")
         print(f"Plans marked [x]: {result.plans_marked_complete}")
+        print(f"UAT phases verified: {result.uat_phases_verified}")
+        print(f"UAT issues created: {result.uat_issues_created}")
 
     if result.errors:
         print(f"Errors: {len(result.errors)}")
