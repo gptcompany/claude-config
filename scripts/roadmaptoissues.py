@@ -775,26 +775,52 @@ def sync_bidirectional(
         result.errors.append(f"No ROADMAP.md in {planning_dir}")
         return result
 
-    # Parse roadmap
-    _, plans = parse_roadmap(roadmap_path)
+    # Parse roadmap (need phases for issue creation)
+    phases, plans = parse_roadmap(roadmap_path)
     existing_issues = get_existing_issues("gsd-plan")
+    existing_milestones = get_existing_milestones()
 
-    # Build lookup
+    # Build lookups
     plans_by_id = {f"Plan-{p.id}": p for p in plans}
+    milestone_map = {}
+    for phase in phases:
+        milestone_title = f"Phase {phase.number}: {phase.name}"
+        if milestone_title in existing_milestones:
+            milestone_map[phase.number] = milestone_title
+        else:
+            if ensure_milestone_exists(milestone_title, phase.goal, dry_run):
+                milestone_map[phase.number] = milestone_title
+                result.milestones_created += 1
 
-    # Update existing issue titles if they changed
+    # Update existing issues OR create missing ones
     for plan in plans:
         if plan.status == "completed":
             continue
         issue_key = f"Plan-{plan.id}"
         expected_title = f"[{issue_key}] {plan.description}"
+
         if issue_key in existing_issues:
+            # Update title if changed
             issue = existing_issues[issue_key]
             existing_title = issue.get("title", "")
             if existing_title != expected_title:
                 if update_issue(issue["number"], title=expected_title, dry_run=dry_run):
                     result.issues_updated += 1
                     print(f"Updated issue #{issue['number']}: {expected_title}")
+        else:
+            # Create missing issue
+            normalized = _normalize_phase(plan.phase_num)
+            matched_phase = next(
+                (p for p in phases if _normalize_phase(p.number) == normalized), None
+            )
+            if matched_phase:
+                plan_milestone = milestone_map.get(matched_phase.number)
+                issue_num = create_plan_issue(
+                    plan, matched_phase, plan_milestone, project_id, dry_run
+                )
+                if issue_num or dry_run:
+                    result.issues_created += 1
+                    print(f"Created issue for Plan-{plan.id}: #{issue_num}")
 
     # Completed plans -> Close issues AND move to Done
     for plan in plans:
@@ -1048,8 +1074,10 @@ Examples:
         if args.sync_todos:
             print(f"Todos synced: {result.todos_synced}")
     else:
-        print(f"Issues closed: {result.issues_closed}")
+        print(f"Milestones created: {result.milestones_created}")
+        print(f"Issues created: {result.issues_created}")
         print(f"Issues updated: {result.issues_updated}")
+        print(f"Issues closed: {result.issues_closed}")
         print(f"Milestones closed: {result.milestones_closed}")
         print(f"Plans marked [x]: {result.plans_marked_complete}")
 
