@@ -1024,7 +1024,7 @@ def sync_bidirectional(
     # Parse roadmap (need phases for issue creation)
     phases, plans = parse_roadmap(roadmap_path)
     existing_issues = get_existing_issues("gsd-plan")
-    existing_milestones = get_existing_milestones()
+    existing_milestones = get_existing_milestones(include_closed=True)
 
     # Build lookups
     plans_by_id = {f"Plan-{p.id}": p for p in plans}
