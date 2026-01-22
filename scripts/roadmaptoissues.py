@@ -582,9 +582,13 @@ def sync_roadmap_to_github(
         issue_key = f"Plan-{plan.id}"
         if issue_key in existing_issues:
             result.issues_existing += 1
-            print(
-                f"Issue exists for {issue_key}: #{existing_issues[issue_key]['number']}"
-            )
+            issue_num = existing_issues[issue_key]["number"]
+            print(f"Issue exists for {issue_key}: #{issue_num}")
+            # Link existing issue to project if not already linked
+            if project_id and not dry_run:
+                issue_node_id = get_issue_node_id(issue_num)
+                if issue_node_id:
+                    add_issue_to_project(project_id, issue_node_id, dry_run)
             continue
 
         # Find phase for this plan (normalize for comparison)
