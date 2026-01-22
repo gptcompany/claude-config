@@ -202,6 +202,28 @@ def ensure_labels_exist(labels: list[str], dry_run: bool = False) -> list[str]:
             # Milestone labels
             color = "5319e7"
             description = f"GSD {label}"
+        elif label.startswith("priority-"):
+            # Priority labels with traffic light colors
+            priority = label.split("-", 1)[1]
+            priority_colors = {
+                "high": "d73a4a",  # Red
+                "medium": "fbca04",  # Yellow
+                "low": "0e8a16",  # Green
+            }
+            color = priority_colors.get(priority, "ededed")
+            description = f"Priority: {priority}"
+        elif label.startswith("effort-"):
+            # Effort/size labels with gradient colors
+            effort = label.split("-", 1)[1]
+            effort_colors = {
+                "XS": "c5def5",  # Light blue
+                "S": "85bbf0",  # Blue
+                "M": "4a8ed8",  # Medium blue
+                "L": "1a5fb4",  # Dark blue
+                "XL": "0d3a6e",  # Very dark blue
+            }
+            color = effort_colors.get(effort.upper(), "ededed")
+            description = f"Effort: {effort}"
         else:
             # Default for unknown labels
             color = "ededed"

@@ -66,7 +66,11 @@ except ImportError:
 
 @dataclass
 class Plan:
-    """Represents a single plan from ROADMAP.md."""
+    """Represents a single plan from ROADMAP.md.
+
+    Custom fields can be added to plan description using pipe syntax:
+        - [ ] 01-01: Description | priority:high | effort:M | @username
+    """
 
     id: str  # e.g., "01-02" or "02.1-01"
     phase_num: str  # e.g., "1" or "2.1"
@@ -75,6 +79,10 @@ class Plan:
     status: str  # "pending" or "completed"
     line_number: int = 0
     line_text: str = ""
+    # Custom fields (parsed from description)
+    priority: str = ""  # high, medium, low
+    effort: str = ""  # XS, S, M, L, XL
+    assignee: str = ""  # @username
 
 
 @dataclass
@@ -252,7 +260,24 @@ def parse_roadmap(file_path: Path) -> tuple[list[Phase], list[Plan]]:
             status = "completed" if plan_match.group(1).upper() == "X" else "pending"
             phase_num = plan_match.group(2)
             plan_num = plan_match.group(3)
-            description = plan_match.group(4).strip()
+            raw_description = plan_match.group(4).strip()
+
+            # Parse custom fields from description using pipe syntax
+            # Format: Description | priority:high | effort:M | @username
+            parts = [p.strip() for p in raw_description.split("|")]
+            description = parts[0]
+            priority = ""
+            effort = ""
+            assignee = ""
+
+            for part in parts[1:]:
+                part_lower = part.lower()
+                if part_lower.startswith("priority:"):
+                    priority = part.split(":", 1)[1].strip().lower()
+                elif part_lower.startswith("effort:"):
+                    effort = part.split(":", 1)[1].strip().upper()
+                elif part.startswith("@"):
+                    assignee = part[1:]  # Remove @ prefix
 
             plan_id = f"{phase_num.replace('.', '')}-{plan_num}"
 
@@ -264,6 +289,9 @@ def parse_roadmap(file_path: Path) -> tuple[list[Phase], list[Plan]]:
                 status=status,
                 line_number=i,
                 line_text=line,
+                priority=priority,
+                effort=effort,
+                assignee=assignee,
             )
             all_plans.append(plan)
 
@@ -371,6 +399,16 @@ def create_plan_issue(
         f"**Phase**: {phase.number} - {phase.name}",
     ]
 
+    # Add custom fields to body if present
+    if plan.priority or plan.effort or plan.assignee:
+        body_parts.append("")
+        if plan.priority:
+            body_parts.append(f"**Priority**: {plan.priority}")
+        if plan.effort:
+            body_parts.append(f"**Effort**: {plan.effort}")
+        if plan.assignee:
+            body_parts.append(f"**Assignee**: @{plan.assignee}")
+
     if phase.goal:
         body_parts.extend(["", f"**Phase Goal**: {phase.goal}"])
 
@@ -392,13 +430,19 @@ def create_plan_issue(
 
     labels = ["auto-generated", "gsd-plan", f"phase-{phase.number}"]
 
+    # Add priority and effort labels
+    if plan.priority:
+        labels.append(f"priority-{plan.priority}")
+    if plan.effort:
+        labels.append(f"effort-{plan.effort}")
+
     if dry_run:
         print(f"[DRY RUN] Would create issue: {title}")
         if project_id:
             print("[DRY RUN] Would link to project")
         return None
 
-    # Ensure labels exist
+    # Ensure labels exist (including priority/effort labels)
     ensure_labels_exist(labels, dry_run)
 
     cmd = ["issue", "create", "--title", title, "--body", body]
@@ -406,6 +450,8 @@ def create_plan_issue(
         cmd.extend(["--label", label])
     if milestone_title:
         cmd.extend(["--milestone", milestone_title])
+    if plan.assignee:
+        cmd.extend(["--assignee", plan.assignee])
 
     code, stdout, stderr = run_gh_command(cmd, check=False)
     if code != 0:
