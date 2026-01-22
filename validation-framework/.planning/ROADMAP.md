@@ -12,7 +12,7 @@ Build a reusable validation pipeline framework starting with core templates, the
 
 - ✅ **Milestone 1** - Core Framework (Phases 1-5, shipped 2026-01-19)
 - ✅ **Milestone 2** - Hybrid UAT & Validators (Phase 6, shipped 2026-01-20)
-- 🚧 **Milestone 3** - Universal 14-Dimension Orchestrator (Phases 7-11, in progress)
+- 🚧 **Milestone 3** - Universal 14-Dimension Orchestrator (Phases 7-12, in progress)
 
 ## Phases
 
@@ -172,3 +172,21 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 9. Tier 2 Validators | M3 | 0/? | Not started | - |
 | 10. Tier 3 Validators | M3 | 0/? | Not started | - |
 | 11. Ralph Integration | M3 | 0/? | Not started | - |
+| 12. Confidence Loop | M3 | 0/? | Not started | - |
+
+#### Phase 12: Confidence-Based Loop Extension
+**Goal**: Transform Tier 3 from passive monitors to active loop drivers with visual-driven development
+**Depends on**: Phase 11
+**Research**: Likely (visual comparison libraries, behavioral testing frameworks)
+**Research topics**: Playwright visual comparison, image similarity algorithms, DOM diffing, golden file testing
+**Plans**: TBD
+
+Plans:
+- [ ] 12-01: TBD
+
+**Scope:**
+- VisualTargetValidator: Screenshot-driven development loop
+- BehavioralValidator: Functional equivalence testing
+- MultiModalValidator: Fused confidence scoring (visual + DOM + behavior + a11y + perf)
+- ProgressiveRefinementLoop: Three-stage refinement (layout → style → polish)
+- Ralph loop integration with dynamic termination conditions
