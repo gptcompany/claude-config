@@ -782,6 +782,20 @@ def sync_bidirectional(
     # Build lookup
     plans_by_id = {f"Plan-{p.id}": p for p in plans}
 
+    # Update existing issue titles if they changed
+    for plan in plans:
+        if plan.status == "completed":
+            continue
+        issue_key = f"Plan-{plan.id}"
+        expected_title = f"[{issue_key}] {plan.description}"
+        if issue_key in existing_issues:
+            issue = existing_issues[issue_key]
+            existing_title = issue.get("title", "")
+            if existing_title != expected_title:
+                if update_issue(issue["number"], title=expected_title, dry_run=dry_run):
+                    result.issues_updated += 1
+                    print(f"Updated issue #{issue['number']}: {expected_title}")
+
     # Completed plans -> Close issues AND move to Done
     for plan in plans:
         issue_key = f"Plan-{plan.id}"
