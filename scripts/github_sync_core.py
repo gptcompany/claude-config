@@ -1165,8 +1165,10 @@ def get_existing_issues(label_filter: str | None = None) -> dict[str, dict]:
     try:
         data = json.loads(stdout) if stdout else []
         for issue in data:
-            # Match task ID pattern (T\d+) or plan/phase pattern
-            match = re.search(r"(T\d+|Phase-\d+|Plan-[\w-]+)", issue.get("title", ""))
+            # Match task ID pattern (T\d+), plan/phase pattern, or UAT issue pattern
+            match = re.search(
+                r"(T\d+|Phase-\d+|Plan-[\w-]+|UAT-[\d-]+)", issue.get("title", "")
+            )
             if match:
                 issues[match.group(1)] = {
                     "number": issue["number"],

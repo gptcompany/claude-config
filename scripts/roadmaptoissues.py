@@ -239,8 +239,9 @@ def parse_uat_file(file_path: Path) -> UATResult | None:
     # Parse issues section
     issues: list[UATIssue] = []
     in_issues = False
+    # Support both "UAT-001" and "UAT-099-001" formats
     issue_pattern = re.compile(
-        r"^-\s+(UAT-\d+):\s+(.+?)\s+\((\w+)\)\s+-\s+Test\s+(\d+)"
+        r"^-\s+(UAT-[\d-]+):\s+(.+?)\s+\((\w+)\)\s+-\s+Test\s+(\d+)"
     )
 
     for i, line in enumerate(lines):
