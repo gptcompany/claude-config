@@ -135,15 +135,15 @@ Plans:
 - [x] 09-01: Create design_principles validator with radon + AST analysis
 - [x] 09-02: Create oss_reuse validator with pattern detection
 
-#### Phase 10: Tier 3 Validators
+#### Phase 10: Tier 3 Validators (COMPLETE)
 **Goal**: Create mathematical (CAS microservice) and api_contract (OpenAPI diff) validators
 **Depends on**: Phase 8
-**Research**: Likely (CAS microservice protocol, openapi-diff libraries)
-**Research topics**: localhost:8769/validate protocol, openapi-diff Python packages
-**Plans**: TBD
+**Research**: Completed (CAS microservice protocol, oasdiff CLI)
+**Plans**: 2 plans
 
 Plans:
-- [ ] 10-01: TBD
+- [x] 10-01: Create MathematicalValidator with CAS client and formula extractor
+- [x] 10-02: Create APIContractValidator with spec discovery and oasdiff runner
 
 #### Phase 11: Ralph Integration
 **Goal**: Wire orchestrator into Ralph loop hook + MCP integration (Playwright, Sentry, Grafana)
@@ -170,7 +170,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 7. Orchestrator Core | M3 | 1/1 | Complete | 2026-01-22 |
 | 8. Config Schema v2 | M3 | 1/1 | Complete | 2026-01-22 |
 | 9. Tier 2 Validators | M3 | 2/2 | Complete | 2026-01-22 |
-| 10. Tier 3 Validators | M3 | 0/? | Not started | - |
+| 10. Tier 3 Validators | M3 | 2/2 | Complete | 2026-01-22 |
 | 11. Ralph Integration | M3 | 0/? | Not started | - |
 | 12. Confidence Loop | M3 | 0/? | Not started | - |
 
