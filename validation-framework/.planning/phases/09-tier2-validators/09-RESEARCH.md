@@ -1,7 +1,7 @@
 # Phase 9: Tier 2 Validators - Research
 
-**Researched:** 2026-01-22
-**Domain:** Python static analysis (complexity metrics, AST analysis, package suggestion)
+**Researched:** 2026-01-22 (updated with multi-language support)
+**Domain:** Static analysis (Python primary, Rust/JS/TS future-ready)
 **Confidence:** HIGH
 
 <research_summary>
@@ -38,6 +38,7 @@ Key finding: Radon provides cyclomatic complexity (grades A-F with score 1-5 for
 |------------|-----------|----------|
 | radon | CytoScnPy | CytoScnPy is Rust-based, faster, but radon is pure Python and well-established |
 | radon | pylint --reports | Pylint provides metrics but radon is specialized and lighter |
+| xenon | flake8-radon | flake8-radon integrates with existing flake8 workflow, xenon is standalone |
 | custom AST | Pylint plugin | Pylint plugins are heavier but integrate with existing lint workflows |
 
 **Installation:**
@@ -224,6 +225,22 @@ xenon --max-absolute C --max-modules B --max-average B src/
 # 1 = some thresholds exceeded
 ```
 
+### Flake8-Radon Plugin (Alternative to Xenon)
+```bash
+# Source: radon.readthedocs.io/en/latest/flake8.html
+
+# Install
+pip install flake8 radon
+
+# Run with complexity threshold (default 10)
+flake8 --radon-max-cc 10 src/
+
+# Options:
+# --radon-max-cc <int>     Set complexity threshold (default: 10)
+# --radon-no-assert        Don't count assert in complexity
+# --radon-show-closures    Show nested functions/classes
+```
+
 ### AST Function Parameter Count
 ```python
 # Source: Python ast documentation
@@ -269,6 +286,164 @@ def get_package_info(name: str) -> dict | None:
 ```
 </code_examples>
 
+<halstead_metrics>
+## Halstead Metrics (Deep Dive)
+
+Radon computes Halstead metrics which feed into the Maintainability Index.
+
+### Base Measurements
+| Symbol | Name | Description |
+|--------|------|-------------|
+| η₁ | Distinct operators | Number of unique operators (+, -, if, for, etc.) |
+| η₂ | Distinct operands | Number of unique operands (variables, literals) |
+| N₁ | Total operators | Total count of all operators |
+| N₂ | Total operands | Total count of all operands |
+
+### Derived Metrics
+| Metric | Formula | Interpretation |
+|--------|---------|----------------|
+| Vocabulary (η) | η₁ + η₂ | Size of the "alphabet" used |
+| Length (N) | N₁ + N₂ | Total tokens in program |
+| Volume (V) | N × log₂(η) | Information content in bits |
+| Difficulty (D) | (η₁/2) × (N₂/η₂) | Error-proneness |
+| Effort (E) | D × V | Mental effort to understand |
+| Time (T) | E / 18 seconds | Estimated coding time |
+| Bugs (B) | V / 3000 | Estimated bug count |
+
+### Maintainability Index Formula
+```
+MI = max[0, 100 × (171 - 5.2×ln(V) - 0.23×G - 16.2×ln(L) + 50×sin(√(2.4×C))) / 171]
+```
+
+Where:
+- V = Halstead Volume
+- G = Cyclomatic Complexity
+- L = Source Lines of Code
+- C = Percentage of comment lines
+
+**Note:** Radon handles all this automatically via `radon mi` command.
+</halstead_metrics>
+
+<multi_language_support>
+## Multi-Language Support (Future-Ready)
+
+### Rust Complexity Analysis
+
+#### rust-code-analysis (Mozilla)
+**Source:** [github.com/mozilla/rust-code-analysis](https://github.com/mozilla/rust-code-analysis)
+
+| Feature | Details |
+|---------|---------|
+| Version | 0.0.25 (Jan 2023) |
+| Metrics | CC, Cognitive, Halstead, MI, SLOC, and 6 more |
+| Languages | Rust, Python, JavaScript, TypeScript, Mozjs, TSX |
+| Output | JSON, CSV, and other formats |
+
+```bash
+# Install
+cargo install rust-code-analysis-cli
+
+# Analyze Rust project
+rust-code-analysis-cli --metrics --output json src/
+
+# Metrics include:
+# - CC (Cyclomatic Complexity)
+# - COGNITIVE (Cognitive Complexity)
+# - HALSTEAD (full suite)
+# - MI (Maintainability Index)
+# - NARGS (function parameters)
+# - NEXITS (return points)
+```
+
+#### complexity crate (Cognitive Complexity)
+**Source:** [crates.io/crates/complexity](https://crates.io/crates/complexity)
+
+```rust
+use complexity::Complexity;
+use syn::{ItemFn, parse_quote};
+
+let func: ItemFn = parse_quote! {
+    fn example(x: i32) -> i32 {
+        if x > 0 {
+            for i in 0..x {
+                if i % 2 == 0 { return i; }
+            }
+        }
+        0
+    }
+};
+
+// Returns cognitive complexity score
+let score = func.complexity();
+```
+
+### JavaScript/TypeScript Complexity Analysis
+
+#### ESLint Complexity Rule (Built-in)
+**Source:** [eslint.org/docs/latest/rules/complexity](https://eslint.org/docs/latest/rules/complexity)
+
+```javascript
+// .eslintrc.js
+module.exports = {
+  rules: {
+    // Warn when complexity > 10
+    'complexity': ['warn', { max: 10 }]
+  }
+};
+```
+
+#### ESLintCC (Grades like Radon)
+**Source:** [eslintcc.github.io](https://eslintcc.github.io/)
+
+```bash
+# Install
+npm install -g eslintcc
+
+# Analyze with grades (A-F like radon)
+eslintcc src/
+
+# Output includes:
+# - Complexity grade per function
+# - Aggregated project score
+```
+
+#### escomplex (Halstead + CC)
+**Source:** [github.com/escomplex/escomplex](https://github.com/escomplex/escomplex)
+
+```javascript
+const escomplex = require('escomplex');
+
+const result = escomplex.analyse(sourceCode);
+// result.aggregate.cyclomatic - Cyclomatic complexity
+// result.aggregate.halstead.volume - Halstead volume
+// result.aggregate.maintainability - MI score
+```
+
+### npm Registry API (for oss_reuse JS packages)
+
+**Endpoint:** `https://registry.npmjs.org/{package}`
+
+```javascript
+// Check if npm package exists
+async function validateNpmPackage(name) {
+  const response = await fetch(`https://registry.npmjs.org/${name}`);
+  return response.ok;
+}
+
+// Get abbreviated metadata (faster)
+async function getPackageInfo(name) {
+  const response = await fetch(`https://registry.npmjs.org/${name}`, {
+    headers: {
+      'Accept': 'application/vnd.npm.install-v1+json'
+    }
+  });
+  return response.json();
+}
+```
+
+**Rate Limits:** Not officially documented. Handle HTTP 429 responses with exponential backoff. Authenticated requests get higher limits.
+</multi_language_support>
+
 <sota_updates>
 ## State of the Art (2025-2026)
 
@@ -292,15 +467,20 @@ def get_package_info(name: str) -> dict | None:
 
 Things that couldn't be fully resolved:
 
-1. **npm registry rate limits**
-   - What we know: API exists at registry.npmjs.org, accepts Accept header for abbreviated metadata
-   - What's unclear: Exact rate limits for unauthenticated requests
-   - Recommendation: Implement caching, start with conservative delays, monitor for 429s
+1. **npm registry rate limits** (PARTIALLY RESOLVED)
+   - What we know: API exists, authenticated > unauthenticated limits, handle 429 with backoff
+   - What's unclear: Exact numeric limits (npm doesn't document publicly, last blog post was 2017)
+   - Recommendation: Implement caching, exponential backoff on 429, consider npm token for higher limits
 
 2. **Optimal OSS pattern set**
    - What we know: Context from discuss-phase has 10 initial patterns (dateutil, requests, etc.)
    - What's unclear: Which patterns have highest value vs false positive rate
    - Recommendation: Start with high-confidence patterns (urllib→requests, sys.argv→click), iterate based on feedback
+
+3. **Rust crate registry API**
+   - What we know: crates.io has API at `https://crates.io/api/v1/crates/{name}`
+   - What's unclear: Rate limits, authentication requirements for oss_reuse Rust suggestions
+   - Recommendation: Research when extending to Rust (Phase 9 is Python-focused)
 </open_questions>
 
 <sources>
@@ -309,16 +489,25 @@ Things that couldn't be fully resolved:
 ### Primary (HIGH confidence)
 - [radon PyPI](https://pypi.org/project/radon/) - version 6.0.1, Python support
 - [radon documentation](https://radon.readthedocs.io/en/latest/commandline.html) - grades, thresholds, CLI
+- [radon flake8 plugin](https://radon.readthedocs.io/en/latest/flake8.html) - integration options
+- [radon intro (Halstead)](https://radon.readthedocs.io/en/latest/intro.html) - Halstead metrics formulas
 - [xenon PyPI](https://pypi.org/project/xenon/) - version 0.9.3, CI integration
 - [Python ast documentation](https://docs.python.org/3/library/ast.html) - NodeVisitor, node types
 - [PyPI JSON API](https://docs.pypi.org/api/json/) - endpoints, response structure
+- [ESLint complexity rule](https://eslint.org/docs/latest/rules/complexity) - JS/TS built-in
 
 ### Secondary (MEDIUM confidence)
 - [pypi-json documentation](https://pypi-json.readthedocs.io/) - client library usage
 - [Pylint plugin guide](https://pylint.pycqa.org/en/latest/development_guide/how_tos/plugins.html) - custom checker patterns
+- [rust-code-analysis](https://github.com/mozilla/rust-code-analysis) - Mozilla, multi-language metrics
+- [complexity crate](https://docs.rs/complexity/latest/complexity/) - Rust cognitive complexity
+- [escomplex](https://github.com/escomplex/escomplex) - JS/TS Halstead + CC
+- [npm Registry API](https://github.com/npm/registry/blob/main/docs/REGISTRY-API.md) - package metadata
 
 ### Tertiary (LOW confidence - needs validation)
 - [CytoScnPy GitHub](https://github.com/djinn09/CytoScnPy) - nesting depth implementation reference
+- [npm rate limiting blog (2017)](https://blog.npmjs.org/post/164799520460/api-rate-limiting-rolling-out.html) - outdated but only official source
+- [ESLintCC](https://eslintcc.github.io/) - grades for JS/TS
 </sources>
 
 <metadata>
@@ -326,17 +515,20 @@ Things that couldn't be fully resolved:
 
 **Research scope:**
 - Core technology: radon, xenon, Python AST
-- Ecosystem: pypi-json, Pylint plugins
+- Multi-language: rust-code-analysis, ESLint, escomplex
+- Ecosystem: pypi-json, npm registry, crates.io (future)
 - Patterns: CI enforcement, AST visitors, API validation
 - Pitfalls: JSON parsing, MI interpretation, rate limits
 
 **Confidence breakdown:**
-- Standard stack: HIGH - radon/xenon are established tools with clear docs
+- Python stack: HIGH - radon/xenon are established tools with clear docs
+- Halstead metrics: HIGH - verified formulas from official docs
 - Architecture: HIGH - patterns from official documentation
+- Multi-language: MEDIUM - tools verified but not deeply tested
 - Pitfalls: HIGH - documented in community, verified with docs
 - Code examples: HIGH - from official sources and verified
 
-**Research date:** 2026-01-22
+**Research date:** 2026-01-22 (expanded)
 **Valid until:** 2026-02-22 (30 days - ecosystem stable)
 </metadata>
 
