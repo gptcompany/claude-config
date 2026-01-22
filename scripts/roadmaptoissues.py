@@ -56,6 +56,7 @@ try:
         get_status_from_checkbox,
         calculate_progress,
         suggest_branch_name,
+        update_issue,
     )
 except ImportError:
     print("Error: github_sync_core.py not found. Ensure it's in the same directory.")
@@ -130,6 +131,7 @@ class SyncResult:
     milestones_closed: int = 0
     issues_created: int = 0
     issues_existing: int = 0
+    issues_updated: int = 0
     issues_closed: int = 0
     plans_marked_complete: int = 0
     todos_synced: int = 0
@@ -685,16 +687,29 @@ def sync_roadmap_to_github(
                     set_issue_status(project_id, issue_num, "Done", dry_run)
                     print(f"  -> #{issue_num} moved to Done")
 
-    # Create issues for plans
+    # Create or update issues for plans
     for plan in plans:
         if plan.status == "completed":
             continue
 
         issue_key = f"Plan-{plan.id}"
+        expected_title = f"[{issue_key}] {plan.description}"
+
         if issue_key in existing_issues:
-            result.issues_existing += 1
             issue_num = existing_issues[issue_key]["number"]
-            print(f"Issue exists for {issue_key}: #{issue_num}")
+            existing_title = existing_issues[issue_key].get("title", "")
+
+            # Check if title needs updating
+            if existing_title != expected_title:
+                if update_issue(issue_num, title=expected_title, dry_run=dry_run):
+                    result.issues_updated += 1
+                    print(f"Updated issue #{issue_num}: {expected_title}")
+                else:
+                    result.errors.append(f"Failed to update issue #{issue_num}")
+            else:
+                result.issues_existing += 1
+                print(f"Issue exists for {issue_key}: #{issue_num}")
+
             # Link existing issue to project if not already linked
             if project_id and not dry_run:
                 issue_node_id = get_issue_node_id(issue_num)
@@ -1014,11 +1029,13 @@ Examples:
         print(f"Milestones existing: {result.milestones_existing}")
         print(f"Milestones closed: {result.milestones_closed}")
         print(f"Issues created: {result.issues_created}")
+        print(f"Issues updated: {result.issues_updated}")
         print(f"Issues existing: {result.issues_existing}")
         if args.sync_todos:
             print(f"Todos synced: {result.todos_synced}")
     else:
         print(f"Issues closed: {result.issues_closed}")
+        print(f"Issues updated: {result.issues_updated}")
         print(f"Milestones closed: {result.milestones_closed}")
         print(f"Plans marked [x]: {result.plans_marked_complete}")
 

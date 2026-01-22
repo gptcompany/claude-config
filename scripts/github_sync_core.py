@@ -915,6 +915,44 @@ def create_issue(
     return issue_num
 
 
+def update_issue(
+    issue_number: int,
+    title: str | None = None,
+    body: str | None = None,
+    dry_run: bool = False,
+) -> bool:
+    """Update an existing GitHub issue title and/or body.
+
+    Args:
+        issue_number: Issue number to update
+        title: New title (or None to keep existing)
+        body: New body (or None to keep existing)
+        dry_run: If True, don't actually update
+
+    Returns:
+        True if successful, False otherwise
+    """
+    if dry_run:
+        print(f"[DRY RUN] Would update issue #{issue_number}: title={title}")
+        return True
+
+    cmd = ["issue", "edit", str(issue_number)]
+    if title:
+        cmd.extend(["--title", title])
+    if body:
+        cmd.extend(["--body", body])
+
+    if len(cmd) == 3:  # No updates specified
+        return True
+
+    code, stdout, stderr = run_gh_command(cmd, check=False)
+    if code != 0:
+        print(f"Failed to update issue #{issue_number}: {stderr}")
+        return False
+
+    return True
+
+
 def _get_status_option_id(project_id: str, status_name: str) -> str | None:
     """Get the option ID for a status value (e.g., 'Done', 'In Progress')."""
     query = """
