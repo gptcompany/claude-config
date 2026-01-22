@@ -53,6 +53,9 @@ try:
         get_project_by_name,
         close_milestone,
         get_milestone_open_issues,
+        get_status_from_checkbox,
+        calculate_progress,
+        suggest_branch_name,
     )
 except ImportError:
     print("Error: github_sync_core.py not found. Ensure it's in the same directory.")
@@ -70,19 +73,23 @@ class Plan:
 
     Custom fields can be added to plan description using pipe syntax:
         - [ ] 01-01: Description | priority:high | effort:M | @username
+        - [~] 01-02: In progress | depends:01-01 | sprint:2025-W04
     """
 
     id: str  # e.g., "01-02" or "02.1-01"
     phase_num: str  # e.g., "1" or "2.1"
     plan_num: str  # e.g., "02"
     description: str
-    status: str  # "pending" or "completed"
+    status: str  # "pending", "in_progress", or "completed"
+    kanban_status: str = "Backlog"  # Kanban column: Backlog, In Progress, Done
     line_number: int = 0
     line_text: str = ""
     # Custom fields (parsed from description)
     priority: str = ""  # high, medium, low
     effort: str = ""  # XS, S, M, L, XL
     assignee: str = ""  # @username
+    depends_on: list[str] = field(default_factory=list)  # e.g., ["01-01", "01-02"]
+    sprint: str = ""  # e.g., "2025-W04"
 
 
 @dataclass
@@ -158,15 +165,17 @@ def parse_roadmap(file_path: Path) -> tuple[list[Phase], list[Plan]]:
 
     # Phase patterns
     # From Phases section: - [ ] **Phase 1: Name** - Description
+    # Supports [ ], [x], [X], [~] for pending/completed/in_progress
     phase_checkbox_pattern = re.compile(
-        r"^\s*-\s*\[([ xX])\]\s*\*\*Phase\s+(\d+(?:\.\d+)?)\s*:\s*(.+?)\*\*\s*(?:-\s*(.+))?$"
+        r"^\s*-\s*\[([ xX~])\]\s*\*\*Phase\s+(\d+(?:\.\d+)?)\s*:\s*(.+?)\*\*\s*(?:-\s*(.+))?$"
     )
     # From Phase Details section: ### Phase 1: Name
     phase_header_pattern = re.compile(r"^###\s*Phase\s+(\d+(?:\.\d+)?)\s*:\s*(.+)$")
 
-    # Plan pattern: - [ ] 01-02: Description
+    # Plan pattern: - [ ] 01-02: Description | priority:high | depends:01-01
+    # Supports [ ], [x], [X], [~] for pending/completed/in_progress
     plan_pattern = re.compile(
-        r"^\s*-\s*\[([ xX])\]\s*(\d+(?:\.\d+)?)-(\d+)\s*:\s*(.+)$"
+        r"^\s*-\s*\[([ xX~])\]\s*(\d+(?:\.\d+)?)-(\d+)\s*:\s*(.+)$"
     )
 
     # Phase details patterns
@@ -204,11 +213,8 @@ def parse_roadmap(file_path: Path) -> tuple[list[Phase], list[Plan]]:
         # Parse phase from Phases checklist (simpler)
         phase_checkbox_match = phase_checkbox_pattern.match(line)
         if phase_checkbox_match and not in_phase_details:
-            status = (
-                "completed"
-                if phase_checkbox_match.group(1).upper() == "X"
-                else "pending"
-            )
+            checkbox = phase_checkbox_match.group(1)
+            status, _ = get_status_from_checkbox(checkbox)
             phase_num = phase_checkbox_match.group(2)
             phase_name = phase_checkbox_match.group(3).strip()
 
@@ -257,18 +263,21 @@ def parse_roadmap(file_path: Path) -> tuple[list[Phase], list[Plan]]:
         # Parse plans
         plan_match = plan_pattern.match(line)
         if plan_match:
-            status = "completed" if plan_match.group(1).upper() == "X" else "pending"
+            checkbox = plan_match.group(1)
+            status, kanban_status = get_status_from_checkbox(checkbox)
             phase_num = plan_match.group(2)
             plan_num = plan_match.group(3)
             raw_description = plan_match.group(4).strip()
 
             # Parse custom fields from description using pipe syntax
-            # Format: Description | priority:high | effort:M | @username
+            # Format: Description | priority:high | effort:M | depends:01-01 | sprint:2025-W04 | @username
             parts = [p.strip() for p in raw_description.split("|")]
             description = parts[0]
             priority = ""
             effort = ""
             assignee = ""
+            depends_on: list[str] = []
+            sprint = ""
 
             for part in parts[1:]:
                 part_lower = part.lower()
@@ -276,6 +285,11 @@ def parse_roadmap(file_path: Path) -> tuple[list[Phase], list[Plan]]:
                     priority = part.split(":", 1)[1].strip().lower()
                 elif part_lower.startswith("effort:"):
                     effort = part.split(":", 1)[1].strip().upper()
+                elif part_lower.startswith("depends:"):
+                    deps_str = part.split(":", 1)[1].strip()
+                    depends_on = [d.strip() for d in deps_str.split(",")]
+                elif part_lower.startswith("sprint:"):
+                    sprint = part.split(":", 1)[1].strip()
                 elif part.startswith("@"):
                     assignee = part[1:]  # Remove @ prefix
 
@@ -287,11 +301,14 @@ def parse_roadmap(file_path: Path) -> tuple[list[Phase], list[Plan]]:
                 plan_num=plan_num,
                 description=description,
                 status=status,
+                kanban_status=kanban_status,
                 line_number=i,
                 line_text=line,
                 priority=priority,
                 effort=effort,
                 assignee=assignee,
+                depends_on=depends_on,
+                sprint=sprint,
             )
             all_plans.append(plan)
 
@@ -409,11 +426,25 @@ def create_plan_issue(
         if plan.assignee:
             body_parts.append(f"**Assignee**: @{plan.assignee}")
 
+    # Add dependencies section if present
+    if plan.depends_on:
+        body_parts.extend(["", "### Dependencies"])
+        for dep in plan.depends_on:
+            body_parts.append(f"- Plan-{dep}")
+
+    # Add sprint if present
+    if plan.sprint:
+        body_parts.extend(["", f"**Sprint**: {plan.sprint}"])
+
     if phase.goal:
         body_parts.extend(["", f"**Phase Goal**: {phase.goal}"])
 
     if phase.requirements:
         body_parts.extend(["", f"**Requirements**: {', '.join(phase.requirements)}"])
+
+    # Suggest branch name for development
+    branch_name = suggest_branch_name(f"Plan-{plan.id}", plan.description)
+    body_parts.extend(["", f"**Branch**: `{branch_name}`"])
 
     body_parts.extend(
         [
@@ -435,6 +466,9 @@ def create_plan_issue(
         labels.append(f"priority-{plan.priority}")
     if plan.effort:
         labels.append(f"effort-{plan.effort}")
+    # Add sprint label if present
+    if plan.sprint:
+        labels.append(f"sprint-{plan.sprint}")
 
     if dry_run:
         print(f"[DRY RUN] Would create issue: {title}")
@@ -470,7 +504,12 @@ def create_plan_issue(
         if issue_node_id:
             item_id = add_issue_to_project(project_id, issue_node_id, dry_run)
             if item_id:
-                print("  Linked to project")
+                # Set Kanban status based on plan status (Backlog, In Progress, Done)
+                if plan.kanban_status != "Backlog":
+                    set_issue_status(project_id, issue_num, plan.kanban_status, dry_run)
+                    print(f"  Linked to project ({plan.kanban_status})")
+                else:
+                    print("  Linked to project")
 
     return issue_num
 

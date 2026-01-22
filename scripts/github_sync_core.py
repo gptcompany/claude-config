@@ -68,6 +68,53 @@ PROJECT_COLUMNS = [
 ]
 
 
+# =============================================================================
+# Status & Progress Helpers
+# =============================================================================
+
+
+def get_status_from_checkbox(checkbox: str) -> tuple[str, str]:
+    """Get status and Kanban column from checkbox character.
+
+    Args:
+        checkbox: Single character from markdown checkbox (space, x, X, ~)
+
+    Returns:
+        Tuple of (status, kanban_column):
+        - ("completed", "Done") for [x] or [X]
+        - ("in_progress", "In Progress") for [~]
+        - ("pending", "Backlog") for [ ]
+    """
+    c = checkbox.upper() if checkbox else " "
+    if c == "X":
+        return ("completed", "Done")
+    if c == "~":
+        return ("in_progress", "In Progress")
+    return ("pending", "Backlog")
+
+
+def calculate_progress(items: list) -> dict:
+    """Calculate progress statistics from a list of items with status attribute.
+
+    Args:
+        items: List of objects with a 'status' attribute
+
+    Returns:
+        Dict with keys: total, completed, in_progress, pending, percent
+    """
+    total = len(items)
+    completed = sum(1 for i in items if getattr(i, "status", None) == "completed")
+    in_progress = sum(1 for i in items if getattr(i, "status", None) == "in_progress")
+    pending = total - completed - in_progress
+    return {
+        "total": total,
+        "completed": completed,
+        "in_progress": in_progress,
+        "pending": pending,
+        "percent": round(completed / total * 100) if total else 0,
+    }
+
+
 @dataclass
 class ProjectInfo:
     """GitHub ProjectV2 information."""
@@ -224,6 +271,11 @@ def ensure_labels_exist(labels: list[str], dry_run: bool = False) -> list[str]:
             }
             color = effort_colors.get(effort.upper(), "ededed")
             description = f"Effort: {effort}"
+        elif label.startswith("sprint-"):
+            # Sprint labels (blue color for time-based tracking)
+            sprint = label.split("-", 1)[1]
+            color = "1d76db"  # Blue
+            description = f"Sprint: {sprint}"
         else:
             # Default for unknown labels
             color = "ededed"
@@ -1087,3 +1139,127 @@ def get_existing_issues(label_filter: str | None = None) -> dict[str, dict]:
     except json.JSONDecodeError:
         pass
     return issues
+
+
+# =============================================================================
+# Branch & PR Linking
+# =============================================================================
+
+
+def suggest_branch_name(task_id: str, description: str) -> str:
+    """Generate branch name from task ID and description.
+
+    Args:
+        task_id: Task/Plan ID (e.g., "Plan-03-01", "T001")
+        description: Task description
+
+    Returns:
+        Branch name like "feat/Plan-03-01-sofr-collector"
+
+    Examples:
+        >>> suggest_branch_name("Plan-03-01", "SOFR data collector")
+        'feat/Plan-03-01-sofr-data-collector'
+        >>> suggest_branch_name("T001", "Fix data model bug")
+        'fix/T001-fix-data-model-bug'
+    """
+    import re
+
+    # Create slug from description (lowercase, alphanumeric + hyphens, max 40 chars)
+    slug = re.sub(r"[^a-z0-9]+", "-", description.lower()).strip("-")[:40].rstrip("-")
+
+    # Determine prefix based on description content
+    prefix = "feat"
+    desc_lower = description.lower()
+    if "fix" in desc_lower or "bug" in desc_lower:
+        prefix = "fix"
+    elif "refactor" in desc_lower:
+        prefix = "refactor"
+    elif "doc" in desc_lower:
+        prefix = "docs"
+    elif "test" in desc_lower:
+        prefix = "test"
+
+    return f"{prefix}/{task_id}-{slug}"
+
+
+def get_linked_prs(issue_number: int) -> list[dict]:
+    """Get PRs that close/reference this issue via GraphQL.
+
+    Uses closingIssuesReferences to find PRs linked via "Closes #N" or similar.
+
+    Args:
+        issue_number: GitHub issue number
+
+    Returns:
+        List of dicts with PR info: number, title, state, url
+    """
+    # First get the issue node ID
+    repo_info = get_repo_info()
+    if not repo_info:
+        return []
+
+    owner, repo = repo_info
+
+    query = """
+    query($owner: String!, $repo: String!, $number: Int!) {
+      repository(owner: $owner, name: $repo) {
+        issue(number: $number) {
+          timelineItems(first: 50, itemTypes: [CROSS_REFERENCED_EVENT, CONNECTED_EVENT]) {
+            nodes {
+              ... on CrossReferencedEvent {
+                source {
+                  ... on PullRequest {
+                    number
+                    title
+                    state
+                    url
+                  }
+                }
+              }
+              ... on ConnectedEvent {
+                subject {
+                  ... on PullRequest {
+                    number
+                    title
+                    state
+                    url
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    """
+
+    result = run_graphql_query(
+        query, {"owner": owner, "repo": repo, "number": str(issue_number)}
+    )
+    if not result:
+        return []
+
+    prs: list[dict] = []
+    timeline = (
+        result.get("data", {})
+        .get("repository", {})
+        .get("issue", {})
+        .get("timelineItems", {})
+        .get("nodes", [])
+    )
+
+    for item in timeline:
+        # Handle CrossReferencedEvent
+        source = item.get("source") or item.get("subject")
+        if source and source.get("number"):
+            pr_info = {
+                "number": source["number"],
+                "title": source.get("title", ""),
+                "state": source.get("state", ""),
+                "url": source.get("url", ""),
+            }
+            # Avoid duplicates
+            if pr_info not in prs:
+                prs.append(pr_info)
+
+    return prs

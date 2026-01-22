@@ -56,6 +56,8 @@ try:
         set_issue_status,
         get_issue_status,
         get_project_by_name,  # pyright: ignore[reportAssignmentType]
+        get_status_from_checkbox,
+        suggest_branch_name,
     )
 except ImportError:
     # Fallback for standalone usage - define minimal versions
@@ -134,6 +136,21 @@ except ImportError:
     def get_project_by_name(owner: str, project_name: str) -> Any:  # type: ignore[misc]
         return None  # Fallback does nothing
 
+    def get_status_from_checkbox(checkbox: str) -> tuple[str, str]:
+        c = checkbox.upper() if checkbox else " "
+        if c == "X":
+            return ("completed", "Done")
+        if c == "~":
+            return ("in_progress", "In Progress")
+        return ("pending", "Backlog")
+
+    def suggest_branch_name(task_id: str, description: str) -> str:
+        slug = re.sub(r"[^a-z0-9]+", "-", description.lower()).strip("-")[:40]
+        prefix = "feat"
+        if "fix" in description.lower() or "bug" in description.lower():
+            prefix = "fix"
+        return f"{prefix}/{task_id}-{slug}"
+
 
 # =============================================================================
 # Data Classes
@@ -142,17 +159,25 @@ except ImportError:
 
 @dataclass
 class Task:
-    """Represents a single task from tasks.md."""
+    """Represents a single task from tasks.md.
+
+    Custom fields can be added using pipe syntax:
+        - [ ] T001 [US01] Description | depends:T000 | sprint:2025-W04
+        - [~] T002 [US01] In progress task
+    """
 
     id: str
     story: str
     description: str
-    status: str  # "pending" or "completed"
+    status: str  # "pending", "in_progress", or "completed"
+    kanban_status: str = "Backlog"  # Kanban column: Backlog, In Progress, Done
     priority: str = "P2"
     markers: list[str] = field(default_factory=list)
     files: list[str] = field(default_factory=list)
     line_number: int = 0
     line_text: str = ""  # Original line for sync
+    depends_on: list[str] = field(default_factory=list)  # e.g., ["T001", "T002"]
+    sprint: str = ""  # e.g., "2025-W04"
 
 
 @dataclass
@@ -248,8 +273,9 @@ def parse_tasks_file(file_path: Path) -> tuple[list[UserStory], list[Task]]:
     current_story: UserStory | None = None
 
     story_pattern = re.compile(r"^###?\s*(US\d+)[:\s]+(.+)$")
+    # Task pattern supports [ ], [x], [X], [~] for pending/completed/in_progress
     task_pattern = re.compile(
-        r"^\s*-\s*\[([ xX])\]\s*(T\d+)\s*(\[US\d+\])?\s*((?:\[[^\]]+\]\s*)*)\s*(.+)$"
+        r"^\s*-\s*\[([ xX~])\]\s*(T\d+)\s*(\[US\d+\])?\s*((?:\[[^\]]+\]\s*)*)\s*(.+)$"
     )
     file_pattern = re.compile(r"^\s+-\s*File:\s*`(.+)`$")
 
@@ -276,11 +302,27 @@ def parse_tasks_file(file_path: Path) -> tuple[list[UserStory], list[Task]]:
 
         task_match = task_pattern.match(line)
         if task_match:
-            status = "completed" if task_match.group(1).upper() == "X" else "pending"
+            checkbox = task_match.group(1)
+            status, kanban_status = get_status_from_checkbox(checkbox)
             task_id = task_match.group(2)
             story_ref = task_match.group(3) or ""
             markers_str = task_match.group(4) or ""
-            description = task_match.group(5).strip()
+            raw_description = task_match.group(5).strip()
+
+            # Parse custom fields from description using pipe syntax
+            # Format: Description | depends:T001,T002 | sprint:2025-W04
+            parts = [p.strip() for p in raw_description.split("|")]
+            description = parts[0]
+            depends_on: list[str] = []
+            sprint = ""
+
+            for part in parts[1:]:
+                part_lower = part.lower()
+                if part_lower.startswith("depends:"):
+                    deps_str = part.split(":", 1)[1].strip()
+                    depends_on = [d.strip() for d in deps_str.split(",")]
+                elif part_lower.startswith("sprint:"):
+                    sprint = part.split(":", 1)[1].strip()
 
             markers = re.findall(r"\[([^\]]+)\]", markers_str)
             priority = "P2"
@@ -300,10 +342,13 @@ def parse_tasks_file(file_path: Path) -> tuple[list[UserStory], list[Task]]:
                 story=story_id,
                 description=description,
                 status=status,
+                kanban_status=kanban_status,
                 priority=priority,
                 markers=markers,
                 line_number=i,
                 line_text=line,
+                depends_on=depends_on,
+                sprint=sprint,
             )
             all_tasks.append(task)
             if current_story:
@@ -383,10 +428,29 @@ def create_issue(
     ]
     if task.markers:
         body_parts.extend([f"**Markers**: {', '.join(task.markers)}", ""])
+
+    # Add dependencies section if present
+    if task.depends_on:
+        body_parts.append("### Dependencies")
+        for dep in task.depends_on:
+            body_parts.append(f"- {dep}")
+        body_parts.append("")
+
+    # Add sprint if present
+    if task.sprint:
+        body_parts.append(f"**Sprint**: {task.sprint}")
+        body_parts.append("")
+
     if task.files:
         body_parts.append("### Files")
         body_parts.extend([f"- `{f}`" for f in task.files])
         body_parts.append("")
+
+    # Suggest branch name for development
+    branch_name = suggest_branch_name(task.id, task.description)
+    body_parts.append(f"**Branch**: `{branch_name}`")
+    body_parts.append("")
+
     body_parts.extend(
         [
             "### Source",
@@ -406,6 +470,9 @@ def create_issue(
         labels.append("evolve")
     if "P" in task.markers:
         labels.append("parallelizable")
+    # Add sprint label if present
+    if task.sprint:
+        labels.append(f"sprint-{task.sprint}")
 
     if dry_run:
         print(f"[DRY RUN] Would create issue: {title}")
@@ -437,7 +504,12 @@ def create_issue(
         if issue_node_id:
             item_id = add_issue_to_project(project_id, issue_node_id, dry_run)
             if item_id:
-                print("  Linked to project")
+                # Set Kanban status based on task status (Backlog, In Progress, Done)
+                if task.kanban_status != "Backlog":
+                    set_issue_status(project_id, issue_num, task.kanban_status, dry_run)
+                    print(f"  Linked to project ({task.kanban_status})")
+                else:
+                    print("  Linked to project")
 
     return issue_num
 
