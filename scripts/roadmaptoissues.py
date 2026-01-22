@@ -574,6 +574,18 @@ def sync_roadmap_to_github(
 
     print()
 
+    # Close issues for completed plans
+    for plan in plans:
+        if plan.status != "completed":
+            continue
+        issue_key = f"Plan-{plan.id}"
+        if issue_key in existing_issues:
+            issue = existing_issues[issue_key]
+            if issue.get("state") == "OPEN":
+                close_issue(issue["number"], project_id, dry_run)
+                result.issues_closed += 1
+                print(f"Closed issue #{issue['number']} (Plan-{plan.id} completed)")
+
     # Create issues for plans
     for plan in plans:
         if plan.status == "completed":
@@ -726,8 +738,36 @@ def close_completed_milestones(dry_run: bool = False) -> int:
 # =============================================================================
 
 
+def get_project_config(planning_dir: Path | None = None) -> dict | None:
+    """Read project config from .planning/.github-project if it exists.
+
+    Config format (one per line):
+        project_number: 14
+        project_name: My Project
+    """
+    config_paths = []
+    if planning_dir:
+        config_paths.append(planning_dir / ".github-project")
+    config_paths.append(Path(".planning/.github-project"))
+
+    for config_path in config_paths:
+        if config_path.exists():
+            config = {}
+            for line in config_path.read_text().strip().split("\n"):
+                if ":" in line:
+                    key, value = line.split(":", 1)
+                    config[key.strip()] = value.strip()
+            return config
+    return None
+
+
 def get_default_project_name() -> str | None:
-    """Get default project board name based on repo name."""
+    """Get default project board name based on repo name or config file."""
+    # Check for config file first
+    config = get_project_config()
+    if config and "project_name" in config:
+        return config["project_name"]
+
     repo_info = get_repo_info()
     if repo_info:
         _, repo_name = repo_info
