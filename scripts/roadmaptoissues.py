@@ -49,6 +49,7 @@ try:
         get_existing_issues,
         close_issue,
         get_issue_status,
+        set_issue_status,
         get_project_by_name,
         close_milestone,
         get_milestone_open_issues,
@@ -574,17 +575,30 @@ def sync_roadmap_to_github(
 
     print()
 
-    # Close issues for completed plans
+    # Close issues for completed plans and ensure they're in project as "Done"
     for plan in plans:
         if plan.status != "completed":
             continue
         issue_key = f"Plan-{plan.id}"
         if issue_key in existing_issues:
             issue = existing_issues[issue_key]
+            issue_num = issue["number"]
+
+            # Close if still open
             if issue.get("state") == "OPEN":
-                close_issue(issue["number"], project_id, dry_run)
+                close_issue(issue_num, project_id, dry_run)
                 result.issues_closed += 1
-                print(f"Closed issue #{issue['number']} (Plan-{plan.id} completed)")
+                print(f"Closed issue #{issue_num} (Plan-{plan.id} completed)")
+
+            # Ensure closed issue is in project and marked Done
+            if project_id and not dry_run:
+                issue_node_id = get_issue_node_id(issue_num)
+                if issue_node_id:
+                    # Add to project (idempotent - won't duplicate)
+                    add_issue_to_project(project_id, issue_node_id, dry_run)
+                    # Set status to Done
+                    set_issue_status(project_id, issue_num, "Done", dry_run)
+                    print(f"  -> #{issue_num} moved to Done")
 
     # Create issues for plans
     for plan in plans:
