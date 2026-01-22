@@ -19,8 +19,25 @@ Usage:
 from __future__ import annotations
 
 import json
+import os
 import subprocess
 from dataclasses import dataclass
+
+
+def get_project_owner(repo_owner: str) -> str:
+    """Get the owner to use for project operations.
+
+    Checks GH_PROJECT_ORG env var first, falls back to repo_owner.
+    This allows projects to be created under a different org than the repo owner.
+
+    Args:
+        repo_owner: The repository owner (user or org)
+
+    Returns:
+        Owner to use for project operations
+    """
+    return os.environ.get("GH_PROJECT_ORG", repo_owner)
+
 
 # =============================================================================
 # Constants
@@ -421,19 +438,24 @@ def ensure_project_exists(
     """Ensure a ProjectV2 exists, creating if necessary.
 
     Args:
-        owner: Repository owner
+        owner: Repository owner (will check GH_PROJECT_ORG env var first)
         project_name: Project title
         dry_run: If True, don't create
 
     Returns:
         ProjectInfo for existing or newly created project
     """
-    existing = get_project_by_name(owner, project_name)
+    # Check GH_PROJECT_ORG env var for cross-org project support
+    project_owner = get_project_owner(owner)
+    if project_owner != owner:
+        print(f"Using project owner from GH_PROJECT_ORG: {project_owner}")
+
+    existing = get_project_by_name(project_owner, project_name)
     if existing:
         print(f"Project exists: {existing.title} (#{existing.number})")
         return existing
 
-    return create_project(owner, project_name, dry_run)
+    return create_project(project_owner, project_name, dry_run)
 
 
 def _get_status_field_info(project_id: str) -> tuple[str, str] | None:
