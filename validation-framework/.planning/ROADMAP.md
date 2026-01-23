@@ -13,6 +13,7 @@ Build a reusable validation pipeline framework starting with core templates, the
 - ✅ **Milestone 1** - Core Framework (Phases 1-5, shipped 2026-01-19)
 - ✅ **Milestone 2** - Hybrid UAT & Validators (Phase 6, shipped 2026-01-20)
 - 🚧 **Milestone 3** - Universal 14-Dimension Orchestrator (Phases 7-12, in progress)
+- 🔮 **Milestone 4** - ECC Integration & Hooks Modernization (Phases 13-15, proposed)
 
 ## Phases
 
@@ -173,6 +174,9 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 10. Tier 3 Validators | M3 | 2/2 | Complete | 2026-01-22 |
 | 11. Ralph Integration | M3 | 0/? | Not started | - |
 | 12. Confidence Loop | M3 | 0/? | Not started | - |
+| 13. ECC Full Integration | M4 | 0/? | Not started | - |
+| 14. Hooks Node.js Port | M4 | 0/? | Not started | - |
+| 15. Skills Port | M4 | 0/? | Not started | - |
 
 #### Phase 12: Confidence-Based Loop Extension
 **Goal**: Transform Tier 3 from passive monitors to active loop drivers with visual-driven development
@@ -190,3 +194,120 @@ Plans:
 - MultiModalValidator: Fused confidence scoring (visual + DOM + behavior + a11y + perf)
 - ProgressiveRefinementLoop: Three-stage refinement (layout → style → polish)
 - Ralph loop integration with dynamic termination conditions
+
+---
+
+### 🔮 Milestone 4: ECC Integration & Hooks Modernization (Proposed)
+
+**Milestone Goal:** Port ECC best practices (Node.js hooks, skills, verification loop) and integrate with existing GSD/claude-flow infrastructure.
+
+**Reference:** `/media/sam/1TB/everything-claude-code/`
+
+#### Phase 13: ECC Full Integration
+**Goal**: Integrate ECC architecture patterns with our GSD/claude-flow system
+**Depends on**: Phase 11 (Ralph integration complete)
+**Research**: Completed (ECC analysis done 2026-01-23)
+**Effort estimate**: 30-40h
+
+**Scope:**
+- Unify ECC 6-phase verification loop with our 14-dimension orchestrator
+- Sequential gates (ECC) + parallel tiers (ours) = hybrid workflow
+- ECC agents integration (e2e-runner, security-reviewer, code-reviewer)
+- Unified `/validate` skill that runs both systems
+
+Plans:
+- [ ] 13-01: Create hybrid validation workflow (ECC 6-phase → our 14-dim)
+- [ ] 13-02: Port ECC agents (e2e-runner, security-reviewer) to our system
+- [ ] 13-03: Create unified `/validate` skill
+
+#### Phase 14: Hooks Node.js Port
+**Goal**: Migrate critical hooks from Bash/Python to Node.js for cross-platform reliability
+**Depends on**: Phase 13
+**Research**: Completed (ECC utils.js analyzed)
+**Effort estimate**: 40-50h
+
+**Current state (claude-hooks-shared):**
+- 50+ hooks in Python/Bash
+- Silent failures, no error handling
+- Platform-specific (Linux only)
+- 13,952 LOC total
+
+**Target state (ECC pattern):**
+- Node.js with utils.js shared library
+- try-catch everywhere, visible error messages
+- Cross-platform (Linux/macOS/Windows)
+- hooks.json declarative config
+
+**Migration priority (by impact):**
+1. **Critical** (port first):
+   - `hooks/core/context_bundle_builder.py` → Node.js
+   - `hooks/core/post-tool-use.py` → Node.js
+   - `hooks/safety/smart-safety-check.py` → Node.js
+   - `hooks/safety/git-safety-check.py` → Node.js
+
+2. **High** (port second):
+   - `hooks/productivity/architecture-validator.py` → Node.js
+   - `hooks/productivity/readme-generator.py` → Node.js
+   - `hooks/quality/ci-autofix.py` → Node.js
+
+3. **Medium** (port if time):
+   - `hooks/metrics/*` → Node.js
+   - `hooks/intelligence/*` → Node.js
+
+Plans:
+- [ ] 14-01: Create utils.js shared library (port from ECC + our additions)
+- [ ] 14-02: Port critical hooks (context_bundle, post-tool-use, safety checks)
+- [ ] 14-03: Port high-priority hooks (architecture, readme, ci-autofix)
+- [ ] 14-04: Create hooks.json declarative config
+- [ ] 14-05: Test cross-platform (Linux + macOS CI)
+
+**Deliverables:**
+- `~/.claude/hooks/lib/utils.js` - shared utilities
+- `~/.claude/hooks/hooks.json` - declarative config
+- `~/.claude/hooks/*.js` - ported hooks
+- GitHub Actions CI testing Linux + macOS
+
+#### Phase 15: Skills Port
+**Goal**: Port ECC skills we don't have (tdd-workflow, verification-loop, coding-standards)
+**Depends on**: Phase 14
+**Research**: Completed (ECC skills analyzed)
+**Effort estimate**: 20-25h
+
+**Gap analysis:**
+
+| ECC Skill | LOC | Our equivalent | Action |
+|-----------|-----|----------------|--------|
+| tdd-workflow | 409 | tdd-guard (51 LOC, doc-only) | **PORT** |
+| verification-loop | 120 | orchestrator (different) | **PORT** |
+| coding-standards | 520 | - | **PORT** |
+| eval-harness | 221 | - | **PORT** |
+| security-review | 494 | security validator | MERGE |
+| frontend-patterns | 631 | - | SKIP (domain-specific) |
+| backend-patterns | 582 | - | SKIP (domain-specific) |
+| continuous-learning | 80 | - | DEFER |
+| strategic-compact | 63 | - | DEFER |
+
+Plans:
+- [ ] 15-01: Port tdd-workflow skill (enforced TDD, not just docs)
+- [ ] 15-02: Port verification-loop skill (6-phase sequential)
+- [ ] 15-03: Port coding-standards skill
+- [ ] 15-04: Port eval-harness skill (pass@k metrics)
+- [ ] 15-05: Integrate skills with GSD workflow triggers
+
+**Integration points:**
+- `/gsd:execute-plan` triggers tdd-workflow for `tdd=true` tasks
+- `/gsd:execute-phase` triggers verification-loop at end
+- Pre-commit hook triggers coding-standards check
+
+---
+
+## Milestone Summary
+
+| Milestone | Phases | Status | Est. Effort |
+|-----------|--------|--------|-------------|
+| M1: Core Framework | 1-5 | ✅ Complete | - |
+| M2: Hybrid UAT | 6 | ✅ Complete | - |
+| M3: 14-Dim Orchestrator | 7-12 | 🚧 In progress | 60-90h remaining |
+| M4: ECC Integration | 13-15 | 🔮 Proposed | 90-115h |
+
+**Total remaining effort:** 150-205h

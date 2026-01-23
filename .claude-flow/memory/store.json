@@ -29,8 +29,8 @@
         "plans": [
           {
             "plan": "16-01",
-            "status": "pending",
-            "blocking_checkpoint": "human-action: Create GitHub App"
+            "status": "completed_partial",
+            "note": "ARC deployed but job routing issue identified"
           },
           {
             "plan": "16-02",
@@ -42,9 +42,9 @@
         ]
       },
       "metadata": {},
-      "storedAt": "2026-01-23T16:58:24.890Z",
+      "storedAt": "2026-01-23T17:31:21.093Z",
       "accessCount": 0,
-      "lastAccessed": "2026-01-23T16:58:24.890Z"
+      "lastAccessed": "2026-01-23T17:31:21.093Z"
     }
   },
   "version": "3.0.0"
