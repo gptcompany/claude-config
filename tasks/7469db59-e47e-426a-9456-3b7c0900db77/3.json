@@ -1,0 +1,9 @@
+{
+  "id": "3",
+  "subject": "Register and export SOFR collector",
+  "description": "Add SOFRCollector to __init__.py exports and verify registry registration",
+  "activeForm": "Registering and exporting SOFR collector",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}
