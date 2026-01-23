@@ -5,54 +5,49 @@
 See: .planning/PROJECT.md (updated 2026-01-19)
 
 **Core value:** Every project gets production-grade validation with zero friction
-**Current focus:** Phase 12 Plan 01 Complete, visual comparison foundation shipped
+**Current focus:** Phase 12 Plan 03 Complete, MultiModal score fusion shipped
 
 ## Current Position
 
 Phase: 12 of 12 (Confidence-Based Loop Extension) - IN PROGRESS
-Plans: 12-01 completed, 12-02 completed
-Status: VisualTargetValidator shipped
-Last activity: 2026-01-23 - Phase 12-01 Visual comparison foundation
+Plans: 12-01 completed, 12-02 completed, 12-03 completed
+Status: MultiModalValidator shipped
+Last activity: 2026-01-23 - Phase 12-03 MultiModal score fusion
 
 Progress: ██████████ 100% M1 | ██████████ 100% M2 | █████████░ 83% M3 (5/6 phases)
 
-## Phase 12-01 Deliverables
+## Phase 12-03 Deliverables
 
 | Deliverable | File | Status |
 |-------------|------|--------|
-| ODiffRunner | `validators/visual/pixel_diff.py` | ✅ Complete |
-| PerceptualComparator | `validators/visual/perceptual.py` | ✅ Complete |
-| VisualTargetValidator | `validators/visual/validator.py` | ✅ Complete |
-| Package exports | `validators/visual/__init__.py` | ✅ Complete |
-| Test suite | `validators/visual/tests/` | ✅ 80 tests passing |
+| ScoreFusion | `validators/multimodal/score_fusion.py` | ✅ Complete |
+| DimensionScore | `validators/multimodal/score_fusion.py` | ✅ Complete |
+| FusionResult | `validators/multimodal/score_fusion.py` | ✅ Complete |
+| MultiModalValidator | `validators/multimodal/validator.py` | ✅ Complete |
+| Package exports | `validators/multimodal/__init__.py` | ✅ Complete |
+| Test suite | `validators/multimodal/tests/` | ✅ 63 tests passing |
 
-## Phase 12-01 Summary
+## Phase 12-03 Summary
 
 ### What Was Built
 
-1. **ODiffRunner** (Pixel comparison):
-   - Wrapper for odiff-bin CLI (npm install -g odiff-bin)
-   - parsable-stdout format parsing
-   - pixel_score = 1.0 - (diffPercentage / 100.0)
-   - Graceful degradation when odiff not installed
+1. **ScoreFusion** (Weighted algorithm):
+   - Weighted quasi-arithmetic mean: sum(score * weight * reliability) / sum(weight * reliability)
+   - Default weights: visual 35%, behavioral 25%, a11y 20%, perf 20%
+   - Reliability-based adaptive weighting
+   - fuse() for simple fusion, fuse_with_details() for breakdown
 
-2. **PerceptualComparator** (SSIM comparison):
-   - scikit-image structural_similarity
-   - Grayscale conversion for robustness
-   - Center crop for dimension mismatch
-   - Graceful degradation when scikit-image not installed
+2. **MultiModalValidator** (Orchestrator):
+   - Orchestrates visual, behavioral, accessibility, performance dimensions
+   - async validate() with validator instances or pre-collected scores
+   - sync fuse_scores() convenience method
+   - Graceful degradation when validators fail
+   - Tier 3 (monitoring only, never blocks)
 
-3. **VisualTargetValidator** (Combined):
-   - Fused scoring: (pixel_score * 0.6) + (ssim_score * 0.4)
-   - compare() for single image pair
-   - validate() for directory comparison
-   - Configurable threshold, weights, patterns
-
-4. **Tests**:
-   - 29 tests for pixel_diff.py (100% coverage)
-   - 26 tests for perceptual.py (90% coverage)
-   - 25 tests for validator.py
-   - All 80 tests passing
+3. **Tests**:
+   - 32 tests for score_fusion.py (100% coverage)
+   - 31 tests for validator.py (97% coverage)
+   - All 63 tests passing, 98% total coverage
 
 ## Phase 12 Plans Status
 
@@ -60,7 +55,7 @@ Progress: ██████████ 100% M1 | █████████�
 |------|-----------|--------|---------|
 | 12-01 | Visual validators (pixel_diff, perceptual, combined) | Complete | d0f2d07, 177a4c5, c95b46b |
 | 12-02 | Behavioral validator (DOM diff) | Complete | 6e67b42, 3787f50 |
-| 12-03 | MultiModalValidator (fusion) | Pending | - |
+| 12-03 | MultiModalValidator (fusion) | Complete | 06e3417, a2a18e2 |
 | 12-04 | Progressive refinement loop | Pending | - |
 
 ## Previous Phases
@@ -84,12 +79,14 @@ Progress: ██████████ 100% M1 | █████████�
 
 ## Next Plan
 
-### Phase 12-03: MultiModalValidator
-**Goal**: Create MultiModalValidator that fuses visual + behavioral scores
+### Phase 12-04: ProgressiveRefinementLoop
+**Goal**: Create confidence-based loop termination with three-stage refinement
 **Status**: Ready to execute
 
 ## Key Files
 
+- Score fusion: `~/.claude/templates/validation/validators/multimodal/score_fusion.py`
+- MultiModal validator: `~/.claude/templates/validation/validators/multimodal/validator.py`
 - ODiff wrapper: `~/.claude/templates/validation/validators/visual/pixel_diff.py`
 - SSIM comparator: `~/.claude/templates/validation/validators/visual/perceptual.py`
 - Visual validator: `~/.claude/templates/validation/validators/visual/validator.py`
@@ -100,18 +97,18 @@ Progress: ██████████ 100% M1 | █████████�
 ## Session Continuity
 
 Last session: 2026-01-23
-Completed: Phase 12-01 - VisualTargetValidator (ODiff + SSIM)
-Verified: 80 tests passing, imports working
-Next: Phase 12-03 - MultiModalValidator
+Completed: Phase 12-03 - MultiModalValidator (Score Fusion)
+Verified: 63 tests passing, 98% coverage
+Next: Phase 12-04 - ProgressiveRefinementLoop
 
 ## Key Decisions (This Session)
 
-1. Used odiff CLI via subprocess for fast SIMD pixel comparison
-2. Used --parsable-stdout format (not --json which doesn't exist)
-3. Used scikit-image SSIM for perceptual similarity
-4. Fused scoring: 60% pixel + 40% SSIM (configurable)
-5. Center crop for dimension mismatch (preserves pixel ratio)
-6. Graceful degradation - uses available tool when one missing
+1. Default weights: visual 35%, behavioral 25%, a11y 20%, perf 20%
+2. Reliability adjustment formula: effective_weight = base_weight * reliability
+3. Dimension name mapping: 'visual' -> 'visual_target' for internal consistency
+4. Graceful degradation: catch validator exceptions, continue with available dimensions
+5. Tier 3 behavior: MultiModalValidator always passes (monitoring only)
+6. FusionResult provides detailed breakdown with contributions and effective weights
 
 ## GitHub Sync
 
