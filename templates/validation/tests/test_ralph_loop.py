@@ -358,6 +358,160 @@ class TestRalphLoopIntegration:
         assert loop.config.max_iterations == 10
         assert loop.config.min_score_threshold == 90.0
 
+    def test_get_project_name_fallback(self, mock_orchestrator):
+        """Test _get_project_name falls back to cwd name."""
+        config = RalphLoopConfig()
+        loop = RalphLoop(orchestrator=mock_orchestrator, config=config)
+
+        # Should return something (either git project name or cwd)
+        name = loop._get_project_name()
+        assert isinstance(name, str)
+        assert len(name) > 0
+
+    def test_calculate_score_method(self, mock_orchestrator):
+        """Test _calculate_score method on actual loop instance."""
+        config = RalphLoopConfig()
+        loop = RalphLoop(orchestrator=mock_orchestrator, config=config)
+
+        # All pass
+        tier1 = MagicMock()
+        tier1.results = [MagicMock(passed=True)]
+        tier2 = MagicMock()
+        tier2.results = [MagicMock(passed=True)]
+        tier3 = MagicMock()
+        tier3.results = [MagicMock(passed=True)]
+
+        score = loop._calculate_score(tier1, tier2, tier3)
+        assert score == 100.0
+
+    def test_calculate_score_with_failures(self, mock_orchestrator):
+        """Test _calculate_score with some failures."""
+        config = RalphLoopConfig()
+        loop = RalphLoop(orchestrator=mock_orchestrator, config=config)
+
+        # Tier 1: 50% pass
+        tier1 = MagicMock()
+        tier1.results = [MagicMock(passed=True), MagicMock(passed=False)]
+        tier2 = MagicMock()
+        tier2.results = [MagicMock(passed=True)]
+        tier3 = MagicMock()
+        tier3.results = [MagicMock(passed=True)]
+
+        score = loop._calculate_score(tier1, tier2, tier3)
+        # 50*0.5 + 100*0.3 + 100*0.2 = 75
+        assert score == 75.0
+
+
+class TestLoopResultSerialization:
+    """Tests for LoopResult serialization."""
+
+    def test_to_dict_with_empty_history(self):
+        """Test to_dict with no history entries."""
+        result = LoopResult(
+            state=LoopState.IDLE,
+            iteration=0,
+            score=None,
+            blockers=[],
+            message="Not started",
+        )
+        d = result.to_dict()
+        assert d["state"] == "idle"
+        assert d["history"] == []
+
+    def test_to_dict_with_blockers(self):
+        """Test to_dict preserves blocker list."""
+        result = LoopResult(
+            state=LoopState.BLOCKED,
+            iteration=1,
+            score=50.0,
+            blockers=["syntax", "type_safety", "security"],
+            message="Blocked by Tier 1",
+            execution_time_ms=1234,
+        )
+        d = result.to_dict()
+        assert len(d["blockers"]) == 3
+        assert "syntax" in d["blockers"]
+        assert d["execution_time_ms"] == 1234
+
+    def test_to_dict_with_history(self):
+        """Test to_dict with multiple history entries."""
+        history = [
+            IterationHistory(
+                iteration=1,
+                score=60.0,
+                tier1_passed=False,
+                tier2_warnings=2,
+                tier3_monitors=5,
+                duration_ms=500,
+            ),
+            IterationHistory(
+                iteration=2,
+                score=80.0,
+                tier1_passed=True,
+                tier2_warnings=1,
+                tier3_monitors=3,
+                duration_ms=400,
+            ),
+            IterationHistory(
+                iteration=3,
+                score=95.0,
+                tier1_passed=True,
+                tier2_warnings=0,
+                tier3_monitors=2,
+                duration_ms=300,
+            ),
+        ]
+        result = LoopResult(
+            state=LoopState.COMPLETE,
+            iteration=3,
+            score=95.0,
+            blockers=[],
+            message="Complete",
+            history=history,
+        )
+        d = result.to_dict()
+        assert len(d["history"]) == 3
+        assert d["history"][0]["score"] == 60.0
+        assert d["history"][1]["tier2_warnings"] == 1
+        assert d["history"][2]["tier3_monitors"] == 2
+
+
+class TestConfigEdgeCases:
+    """Test edge cases for RalphLoopConfig."""
+
+    def test_config_from_dict_empty(self):
+        """Test from_dict with empty dict uses defaults."""
+        config = RalphLoopConfig.from_dict({})
+        assert config.max_iterations == 5
+        assert config.min_score_threshold == 70.0
+
+    def test_config_from_dict_extra_keys(self):
+        """Test from_dict ignores extra keys."""
+        config = RalphLoopConfig.from_dict(
+            {
+                "max_iterations": 3,
+                "unknown_key": "ignored",
+                "another_unknown": 123,
+            }
+        )
+        assert config.max_iterations == 3
+
+    def test_config_roundtrip(self):
+        """Test config survives to_dict/from_dict roundtrip."""
+        original = RalphLoopConfig(
+            max_iterations=7,
+            min_score_threshold=85.5,
+            tier1_timeout_seconds=45.0,
+            tier2_timeout_seconds=180.0,
+        )
+        d = original.to_dict()
+        restored = RalphLoopConfig.from_dict(d)
+
+        assert restored.max_iterations == original.max_iterations
+        assert restored.min_score_threshold == original.min_score_threshold
+        assert restored.tier1_timeout_seconds == original.tier1_timeout_seconds
+        assert restored.tier2_timeout_seconds == original.tier2_timeout_seconds
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])

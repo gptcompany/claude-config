@@ -232,5 +232,171 @@ class TestToolFiltering:
         assert "Grep" not in TOOLS_TO_VALIDATE
 
 
+class TestMainEdgeCases:
+    """Additional edge case tests for main() function."""
+
+    @pytest.fixture
+    def mock_stdin(self):
+        """Fixture to mock stdin."""
+
+        def _mock_stdin(content):
+            return patch("sys.stdin", StringIO(content))
+
+        return _mock_stdin
+
+    def test_edit_tool_non_python(self, mock_stdin, capsys):
+        """Test Edit to non-Python file approves."""
+        hook_input = json.dumps(
+            {"tool_name": "Edit", "tool_input": {"file_path": "style.css"}}
+        )
+        with mock_stdin(hook_input):
+            with pytest.raises(SystemExit) as exc_info:
+                from hooks.post_tool_hook import main
+
+                main()
+            assert exc_info.value.code == 0
+
+        captured = capsys.readouterr()
+        assert "approve" in captured.out
+
+    def test_multiedit_tool_non_python(self, mock_stdin, capsys):
+        """Test MultiEdit to non-Python file approves."""
+        hook_input = json.dumps(
+            {"tool_name": "MultiEdit", "tool_input": {"file_path": "data.json"}}
+        )
+        with mock_stdin(hook_input):
+            with pytest.raises(SystemExit) as exc_info:
+                from hooks.post_tool_hook import main
+
+                main()
+            assert exc_info.value.code == 0
+
+        captured = capsys.readouterr()
+        assert "approve" in captured.out
+
+    def test_tool_input_with_path_key(self, mock_stdin, capsys):
+        """Test tool_input with 'path' instead of 'file_path'."""
+        hook_input = json.dumps(
+            {"tool_name": "Write", "tool_input": {"path": "readme.txt"}}
+        )
+        with mock_stdin(hook_input):
+            with pytest.raises(SystemExit) as exc_info:
+                from hooks.post_tool_hook import main
+
+                main()
+            assert exc_info.value.code == 0
+
+        captured = capsys.readouterr()
+        assert "approve" in captured.out
+
+    def test_session_id_logged(self, mock_stdin, capsys):
+        """Test session_id is processed (even if just logged)."""
+        hook_input = json.dumps(
+            {
+                "tool_name": "Read",
+                "tool_input": {"file_path": "test.txt"},
+                "session_id": "test-session-123",
+            }
+        )
+        with mock_stdin(hook_input):
+            with pytest.raises(SystemExit) as exc_info:
+                from hooks.post_tool_hook import main
+
+                main()
+            assert exc_info.value.code == 0
+
+        captured = capsys.readouterr()
+        assert "approve" in captured.out
+
+    def test_whitespace_only_stdin(self, mock_stdin, capsys):
+        """Test stdin with only whitespace approves."""
+        with mock_stdin("   \n\t  "):
+            with pytest.raises(SystemExit) as exc_info:
+                from hooks.post_tool_hook import main
+
+                main()
+            assert exc_info.value.code == 0
+
+        captured = capsys.readouterr()
+        assert "approve" in captured.out
+
+    def test_nested_json_input(self, mock_stdin, capsys):
+        """Test handling of nested JSON in tool_input."""
+        hook_input = json.dumps(
+            {
+                "tool_name": "Bash",
+                "tool_input": {
+                    "command": "echo test",
+                    "options": {"timeout": 30, "env": {"PATH": "/usr/bin"}},
+                },
+            }
+        )
+        with mock_stdin(hook_input):
+            with pytest.raises(SystemExit) as exc_info:
+                from hooks.post_tool_hook import main
+
+                main()
+            assert exc_info.value.code == 0
+
+        captured = capsys.readouterr()
+        assert "approve" in captured.out
+
+
+class TestApproveBlockOutput:
+    """Tests for JSON output format of approve/block."""
+
+    def test_approve_json_structure(self, capsys):
+        """Test approve outputs valid JSON with correct structure."""
+        with pytest.raises(SystemExit):
+            approve()
+
+        captured = capsys.readouterr()
+        output = json.loads(captured.out)
+        assert "decision" in output
+        assert output["decision"] == "approve"
+        # Should not have reason key
+        assert "reason" not in output
+
+    def test_block_json_structure(self, capsys):
+        """Test block outputs valid JSON with correct structure."""
+        with pytest.raises(SystemExit):
+            block("Test reason message")
+
+        captured = capsys.readouterr()
+        output = json.loads(captured.out)
+        assert "decision" in output
+        assert "reason" in output
+        assert output["decision"] == "block"
+        assert output["reason"] == "Test reason message"
+
+    def test_block_empty_reason(self, capsys):
+        """Test block with empty reason."""
+        with pytest.raises(SystemExit):
+            block("")
+
+        captured = capsys.readouterr()
+        output = json.loads(captured.out)
+        assert output["reason"] == ""
+
+    def test_block_multiline_reason(self, capsys):
+        """Test block with multiline reason."""
+        with pytest.raises(SystemExit):
+            block("Line 1\nLine 2\nLine 3")
+
+        captured = capsys.readouterr()
+        output = json.loads(captured.out)
+        assert "\n" in output["reason"]
+
+    def test_block_unicode_reason(self, capsys):
+        """Test block with unicode in reason."""
+        with pytest.raises(SystemExit):
+            block("Error: 文件不存在 🚫")
+
+        captured = capsys.readouterr()
+        output = json.loads(captured.out)
+        assert "文件" in output["reason"]
+        assert "🚫" in output["reason"]
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
