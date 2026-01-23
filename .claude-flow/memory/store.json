@@ -1,0 +1,20 @@
+{
+  "entries": {
+    "gsd:progressive-deploy:15": {
+      "key": "gsd:progressive-deploy:15",
+      "value": {
+        "status": "in_progress",
+        "phase": "15-documentation",
+        "started_at": "2026-01-23T16:15:00Z",
+        "plans": [
+          "15-01"
+        ]
+      },
+      "metadata": {},
+      "storedAt": "2026-01-23T16:17:25.530Z",
+      "accessCount": 0,
+      "lastAccessed": "2026-01-23T16:17:25.530Z"
+    }
+  },
+  "version": "3.0.0"
+}
