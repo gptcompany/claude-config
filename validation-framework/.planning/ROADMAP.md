@@ -175,7 +175,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 9. Tier 2 Validators | M3 | 2/2 | Complete | 2026-01-22 |
 | 10. Tier 3 Validators | M3 | 2/2 | Complete | 2026-01-22 |
 | 11. Ralph Integration | M3 | 3/3 | Complete | 2026-01-23 |
-| 12. Confidence Loop | M3 | 4/4 | Complete | 2026-01-23 |
+| 12. Confidence Loop | M3 | 5/5 | Complete | 2026-01-23 |
 | 13. ECC Full Integration | M4 | 0/? | Not started | - |
 | 14. Hooks Node.js Port | M4 | 0/? | Not started | - |
 | 15. Skills Port | M4 | 0/? | Not started | - |
@@ -184,7 +184,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 **Goal**: Transform Tier 3 from passive monitors to active loop drivers with visual-driven development
 **Depends on**: Phase 11
 **Research**: Completed (visual comparison libraries, behavioral testing frameworks)
-**Plans**: 4 plans
+**Plans**: 5 plans
 
 Plans:
 - [x] 12-01: Visual validators (pixel_diff ODiff, perceptual SSIM, combined)
