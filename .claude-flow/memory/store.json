@@ -19,6 +19,19 @@
       "storedAt": "2026-01-23T16:22:02.005Z",
       "accessCount": 0,
       "lastAccessed": "2026-01-23T16:22:02.005Z"
+    },
+    "gsd:progressive-deploy:16": {
+      "key": "gsd:progressive-deploy:16",
+      "value": {
+        "status": "in_progress",
+        "phase": 16,
+        "started_at": "2026-01-23T00:00:00Z",
+        "plans": []
+      },
+      "metadata": {},
+      "storedAt": "2026-01-23T16:58:02.185Z",
+      "accessCount": 0,
+      "lastAccessed": "2026-01-23T16:58:02.185Z"
     }
   },
   "version": "3.0.0"
