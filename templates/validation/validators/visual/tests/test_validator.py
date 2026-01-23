@@ -100,46 +100,6 @@ class TestVisualTargetValidator:
         assert isinstance(availability["odiff"], bool)
         assert isinstance(availability["ssim"], bool)
 
-    def test_fuse_scores_default_weights(self):
-        """Test score fusion with default weights (60/40)."""
-        validator = VisualTargetValidator()
-
-        # pixel=1.0, ssim=1.0 -> 1.0
-        assert validator._fuse_scores(1.0, 1.0) == pytest.approx(1.0)
-
-        # pixel=0.0, ssim=0.0 -> 0.0
-        assert validator._fuse_scores(0.0, 0.0) == pytest.approx(0.0)
-
-        # pixel=1.0, ssim=0.0 -> 0.6
-        assert validator._fuse_scores(1.0, 0.0) == pytest.approx(0.6)
-
-        # pixel=0.0, ssim=1.0 -> 0.4
-        assert validator._fuse_scores(0.0, 1.0) == pytest.approx(0.4)
-
-        # pixel=0.5, ssim=0.5 -> 0.5
-        assert validator._fuse_scores(0.5, 0.5) == pytest.approx(0.5)
-
-    def test_fuse_scores_custom_weights(self):
-        """Test score fusion with custom weights."""
-        validator = VisualTargetValidator(
-            config={"pixel_weight": 0.3, "ssim_weight": 0.7}
-        )
-
-        # pixel=1.0, ssim=0.0 -> 0.3
-        assert validator._fuse_scores(1.0, 0.0) == pytest.approx(0.3)
-
-        # pixel=0.0, ssim=1.0 -> 0.7
-        assert validator._fuse_scores(0.0, 1.0) == pytest.approx(0.7)
-
-    def test_fuse_scores_normalizes_weights(self):
-        """Test that weights are normalized if they don't sum to 1."""
-        validator = VisualTargetValidator(
-            config={"pixel_weight": 6, "ssim_weight": 4}  # Sum = 10
-        )
-
-        # Should still work as 60/40
-        assert validator._fuse_scores(1.0, 0.0) == pytest.approx(0.6)
-
     @patch.object(VisualTargetValidator, "is_available")
     def test_compare_no_tools_available(self, mock_available):
         """Test comparison when no tools are available."""

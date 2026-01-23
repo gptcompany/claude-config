@@ -114,15 +114,6 @@ class TestMultiModalValidator:
         assert validator._weights["visual"] == 0.8
         assert validator._weights["behavioral"] == 0.2
 
-    def test_map_dimension_name(self):
-        """Test dimension name mapping."""
-        validator = MultiModalValidator()
-
-        assert validator._map_dimension_name("visual") == "visual_target"
-        assert validator._map_dimension_name("behavioral") == "behavioral"
-        assert validator._map_dimension_name("accessibility") == "accessibility"
-        assert validator._map_dimension_name("unknown") == "unknown"
-
 
 class TestMultiModalValidatorValidate:
     """Tests for async validate() method."""

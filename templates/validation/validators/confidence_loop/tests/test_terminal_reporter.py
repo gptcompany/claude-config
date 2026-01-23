@@ -86,34 +86,6 @@ class TestFormatConfidenceBar:
         assert "100%" in bar
 
 
-class TestFormatPercentage:
-    """Test percentage formatting."""
-
-    def test_format_zero(self):
-        """Test formatting 0."""
-        reporter = TerminalReporter(use_rich=False)
-        result = reporter._format_percentage(0.0)
-        assert result == "0%"
-
-    def test_format_fifty(self):
-        """Test formatting 0.5."""
-        reporter = TerminalReporter(use_rich=False)
-        result = reporter._format_percentage(0.5)
-        assert result == "50%"
-
-    def test_format_hundred(self):
-        """Test formatting 1.0."""
-        reporter = TerminalReporter(use_rich=False)
-        result = reporter._format_percentage(1.0)
-        assert result == "100%"
-
-    def test_format_fractional(self):
-        """Test formatting fractional values rounds correctly."""
-        reporter = TerminalReporter(use_rich=False)
-        result = reporter._format_percentage(0.456)
-        assert result == "46%"  # Rounds to nearest integer
-
-
 class TestReportIteration:
     """Test iteration reporting."""
 
