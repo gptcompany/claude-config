@@ -10,44 +10,46 @@ See: .planning/PROJECT.md (updated 2026-01-19)
 ## Current Position
 
 Phase: 12 of 12 (Confidence-Based Loop Extension) - COMPLETE
-Plans: 12-01 completed, 12-02 completed, 12-03 completed, 12-04 completed
-Status: ProgressiveRefinementLoop shipped
-Last activity: 2026-01-23 - Phase 12-04 Progressive refinement loop
+Plans: 12-01 completed, 12-02 completed, 12-03 completed, 12-04 completed, 12-05 completed
+Status: All confidence loop components shipped
+Last activity: 2026-01-23 - Phase 12-05 Reporters and orchestrator integration
 
 Progress: ██████████ 100% M1 | ██████████ 100% M2 | ██████████ 100% M3 (6/6 phases)
 
-## Phase 12-04 Deliverables
+## Phase 12-05 Deliverables
 
 | Deliverable | File | Status |
 |-------------|------|--------|
-| TerminationResult | `validators/confidence_loop/termination.py` | ✅ Complete |
-| TerminationEvaluator | `validators/confidence_loop/termination.py` | ✅ Complete |
-| RefinementStage | `validators/confidence_loop/loop_controller.py` | ✅ Complete |
-| LoopState | `validators/confidence_loop/loop_controller.py` | ✅ Complete |
-| ProgressiveRefinementLoop | `validators/confidence_loop/loop_controller.py` | ✅ Complete |
-| Package exports | `validators/confidence_loop/__init__.py` | ✅ Complete |
-| Test suite | `validators/confidence_loop/tests/` | ✅ 69 tests passing |
+| TerminalReporter | `validators/confidence_loop/terminal_reporter.py` | ✅ Complete |
+| GrafanaReporter | `validators/confidence_loop/grafana_reporter.py` | ✅ Complete |
+| ConfidenceLoopOrchestrator | `validators/confidence_loop/orchestrator_integration.py` | ✅ Complete |
+| Test suite | `validators/confidence_loop/tests/` | ✅ 161 tests passing |
 
-## Phase 12-04 Summary
+## Phase 12-05 Summary
 
 ### What Was Built
 
-1. **TerminationEvaluator** (Dynamic termination):
-   - Three termination conditions: threshold_met, progress_stalled, max_iterations
-   - Stall detection with recovery (resets on progress)
-   - Confidence history tracking
-   - Input validation and clamping
+1. **TerminalReporter** (Human feedback):
+   - Confidence bar visualization: [======>    ] 60%
+   - Stage transition announcements
+   - Final summary with termination reason
+   - Rich library optional with graceful fallback
+   - 32 tests, 97% coverage
 
-2. **ProgressiveRefinementLoop** (Self-Refine pattern):
-   - Three-stage refinement: LAYOUT (80%) -> STYLE (90%) -> POLISH (95%)
-   - Validator integration with graceful fallbacks
-   - Human-readable feedback generation
-   - Immutable state updates per iteration
+2. **GrafanaReporter** (Dashboard metrics):
+   - Push iteration metrics (confidence, stage, iteration)
+   - Dimension scores as annotations
+   - Event annotations (stage changes, termination)
+   - Support for Prometheus push gateway
+   - Graceful degradation when unavailable
+   - 37 tests, 100% coverage
 
-3. **Tests**:
-   - 35 tests for termination.py (100% coverage)
-   - 34 tests for loop_controller.py (100% coverage)
-   - All 69 tests passing, 100% coverage on production code
+3. **ConfidenceLoopOrchestrator** (Integration):
+   - Integrates confidence loop with ValidationOrchestrator
+   - run_with_confidence() for iterative validation
+   - Dual reporting (terminal + Grafana)
+   - Stage transition detection and reporting
+   - 23 tests, 99% coverage
 
 ## Phase 12 Plans Status
 
@@ -57,6 +59,18 @@ Progress: ██████████ 100% M1 | █████████�
 | 12-02 | Behavioral validator (DOM diff) | Complete | 6e67b42, 3787f50 |
 | 12-03 | MultiModalValidator (fusion) | Complete | 06e3417, a2a18e2 |
 | 12-04 | Progressive refinement loop | Complete | 4ebe883, 1ea168f |
+| 12-05 | Reporters and orchestrator integration | Complete | 517b858, 2a4b5ec, f23fd00 |
+
+## Phase 12 Test Summary
+
+| Module | Tests | Coverage |
+|--------|-------|----------|
+| termination.py | 35 | 100% |
+| loop_controller.py | 34 | 100% |
+| terminal_reporter.py | 32 | 97% |
+| grafana_reporter.py | 37 | 100% |
+| orchestrator_integration.py | 23 | 99% |
+| **Total Phase 12** | **161** | **>97%** |
 
 ## Previous Phases
 
@@ -80,6 +94,9 @@ Progress: ██████████ 100% M1 | █████████�
 
 ## Key Files
 
+- Terminal reporter: `~/.claude/templates/validation/validators/confidence_loop/terminal_reporter.py`
+- Grafana reporter: `~/.claude/templates/validation/validators/confidence_loop/grafana_reporter.py`
+- Orchestrator integration: `~/.claude/templates/validation/validators/confidence_loop/orchestrator_integration.py`
 - Termination: `~/.claude/templates/validation/validators/confidence_loop/termination.py`
 - Loop controller: `~/.claude/templates/validation/validators/confidence_loop/loop_controller.py`
 - Score fusion: `~/.claude/templates/validation/validators/multimodal/score_fusion.py`
@@ -91,17 +108,17 @@ Progress: ██████████ 100% M1 | █████████�
 ## Session Continuity
 
 Last session: 2026-01-23
-Completed: Phase 12-04 - ProgressiveRefinementLoop
-Verified: 69 tests passing, 100% coverage
+Completed: Phase 12-05 - Reporters and orchestrator integration
+Verified: 161 tests passing, >97% coverage
 Next: Milestone 3 complete - ready for /gsd:complete-milestone
 
 ## Key Decisions (This Session)
 
-1. Three termination conditions (priority order): threshold_met > progress_stalled > max_iterations
-2. Default stage thresholds: LAYOUT 80%, STYLE 90%, POLISH 95%
-3. Stall detection resets on progress to allow recovery
-4. Validator confidence extraction with graceful fallbacks
-5. Confidence clamping to [0.0, 1.0] for robustness
+1. Dual reporting: terminal for human feedback, Grafana for dashboards
+2. Rich library optional with graceful fallback
+3. Protocol-based integration with ValidationOrchestrator (duck typing)
+4. Grafana unavailability is non-fatal (graceful degradation)
+5. Stage transitions detected and reported automatically
 
 ## GitHub Sync
 
