@@ -509,7 +509,8 @@ class OSSReuseValidator(BaseValidator):
         # Use real implementation if available
         if OSSReuseValidatorImpl:
             impl = OSSReuseValidatorImpl()
-            return await impl.validate()
+            # ValidationResult from validator module is structurally identical
+            return await impl.validate()  # type: ignore[return-value]
 
         # Fallback stub
         return ValidationResult(
