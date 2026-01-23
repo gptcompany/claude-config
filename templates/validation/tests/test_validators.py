@@ -157,7 +157,7 @@ client = httpx.Client()
         from validators.oss_reuse.validator import OSSReuseValidator
 
         validator = OSSReuseValidator()
-        with tempfile.TemporaryDirectory() as tmpdir:
+        with tempfile.TemporaryDirectory():
             with patch("validators.oss_reuse.validator.Path") as mock_path:
                 mock_path.return_value.rglob.return_value = []
                 result = await validator.validate()
