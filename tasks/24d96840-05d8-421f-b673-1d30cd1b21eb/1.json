@@ -1,9 +1,0 @@
-{
-  "id": "1",
-  "subject": "Execute Plan 04-01: CommodityCollector",
-  "description": "Create commodity spot price collector for gold, silver, copper, WTI, and Brent crude following FX collector pattern. Includes derived metrics (Brent-WTI spread, Cu/Au ratio) and tests.",
-  "activeForm": "Implementing CommodityCollector",
-  "status": "in_progress",
-  "blocks": [],
-  "blockedBy": []
-}

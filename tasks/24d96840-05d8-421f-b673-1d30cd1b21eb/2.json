@@ -1,9 +1,0 @@
-{
-  "id": "2",
-  "subject": "Execute Plan 04-02: ETFFlowCollector",
-  "description": "Create ETF flows collector to track shares outstanding for commodity ETFs (GLD, SLV, USO, CPER, DBA). Includes historical prices and flow estimation.",
-  "activeForm": "Implementing ETFFlowCollector",
-  "status": "in_progress",
-  "blocks": [],
-  "blockedBy": []
-}

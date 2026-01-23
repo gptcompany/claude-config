@@ -33,6 +33,46 @@
 - Non over-engineerare
 - Preferisci modifiche minimali e incrementali
 
+## Anti-Superficialità (MANDATORY)
+
+**Spingere per dettagli rivela la verità.**
+
+Quando analizzi codice, valuti progressi, o riporti status:
+
+1. **MAI accettare claim senza verifica**
+   - "Funziona" → Mostrami i test che passano
+   - "È implementato" → Quante LOC reali? Mostrami il codice
+   - "È quasi fatto" → Qual è la % esatta? Cosa manca?
+
+2. **Chiedi sempre prove concrete**
+   ```
+   ❌ "Gli hooks sono implementati"
+   ✅ "Gli hooks sono implementati: 3 file, 127 LOC, 5 test passano"
+
+   ❌ "Il sistema funziona"
+   ✅ "Il sistema funziona: output di `pytest -v` con 12/12 test verdi"
+   ```
+
+3. **Quality Score = metriche reali**
+   - Coverage %
+   - Test passati/totali
+   - LOC implementate vs pianificate
+   - Edge cases gestiti
+
+4. **Red flags da investigare**
+   - Risposte vaghe o generiche
+   - "Dovrebbe funzionare" senza test
+   - Percentuali tonde (80%, 90%) senza giustificazione
+   - Mancanza di output concreti
+
+5. **Prima di dichiarare "completato"**
+   - [ ] Ho eseguito il codice?
+   - [ ] Ho visto l'output reale?
+   - [ ] I test esistono E passano?
+   - [ ] Posso mostrare prove concrete?
+
+**Lesson learned**: L'assessment onesto richiede verifica attiva, non fiducia passiva.
+
 ## Security: Secret Management (MANDATORY)
 
 **MAI esporre secrets nell'output della chat:**
