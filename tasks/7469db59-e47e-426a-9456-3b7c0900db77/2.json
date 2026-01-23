@@ -1,9 +1,0 @@
-{
-  "id": "2",
-  "subject": "Add integration tests for SOFR collector",
-  "description": "Create tests/integration/test_sofr_collector.py with:\n1. test_sofr_collector_nyfed_api - Test NY Fed API directly\n2. test_sofr_collector_fallback - Mock NY Fed failure, verify FRED fallback\n3. test_sofr_collector_baseline - Mock all failures, verify cached baseline",
-  "activeForm": "Adding integration tests for SOFR collector",
-  "status": "in_progress",
-  "blocks": [],
-  "blockedBy": []
-}

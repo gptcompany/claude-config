@@ -1,9 +1,0 @@
-{
-  "id": "1",
-  "subject": "Create SOFR collector with NY Fed primary and FRED fallback",
-  "description": "Create SOFRCollector extending BaseCollector[pd.DataFrame] with:\n- Tier 1: NY Fed Markets API (https://markets.newyorkfed.org/api/rates/secured/sofr/last/{n}.json)\n- Tier 2: FRED via OpenBB (SOFR series)\n- Tier 3: Cached baseline (4.35%, Jan 2026)\nStandard output columns: timestamp, series_id, source, value, unit",
-  "activeForm": "Creating SOFR collector with multi-tier fallback",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}
