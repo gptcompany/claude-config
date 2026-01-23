@@ -29,8 +29,8 @@ try:
 except ImportError:
     METRICS_AVAILABLE = False
 
-    def push_validation_metrics(*args, **kwargs):
-        pass
+    def push_validation_metrics(*args, **kwargs) -> bool:
+        return False
 
 
 try:
@@ -42,11 +42,11 @@ try:
 except ImportError:
     SENTRY_AVAILABLE = False
 
-    def inject_validation_context(*args, **kwargs):
-        pass
+    def inject_validation_context(*args, **kwargs) -> bool:
+        return False
 
-    def add_validation_breadcrumb(*args, **kwargs):
-        pass
+    def add_validation_breadcrumb(*args, **kwargs) -> bool:
+        return False
 
 
 # =============================================================================

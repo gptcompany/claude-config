@@ -48,7 +48,7 @@ _validation_blockers = None
 _warned_once = False
 
 
-def _initialize_metrics():
+def _initialize_metrics() -> bool:
     """Initialize metrics on first use (lazy initialization)."""
     global \
         _registry, \
@@ -57,13 +57,16 @@ def _initialize_metrics():
         _validation_score, \
         _validation_blockers
 
-    if not METRICS_AVAILABLE:
+    if not METRICS_AVAILABLE or CollectorRegistry is None:
         return False
 
     if _registry is not None:
         return True
 
     _registry = CollectorRegistry()
+
+    if Counter is None or Histogram is None or Gauge is None:
+        return False
 
     _validation_runs = Counter(
         "validation_runs_total",
@@ -135,13 +138,15 @@ def push_validation_metrics(
         # ValidationReport has .tiers list
         if hasattr(result, "tiers"):
             # ValidationReport - push metrics for all tiers
-            for tier_result in result.tiers:
+            for tier_result in getattr(result, "tiers", []):
                 _push_tier_metrics(tier_result, project)
-        else:
-            # Single TierResult
-            _push_tier_metrics(result, project)
+        elif hasattr(result, "tier"):
+            # Single TierResult - type narrow to satisfy pyright
+            _push_tier_metrics(result, project)  # type: ignore[arg-type]
 
         # Push to gateway
+        if push_to_gateway is None or _registry is None:
+            return False
         push_to_gateway(
             gateway=PUSHGATEWAY_URL,
             job="validation_orchestrator",
@@ -160,7 +165,12 @@ def push_validation_metrics(
 
 def _push_tier_metrics(tier_result: "TierResult", project: str) -> None:
     """Push metrics for a single tier result."""
-    tier_name = tier_result.tier.name.lower()
+    # These are guaranteed to be initialized when called from push_validation_metrics
+    assert _validation_runs is not None
+    assert _validation_duration is not None
+    assert _validation_score is not None
+    assert _validation_blockers is not None
+
     tier_value = str(tier_result.tier.value)
 
     # Increment run counter

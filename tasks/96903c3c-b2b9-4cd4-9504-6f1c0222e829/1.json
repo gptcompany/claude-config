@@ -3,7 +3,7 @@
   "subject": "Execute Plan 05-02: Fed Custody Collector",
   "description": "Create FedCustodyCollector for weekly custody holdings (WSEFINTL1, WMTSECL1, WFASECL1) from FRED.",
   "activeForm": "Implementing Fed Custody collector",
-  "status": "in_progress",
+  "status": "completed",
   "blocks": [],
   "blockedBy": []
 }

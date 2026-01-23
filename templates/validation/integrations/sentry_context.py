@@ -62,14 +62,18 @@ def inject_validation_context(
     if not _is_sentry_initialized():
         return False
 
+    # Guard for type checker - these are non-None when _is_sentry_initialized() returns True
+    if set_context is None or set_tag is None or add_breadcrumb is None:
+        return False
+
     try:
         # Handle both TierResult and ValidationReport
         if hasattr(result, "tiers"):
             # ValidationReport - inject aggregate context
-            _inject_report_context(result)
-        else:
+            _inject_report_context(result)  # type: ignore[arg-type]
+        elif hasattr(result, "tier"):
             # Single TierResult
-            _inject_tier_context(result)
+            _inject_tier_context(result)  # type: ignore[arg-type]
 
         return True
 
@@ -81,6 +85,11 @@ def inject_validation_context(
 
 def _inject_tier_context(tier_result: "TierResult") -> None:
     """Inject context for a single tier result."""
+    # Type assertions - caller ensures these are set via _is_sentry_initialized()
+    assert set_context is not None
+    assert set_tag is not None
+    assert add_breadcrumb is not None
+
     tier_name = tier_result.tier.name
     tier_value = tier_result.tier.value
 
@@ -132,8 +141,13 @@ def _inject_tier_context(tier_result: "TierResult") -> None:
 
 def _inject_report_context(report: "ValidationReport") -> None:
     """Inject context for a full validation report."""
+    # Type assertions - caller ensures these are set via _is_sentry_initialized()
+    assert set_context is not None
+    assert set_tag is not None
+    assert add_breadcrumb is not None
+
     # Aggregate metrics across all tiers
-    all_validators = []
+    all_validators: list[str] = []
     all_failed = []
     total_duration_ms = 0
 
@@ -231,6 +245,10 @@ def capture_validation_error(
     if not _is_sentry_initialized():
         return False
 
+    # Type assertions - _is_sentry_initialized() ensures these are set
+    assert push_scope is not None
+    assert sentry_sdk is not None
+
     if context is None:
         context = {}
 
@@ -289,6 +307,9 @@ def add_validation_breadcrumb(
     """
     if not _is_sentry_initialized():
         return False
+
+    # Type assertion - _is_sentry_initialized() ensures this is set
+    assert add_breadcrumb is not None
 
     try:
         add_breadcrumb(

@@ -161,8 +161,8 @@ try:
 except ImportError:
     METRICS_AVAILABLE = False
 
-    def push_validation_metrics(*args, **kwargs):
-        pass
+    def push_validation_metrics(*args, **kwargs) -> bool:
+        return False
 
 
 try:
@@ -174,11 +174,11 @@ try:
 except ImportError:
     SENTRY_AVAILABLE = False
 
-    def inject_validation_context(*args, **kwargs):
-        pass
+    def inject_validation_context(*args, **kwargs) -> bool:
+        return False
 
-    def add_validation_breadcrumb(*args, **kwargs):
-        pass
+    def add_validation_breadcrumb(*args, **kwargs) -> bool:
+        return False
 
 
 # =============================================================================
@@ -373,10 +373,10 @@ class RalphLoop:
                 )
 
                 # Handle timeout exceptions
-                if isinstance(tier2_result, Exception):
+                if isinstance(tier2_result, BaseException):
                     logger.warning(f"Tier 2 error: {tier2_result}")
                     tier2_result = _create_empty_tier_result(2)
-                if isinstance(tier3_result, Exception):
+                if isinstance(tier3_result, BaseException):
                     logger.warning(f"Tier 3 error: {tier3_result}")
                     tier3_result = _create_empty_tier_result(3)
 
@@ -384,6 +384,10 @@ class RalphLoop:
                 logger.error(f"Error running Tier 2+3: {e}")
                 tier2_result = _create_empty_tier_result(2)
                 tier3_result = _create_empty_tier_result(3)
+
+            # At this point, tier results are guaranteed to have .results attribute
+            assert hasattr(tier2_result, "results"), "tier2_result must have results"
+            assert hasattr(tier3_result, "results"), "tier3_result must have results"
 
             # Push metrics for Tier 2 and 3
             push_validation_metrics(tier2_result, self.project_name)
