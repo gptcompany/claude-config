@@ -217,6 +217,7 @@ class RalphLoop:
         self.iteration = 0
         self.history: list[IterationHistory] = []
         self.project_name = "unknown"
+        self._start_time: datetime | None = None
 
     def _get_project_name(self) -> str:
         """Get project name from git or fallback to cwd."""
@@ -233,6 +234,45 @@ class RalphLoop:
             pass
         return Path.cwd().name
 
+    def _get_tier_class(self, tier_num: int) -> Any:
+        """Get the tier enum class for a given tier number."""
+        first_validator = self.orchestrator.validators[
+            next(iter(self.orchestrator.validators))
+        ]
+        return first_validator.tier.__class__(tier_num)
+
+    def _elapsed_ms(self) -> int:
+        """Calculate elapsed milliseconds since start."""
+        if self._start_time is None:
+            return 0
+        return int((datetime.now() - self._start_time).total_seconds() * 1000)
+
+    def _create_result(
+        self,
+        state: LoopState,
+        score: float | None,
+        blockers: list[str],
+        message: str,
+    ) -> LoopResult:
+        """Create a LoopResult with current state."""
+        return LoopResult(
+            state=state,
+            iteration=self.iteration,
+            score=score,
+            blockers=blockers,
+            message=message,
+            history=self.history,
+            execution_time_ms=self._elapsed_ms(),
+        )
+
+    def _calculate_tier_score(self, tier_result: Any) -> float:
+        """Calculate score for a single tier result."""
+        if not hasattr(tier_result, "results") or not tier_result.results:
+            return 100.0
+        passed = sum(1 for r in tier_result.results if r.passed)
+        total = len(tier_result.results)
+        return (passed / total * 100) if total > 0 else 100.0
+
     def _calculate_score(
         self,
         tier1_result: Any,
@@ -247,20 +287,154 @@ class RalphLoop:
         - Tier 2 (warnings): 30%
         - Tier 3 (monitors): 20%
         """
+        t1 = self._calculate_tier_score(tier1_result)
+        t2 = self._calculate_tier_score(tier2_result)
+        t3 = self._calculate_tier_score(tier3_result)
+        return t1 * 0.5 + t2 * 0.3 + t3 * 0.2
 
-        def tier_score(tier_result: Any) -> float:
-            if not hasattr(tier_result, "results") or not tier_result.results:
-                return 100.0
-            passed = sum(1 for r in tier_result.results if r.passed)
-            total = len(tier_result.results)
-            return (passed / total * 100) if total > 0 else 100.0
+    def _push_metrics_and_context(self, tier_result: Any) -> None:
+        """Push metrics and inject Sentry context for a tier result."""
+        push_validation_metrics(tier_result, self.project_name)
+        inject_validation_context(tier_result)
 
-        t1_score = tier_score(tier1_result)
-        t2_score = tier_score(tier2_result)
-        t3_score = tier_score(tier3_result)
+    def _record_iteration(
+        self,
+        iteration_start: datetime,
+        score: float,
+        tier1_result: Any,
+        tier2_result: Any,
+        tier3_result: Any,
+    ) -> None:
+        """Record iteration in history."""
+        duration_ms = int((datetime.now() - iteration_start).total_seconds() * 1000)
 
-        # Weighted average
-        return t1_score * 0.5 + t2_score * 0.3 + t3_score * 0.2
+        tier2_warnings = 0
+        if hasattr(tier2_result, "results"):
+            tier2_warnings = sum(1 for r in tier2_result.results if not r.passed)
+
+        tier3_monitors = 0
+        if hasattr(tier3_result, "results"):
+            tier3_monitors = len(tier3_result.results)
+
+        self.history.append(
+            IterationHistory(
+                iteration=self.iteration,
+                score=score,
+                tier1_passed=tier1_result.passed,
+                tier2_warnings=tier2_warnings,
+                tier3_monitors=tier3_monitors,
+                duration_ms=duration_ms,
+            )
+        )
+
+    async def _run_tier1(self) -> tuple[Any, LoopResult | None]:
+        """
+        Run Tier 1 validation with timeout.
+
+        Returns:
+            Tuple of (tier1_result, error_result). If error_result is not None,
+            the caller should return it immediately.
+        """
+        try:
+            tier1_result = await asyncio.wait_for(
+                self.orchestrator.run_tier(self._get_tier_class(1)),
+                timeout=self.config.tier1_timeout_seconds,
+            )
+        except asyncio.TimeoutError:
+            logger.error(f"Tier 1 timeout after {self.config.tier1_timeout_seconds}s")
+            self.state = LoopState.BLOCKED
+            return None, self._create_result(
+                state=LoopState.BLOCKED,
+                score=None,
+                blockers=["Tier 1 timeout"],
+                message=f"Tier 1 timed out after {self.config.tier1_timeout_seconds}s",
+            )
+
+        self._push_metrics_and_context(tier1_result)
+
+        if not tier1_result.passed:
+            self.state = LoopState.BLOCKED
+            blockers = tier1_result.failed_dimensions
+
+            add_validation_breadcrumb(
+                message=f"Blocked at iteration {self.iteration}: {blockers}",
+                level="error",
+                data={"blockers": blockers, "iteration": self.iteration},
+            )
+            logger.warning(f"Tier 1 blockers found: {blockers}")
+
+            return None, self._create_result(
+                state=LoopState.BLOCKED,
+                score=None,
+                blockers=blockers,
+                message=f"Tier 1 blockers - fix required: {', '.join(blockers)}",
+            )
+
+        return tier1_result, None
+
+    async def _run_tier2_and_tier3(self) -> tuple[Any, Any]:
+        """
+        Run Tier 2 and Tier 3 validation in parallel.
+
+        Returns empty results on timeout or error.
+        """
+        try:
+            results = await asyncio.gather(
+                asyncio.wait_for(
+                    self.orchestrator.run_tier(self._get_tier_class(2)),
+                    timeout=self.config.tier2_timeout_seconds,
+                ),
+                asyncio.wait_for(
+                    self.orchestrator.run_tier(self._get_tier_class(3)),
+                    timeout=self.config.tier2_timeout_seconds,
+                ),
+                return_exceptions=True,
+            )
+            tier2_result, tier3_result = results
+
+            if isinstance(tier2_result, BaseException):
+                logger.warning(f"Tier 2 error: {tier2_result}")
+                tier2_result = _create_empty_tier_result(2)
+
+            if isinstance(tier3_result, BaseException):
+                logger.warning(f"Tier 3 error: {tier3_result}")
+                tier3_result = _create_empty_tier_result(3)
+
+        except Exception as e:
+            logger.error(f"Error running Tier 2+3: {e}")
+            tier2_result = _create_empty_tier_result(2)
+            tier3_result = _create_empty_tier_result(3)
+
+        self._push_metrics_and_context(tier2_result)
+        self._push_metrics_and_context(tier3_result)
+
+        return tier2_result, tier3_result
+
+    async def _run_iteration(
+        self,
+        iteration_start: datetime,
+    ) -> tuple[float, LoopResult | None]:
+        """
+        Execute a single validation iteration.
+
+        Returns:
+            Tuple of (score, early_exit_result). If early_exit_result is not None,
+            the caller should return it immediately.
+        """
+        tier1_result, error_result = await self._run_tier1()
+        if error_result is not None:
+            return 0.0, error_result
+
+        logger.info("Tier 1 passed - running Tier 2+3 in parallel")
+        tier2_result, tier3_result = await self._run_tier2_and_tier3()
+
+        score = self._calculate_score(tier1_result, tier2_result, tier3_result)
+        self._record_iteration(
+            iteration_start, score, tier1_result, tier2_result, tier3_result
+        )
+
+        logger.info(f"Iteration {self.iteration} complete: score={score:.1f}")
+        return score, None
 
     async def run(self, changed_files: list[str]) -> LoopResult:
         """
@@ -272,7 +446,7 @@ class RalphLoop:
         Returns:
             LoopResult with final state, score, and history
         """
-        start_time = datetime.now()
+        self._start_time = datetime.now()
         self.state = LoopState.VALIDATING
         self.iteration = 0
         self.history = []
@@ -289,173 +463,32 @@ class RalphLoop:
         while self.iteration < self.config.max_iterations:
             self.iteration += 1
             iteration_start = datetime.now()
-
             logger.info(f"Iteration {self.iteration}/{self.config.max_iterations}")
 
-            # Phase 1: Tier 1 blockers (fail-fast)
-            try:
-                tier1_result = await asyncio.wait_for(
-                    self.orchestrator.run_tier(
-                        self.orchestrator.validators[
-                            next(iter(self.orchestrator.validators))
-                        ].tier.__class__(1)
-                    ),
-                    timeout=self.config.tier1_timeout_seconds,
-                )
-            except asyncio.TimeoutError:
-                logger.error(
-                    f"Tier 1 timeout after {self.config.tier1_timeout_seconds}s"
-                )
-                self.state = LoopState.BLOCKED
-                return LoopResult(
-                    state=self.state,
-                    iteration=self.iteration,
-                    score=None,
-                    blockers=["Tier 1 timeout"],
-                    message=f"Tier 1 timed out after {self.config.tier1_timeout_seconds}s",
-                    history=self.history,
-                    execution_time_ms=int(
-                        (datetime.now() - start_time).total_seconds() * 1000
-                    ),
-                )
+            combined_score, early_exit = await self._run_iteration(iteration_start)
+            if early_exit is not None:
+                return early_exit
 
-            # Push metrics and inject context after Tier 1
-            push_validation_metrics(tier1_result, self.project_name)
-            inject_validation_context(tier1_result)
-
-            # Check for blockers
-            if not tier1_result.passed:
-                self.state = LoopState.BLOCKED
-                blockers = tier1_result.failed_dimensions
-
-                add_validation_breadcrumb(
-                    message=f"Blocked at iteration {self.iteration}: {blockers}",
-                    level="error",
-                    data={"blockers": blockers, "iteration": self.iteration},
-                )
-
-                logger.warning(f"Tier 1 blockers found: {blockers}")
-
-                return LoopResult(
-                    state=self.state,
-                    iteration=self.iteration,
-                    score=None,
-                    blockers=blockers,
-                    message=f"Tier 1 blockers - fix required: {', '.join(blockers)}",
-                    history=self.history,
-                    execution_time_ms=int(
-                        (datetime.now() - start_time).total_seconds() * 1000
-                    ),
-                )
-
-            logger.info("Tier 1 passed - running Tier 2+3 in parallel")
-
-            # Phase 2: Tier 2+3 in parallel (informational)
-            try:
-                tier2_result, tier3_result = await asyncio.gather(
-                    asyncio.wait_for(
-                        self.orchestrator.run_tier(
-                            self.orchestrator.validators[
-                                next(iter(self.orchestrator.validators))
-                            ].tier.__class__(2)
-                        ),
-                        timeout=self.config.tier2_timeout_seconds,
-                    ),
-                    asyncio.wait_for(
-                        self.orchestrator.run_tier(
-                            self.orchestrator.validators[
-                                next(iter(self.orchestrator.validators))
-                            ].tier.__class__(3)
-                        ),
-                        timeout=self.config.tier2_timeout_seconds,
-                    ),
-                    return_exceptions=True,
-                )
-
-                # Handle timeout exceptions
-                if isinstance(tier2_result, BaseException):
-                    logger.warning(f"Tier 2 error: {tier2_result}")
-                    tier2_result = _create_empty_tier_result(2)
-                if isinstance(tier3_result, BaseException):
-                    logger.warning(f"Tier 3 error: {tier3_result}")
-                    tier3_result = _create_empty_tier_result(3)
-
-            except Exception as e:
-                logger.error(f"Error running Tier 2+3: {e}")
-                tier2_result = _create_empty_tier_result(2)
-                tier3_result = _create_empty_tier_result(3)
-
-            # At this point, tier results are guaranteed to have .results attribute
-            assert hasattr(tier2_result, "results"), "tier2_result must have results"
-            assert hasattr(tier3_result, "results"), "tier3_result must have results"
-
-            # Push metrics for Tier 2 and 3
-            push_validation_metrics(tier2_result, self.project_name)
-            push_validation_metrics(tier3_result, self.project_name)
-            inject_validation_context(tier2_result)
-            inject_validation_context(tier3_result)
-
-            # Calculate combined score
-            combined_score = self._calculate_score(
-                tier1_result, tier2_result, tier3_result
-            )
-
-            # Record iteration history
-            iteration_duration = int(
-                (datetime.now() - iteration_start).total_seconds() * 1000
-            )
-            self.history.append(
-                IterationHistory(
-                    iteration=self.iteration,
-                    score=combined_score,
-                    tier1_passed=tier1_result.passed,
-                    tier2_warnings=len(
-                        [r for r in tier2_result.results if not r.passed]
-                    )
-                    if hasattr(tier2_result, "results")
-                    else 0,
-                    tier3_monitors=len(tier3_result.results)
-                    if hasattr(tier3_result, "results")
-                    else 0,
-                    duration_ms=iteration_duration,
-                )
-            )
-
-            logger.info(
-                f"Iteration {self.iteration} complete: score={combined_score:.1f}"
-            )
-
-            # Check if threshold met
             if combined_score >= self.config.min_score_threshold:
                 self.state = LoopState.COMPLETE
-
                 add_validation_breadcrumb(
                     message=f"Validation complete: score {combined_score:.1f}",
                     level="info",
                     data={"score": combined_score, "iteration": self.iteration},
                 )
-
-                return LoopResult(
-                    state=self.state,
-                    iteration=self.iteration,
+                return self._create_result(
+                    state=LoopState.COMPLETE,
                     score=combined_score,
                     blockers=[],
                     message=f"Validation passed (score: {combined_score:.1f})",
-                    history=self.history,
-                    execution_time_ms=int(
-                        (datetime.now() - start_time).total_seconds() * 1000
-                    ),
                 )
 
-            # Log that we're continuing
             logger.info(
-                f"Score {combined_score:.1f} < threshold {self.config.min_score_threshold}, "
-                f"continuing..."
+                f"Score {combined_score:.1f} < threshold "
+                f"{self.config.min_score_threshold}, continuing..."
             )
 
-        # Max iterations reached
         self.state = LoopState.COMPLETE
-
         add_validation_breadcrumb(
             message=f"Max iterations reached: score {combined_score:.1f}",
             level="warning",
@@ -465,14 +498,14 @@ class RalphLoop:
             },
         )
 
-        return LoopResult(
-            state=self.state,
-            iteration=self.iteration,
+        return self._create_result(
+            state=LoopState.COMPLETE,
             score=combined_score,
             blockers=[],
-            message=f"Max iterations ({self.config.max_iterations}) reached, score: {combined_score:.1f}",
-            history=self.history,
-            execution_time_ms=int((datetime.now() - start_time).total_seconds() * 1000),
+            message=(
+                f"Max iterations ({self.config.max_iterations}) reached, "
+                f"score: {combined_score:.1f}"
+            ),
         )
 
 
