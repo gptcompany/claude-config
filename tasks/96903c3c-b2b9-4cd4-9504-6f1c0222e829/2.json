@@ -1,0 +1,9 @@
+{
+  "id": "2",
+  "subject": "Execute Plan 05-01: TIC Data Collector",
+  "description": "Create TICCollector for Treasury International Capital data - foreign holdings of US Treasuries. Treasury CSV + FRED fallback.",
+  "activeForm": "Implementing TIC collector",
+  "status": "in_progress",
+  "blocks": [],
+  "blockedBy": []
+}

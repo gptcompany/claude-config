@@ -21,6 +21,35 @@ from enum import Enum
 from pathlib import Path
 
 # =============================================================================
+# Integration Imports (Optional - graceful degradation)
+# =============================================================================
+
+try:
+    from integrations.metrics import push_validation_metrics, METRICS_AVAILABLE
+except ImportError:
+    METRICS_AVAILABLE = False
+
+    def push_validation_metrics(*args, **kwargs):
+        pass
+
+
+try:
+    from integrations.sentry_context import (
+        inject_validation_context,
+        add_validation_breadcrumb,
+        SENTRY_AVAILABLE,
+    )
+except ImportError:
+    SENTRY_AVAILABLE = False
+
+    def inject_validation_context(*args, **kwargs):
+        pass
+
+    def add_validation_breadcrumb(*args, **kwargs):
+        pass
+
+
+# =============================================================================
 # Configuration from Template
 # =============================================================================
 
@@ -49,6 +78,30 @@ logging.basicConfig(
     ],
 )
 logger = logging.getLogger(__name__)
+
+# Log available integrations once at module load
+_integrations_logged = False
+
+
+def _log_integrations_status():
+    """Log which integrations are available (once at startup)."""
+    global _integrations_logged
+    if _integrations_logged:
+        return
+    _integrations_logged = True
+
+    integrations = []
+    if METRICS_AVAILABLE:
+        integrations.append("Prometheus metrics")
+    if SENTRY_AVAILABLE:
+        integrations.append("Sentry context")
+
+    if integrations:
+        logger.info(f"Integrations available: {', '.join(integrations)}")
+    else:
+        logger.info(
+            "No optional integrations available (prometheus_client, sentry_sdk)"
+        )
 
 
 # =============================================================================
@@ -775,10 +828,18 @@ class ValidationOrchestrator:
         1. Tier 1 (Blockers) - if any fail, stop and return blocked=True
         2. Tier 2 (Warnings) - log fix suggestions
         3. Tier 3 (Monitors) - emit metrics
+
+        After each tier:
+        - Push metrics to Prometheus (if available)
+        - Inject context to Sentry (if available)
         """
+        # Log available integrations once at startup
+        _log_integrations_status()
+
         start = datetime.now()
+        project_name = self.config.get("project_name", "unknown")
         report = ValidationReport(
-            project=self.config.get("project_name", "unknown"),
+            project=project_name,
             timestamp=start.isoformat(),
         )
 
@@ -786,10 +847,28 @@ class ValidationOrchestrator:
         t1 = await self.run_tier(ValidationTier.BLOCKER)
         report.tiers.append(t1)
 
+        # Push metrics and inject context after Tier 1
+        push_validation_metrics(t1, project_name)
+        inject_validation_context(t1)
+
         if not t1.passed:
             report.blocked = True
             report.overall_passed = False
             logger.warning(f"Tier 1 BLOCKED: {t1.failed_dimensions}")
+
+            # Add breadcrumb for blocker details
+            add_validation_breadcrumb(
+                message=f"Blocked by: {', '.join(t1.failed_dimensions)}",
+                level="error",
+                data={"blockers": t1.failed_dimensions},
+            )
+
+            # Push final metrics and context before returning
+            report.execution_time_ms = int(
+                (datetime.now() - start).total_seconds() * 1000
+            )
+            push_validation_metrics(report, project_name)
+            inject_validation_context(report)
             return report
 
         logger.info("Tier 1 passed - proceeding to Tier 2")
@@ -798,19 +877,145 @@ class ValidationOrchestrator:
         t2 = await self.run_tier(ValidationTier.WARNING)
         report.tiers.append(t2)
 
+        # Push metrics and inject context after Tier 2
+        push_validation_metrics(t2, project_name)
+        inject_validation_context(t2)
+
         if t2.has_warnings:
             await self._suggest_fixes(t2)
             logger.info(f"Tier 2 warnings: {t2.failed_dimensions}")
+
+            # Add breadcrumb for warning details
+            add_validation_breadcrumb(
+                message=f"Warnings: {', '.join(t2.failed_dimensions)}",
+                level="warning",
+                data={"warnings": t2.failed_dimensions},
+            )
 
         # Tier 3: Monitors (emit metrics)
         t3 = await self.run_tier(ValidationTier.MONITOR)
         report.tiers.append(t3)
         await self._emit_metrics(t3)
 
+        # Push metrics and inject context after Tier 3
+        push_validation_metrics(t3, project_name)
+        inject_validation_context(t3)
+
         report.execution_time_ms = int((datetime.now() - start).total_seconds() * 1000)
         logger.info(f"Validation complete in {report.execution_time_ms}ms")
 
+        # Final metrics push with full report
+        push_validation_metrics(report, project_name)
+        inject_validation_context(report)
+
         return report
+
+    async def validate_file(
+        self, file_path: str, tier: int = 1
+    ) -> "FileValidationResult":
+        """
+        Quick validation for a single file. Used by hooks.
+
+        Args:
+            file_path: Path to the file to validate
+            tier: Validation tier (1=blockers only, 2=warnings, 3=monitors)
+
+        Returns:
+            FileValidationResult with has_blockers property
+
+        Notes:
+            - Only runs validators relevant to the file type
+            - For Python files: code_quality, type_safety, security
+            - For other files: minimal checks or skip
+            - Much faster than run_all() for single-file validation
+        """
+        start = datetime.now()
+        file_ext = Path(file_path).suffix.lower()
+
+        # Determine which validators to run based on file type
+        if file_ext == ".py":
+            relevant_validators = ["code_quality", "type_safety", "security"]
+        elif file_ext in (".js", ".ts", ".jsx", ".tsx"):
+            relevant_validators = ["code_quality", "security"]
+        elif file_ext in (".json", ".yaml", ".yml"):
+            relevant_validators = ["security"]  # Check for secrets
+        else:
+            # Unknown file type - skip validation
+            return FileValidationResult(
+                file_path=file_path,
+                has_blockers=False,
+                message="File type not validated",
+                results=[],
+                duration_ms=0,
+            )
+
+        # Filter validators by tier and relevance
+        target_tier = ValidationTier(tier)
+        validators_to_run = [
+            (name, v)
+            for name, v in self.validators.items()
+            if name in relevant_validators and v.tier == target_tier
+        ]
+
+        if not validators_to_run:
+            return FileValidationResult(
+                file_path=file_path,
+                has_blockers=False,
+                message=f"No tier {tier} validators for this file type",
+                results=[],
+                duration_ms=int((datetime.now() - start).total_seconds() * 1000),
+            )
+
+        # Run validators in parallel
+        results = await asyncio.gather(
+            *[self._run_validator(name, v) for name, v in validators_to_run]
+        )
+
+        # Aggregate results
+        has_blockers = any(not r.passed for r in results)
+        failed = [r.dimension for r in results if not r.passed]
+        duration_ms = int((datetime.now() - start).total_seconds() * 1000)
+
+        if has_blockers:
+            message = f"Tier {tier} blockers: {', '.join(failed)}"
+        else:
+            message = f"Tier {tier} passed ({len(results)} validators)"
+
+        return FileValidationResult(
+            file_path=file_path,
+            has_blockers=has_blockers,
+            message=message,
+            results=list(results),
+            duration_ms=duration_ms,
+        )
+
+
+@dataclass
+class FileValidationResult:
+    """Result from single-file validation. Used by hooks."""
+
+    file_path: str
+    has_blockers: bool
+    message: str
+    results: list[ValidationResult] = field(default_factory=list)
+    duration_ms: int = 0
+
+    def to_dict(self) -> dict:
+        """Convert to serializable dict."""
+        return {
+            "file_path": self.file_path,
+            "has_blockers": self.has_blockers,
+            "message": self.message,
+            "duration_ms": self.duration_ms,
+            "results": [
+                {
+                    "dimension": r.dimension,
+                    "passed": r.passed,
+                    "message": r.message,
+                }
+                for r in self.results
+            ],
+        }
 
 
 # =============================================================================
