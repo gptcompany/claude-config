@@ -95,7 +95,8 @@ class NestingAnalyzer(ast.NodeVisitor):
             )
         return node
 
-    visit_AsyncFunctionDef = visit_FunctionDef
+    # AsyncFunctionDef has same structure as FunctionDef for our purposes
+    visit_AsyncFunctionDef = visit_FunctionDef  # type: ignore[assignment]
 
     def _enter_nesting(self, node):
         self.current_depth += 1
@@ -144,7 +145,8 @@ class ParameterAnalyzer(ast.NodeVisitor):
         self.generic_visit(node)
         return node
 
-    visit_AsyncFunctionDef = visit_FunctionDef
+    # AsyncFunctionDef has same structure as FunctionDef for our purposes
+    visit_AsyncFunctionDef = visit_FunctionDef  # type: ignore[assignment]
 
 
 class DesignPrinciplesValidator(BaseValidator):
