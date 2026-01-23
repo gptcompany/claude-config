@@ -1,0 +1,9 @@
+{
+  "id": "2",
+  "subject": "Task 1: Create filter-liquidations.sh script",
+  "description": "Create bash script following filter-and-prune.sh pattern to extract BTC/ETH/HYPE liquidations from node_fills_by_block hourly files. Output to /media/sam/3TB-WDC/hyperliquid/filtered_liquidations/",
+  "activeForm": "Creating filter-liquidations.sh script",
+  "status": "in_progress",
+  "blocks": [],
+  "blockedBy": []
+}

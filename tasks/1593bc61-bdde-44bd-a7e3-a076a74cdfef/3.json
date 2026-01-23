@@ -1,0 +1,9 @@
+{
+  "id": "3",
+  "subject": "Task 2: Add cron entry for filter-liquidations.sh",
+  "description": "Add cron entry to run every 20 minutes in sudo crontab",
+  "activeForm": "Adding cron entry for liquidation filter",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}
