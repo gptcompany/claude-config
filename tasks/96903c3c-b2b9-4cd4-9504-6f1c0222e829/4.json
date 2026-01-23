@@ -3,7 +3,7 @@
   "subject": "Execute Plan 05-04: Risk ETF Collector",
   "description": "Create RiskETFCollector for SPY, TLT, HYG, IEF, LQD - risk sentiment ETFs and risk appetite ratio.",
   "activeForm": "Implementing Risk ETF collector",
-  "status": "in_progress",
+  "status": "completed",
   "blocks": [],
   "blockedBy": []
 }

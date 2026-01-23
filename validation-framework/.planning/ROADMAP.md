@@ -146,14 +146,16 @@ Plans:
 - [x] 10-01: Create MathematicalValidator with CAS client and formula extractor
 - [x] 10-02: Create APIContractValidator with spec discovery and oasdiff runner
 
-#### Phase 11: Ralph Integration
+#### Phase 11: Ralph Integration (COMPLETE)
 **Goal**: Wire orchestrator into Ralph loop hook + MCP integration (Playwright, Sentry, Grafana)
 **Depends on**: Phases 9, 10
-**Research**: Unlikely (existing hook patterns)
-**Plans**: TBD
+**Research**: Completed (hooks integration, Prometheus metrics, Sentry context)
+**Plans**: 3 plans
 
 Plans:
-- [ ] 11-01: TBD
+- [x] 11-01: PostToolUse hook infrastructure with Tier 1 blocking
+- [x] 11-02: Prometheus metrics and Sentry context integration
+- [x] 11-03: Ralph Loop state machine and Grafana dashboard
 
 ## Progress
 
@@ -172,7 +174,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 →
 | 8. Config Schema v2 | M3 | 1/1 | Complete | 2026-01-22 |
 | 9. Tier 2 Validators | M3 | 2/2 | Complete | 2026-01-22 |
 | 10. Tier 3 Validators | M3 | 2/2 | Complete | 2026-01-22 |
-| 11. Ralph Integration | M3 | 0/? | Not started | - |
+| 11. Ralph Integration | M3 | 3/3 | Complete | 2026-01-23 |
 | 12. Confidence Loop | M3 | 0/? | Not started | - |
 | 13. ECC Full Integration | M4 | 0/? | Not started | - |
 | 14. Hooks Node.js Port | M4 | 0/? | Not started | - |
