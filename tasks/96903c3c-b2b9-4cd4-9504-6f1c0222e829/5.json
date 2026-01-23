@@ -1,9 +1,0 @@
-{
-  "id": "5",
-  "subject": "Execute Plan 05-03: Stress Indicators Collector",
-  "description": "Create StressIndicatorCollector - SOFR-OIS spread, repo stress, CP spreads, regime classification (GREEN/YELLOW/RED).",
-  "activeForm": "Implementing stress indicators",
-  "status": "completed",
-  "blocks": [],
-  "blockedBy": []
-}
