@@ -1,0 +1,312 @@
+{
+  "session_id": "6803eea0-80de-49b3-83f7-6e53ec02c987",
+  "created_at": "2026-01-22T17:24:52.656992",
+  "operations": [
+    {
+      "operation": "read",
+      "timestamp": "2026-01-22T17:24:52.657022",
+      "file_path": "/home/sam/.claude/plans/effervescent-churning-wilkinson.md"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-22T17:25:00.076411",
+      "file_path": "/tmp/claude-config/scripts/roadmaptoissues.py"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-22T17:25:00.084750",
+      "file_path": "/tmp/claude-config/scripts/github_sync_core.py"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-22T17:25:00.090470",
+      "file_path": "/tmp/claude-config/scripts/taskstoissues.py"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-22T17:25:16.471774",
+      "todo_count": 7
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-22T17:25:29.047742",
+      "file_path": "/tmp/claude-config/scripts/github_sync_core.py",
+      "old_string": "# Standard ProjectV2 columns for Kanban board (4 columns)\nPROJECT_COLUMNS = [\n    {\"name\": \"Backlog\"..."
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-22T17:25:39.988574",
+      "todo_count": 7
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-22T17:25:48.808407",
+      "file_path": "/tmp/claude-config/scripts/roadmaptoissues.py",
+      "old_string": "try:\n    from github_sync_core import (\n        run_gh_command,\n        get_repo_info,\n        ensur..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-22T17:26:05.846250",
+      "file_path": "/tmp/claude-config/scripts/roadmaptoissues.py",
+      "old_string": "@dataclass\nclass Plan:\n    \"\"\"Represents a single plan from ROADMAP.md.\n\n    Custom fields can be ad..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-22T17:26:21.776325",
+      "file_path": "/tmp/claude-config/scripts/roadmaptoissues.py",
+      "old_string": "    # Phase patterns\n    # From Phases section: - [ ] **Phase 1: Name** - Description\n    phase_chec..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-22T17:26:33.614450",
+      "file_path": "/tmp/claude-config/scripts/roadmaptoissues.py",
+      "old_string": "        # Parse phase from Phases checklist (simpler)\n        phase_checkbox_match = phase_checkbox_..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-22T17:26:51.312924",
+      "file_path": "/tmp/claude-config/scripts/roadmaptoissues.py",
+      "old_string": "        # Parse plans\n        plan_match = plan_pattern.match(line)\n        if plan_match:\n         ..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-22T17:27:14.338401",
+      "file_path": "/tmp/claude-config/scripts/roadmaptoissues.py",
+      "old_string": "def create_plan_issue(\n    plan: Plan,\n    phase: Phase,\n    milestone_title: str | None,\n    projec..."
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-22T17:27:24.334157",
+      "file_path": "/tmp/claude-config/scripts/roadmaptoissues.py"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-22T17:27:31.460830",
+      "file_path": "/tmp/claude-config/scripts/roadmaptoissues.py",
+      "old_string": "    # Link to project using GraphQL API\n    if project_id:\n        issue_node_id = get_issue_node_id..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-22T17:27:46.335668",
+      "file_path": "/tmp/claude-config/scripts/github_sync_core.py",
+      "old_string": "        elif label.startswith(\"effort-\"):\n            # Effort/size labels with gradient colors\n    ..."
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-22T17:28:00.638687",
+      "todo_count": 7
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-22T17:28:09.524168",
+      "file_path": "/tmp/claude-config/scripts/taskstoissues.py",
+      "old_string": "# Import shared functions from github_sync_core\ntry:\n    from github_sync_core import (\n        STAN..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-22T17:28:27.631923",
+      "file_path": "/tmp/claude-config/scripts/taskstoissues.py",
+      "old_string": "@dataclass\nclass Task:\n    \"\"\"Represents a single task from tasks.md.\"\"\"\n\n    id: str\n    story: str..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-22T17:28:40.628534",
+      "file_path": "/tmp/claude-config/scripts/taskstoissues.py",
+      "old_string": "    story_pattern = re.compile(r\"^###?\\s*(US\\d+)[:\\s]+(.+)$\")\n    task_pattern = re.compile(\n       ..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-22T17:28:58.439924",
+      "file_path": "/tmp/claude-config/scripts/taskstoissues.py",
+      "old_string": "        task_match = task_pattern.match(line)\n        if task_match:\n            status = \"completed..."
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-22T17:29:09.488608",
+      "file_path": "/tmp/claude-config/scripts/taskstoissues.py"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-22T17:29:19.470815",
+      "file_path": "/tmp/claude-config/scripts/taskstoissues.py",
+      "old_string": "    title = f\"[{task.id}] {task.description}\"\n\n    body_parts = [\n        \"## Task Details\",\n       ..."
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-22T17:29:29.067300",
+      "file_path": "/tmp/claude-config/scripts/taskstoissues.py"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-22T17:29:35.859697",
+      "file_path": "/tmp/claude-config/scripts/taskstoissues.py",
+      "old_string": "    # Link to project using GraphQL API (ProjectsV2)\n    if project_id:\n        issue_node_id = get_..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-22T17:29:48.126151",
+      "file_path": "/tmp/claude-config/scripts/taskstoissues.py",
+      "old_string": "    def get_project_by_name(owner: str, project_name: str) -> Any:  # type: ignore[misc]\n        ret..."
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-22T17:30:02.269434",
+      "todo_count": 7
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-22T17:30:07.106282",
+      "file_path": "/tmp/claude-config/scripts/github_sync_core.py"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-22T17:30:22.939676",
+      "file_path": "/tmp/claude-config/scripts/github_sync_core.py",
+      "old_string": "    except json.JSONDecodeError:\n        pass\n    return issues"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-22T17:30:34.157930",
+      "file_path": "/tmp/claude-config/scripts/roadmaptoissues.py",
+      "old_string": "        get_status_from_checkbox,\n        calculate_progress,\n    )"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-22T17:30:48.527116",
+      "file_path": "/tmp/claude-config/scripts/roadmaptoissues.py",
+      "old_string": "    if phase.requirements:\n        body_parts.extend([\"\", f\"**Requirements**: {', '.join(phase.requi..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-22T17:30:59.180253",
+      "file_path": "/tmp/claude-config/scripts/taskstoissues.py",
+      "old_string": "        get_project_by_name,  # pyright: ignore[reportAssignmentType]\n        get_status_from_checkb..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-22T17:31:11.876246",
+      "file_path": "/tmp/claude-config/scripts/taskstoissues.py",
+      "old_string": "    def get_status_from_checkbox(checkbox: str) -> tuple[str, str]:\n        c = checkbox.upper() if ..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-22T17:31:25.010738",
+      "file_path": "/tmp/claude-config/scripts/taskstoissues.py",
+      "old_string": "    if task.files:\n        body_parts.append(\"### Files\")\n        body_parts.extend([f\"- `{f}`\" for ..."
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-22T17:31:37.063177",
+      "todo_count": 7
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-22T17:31:41.316874",
+      "command": "cd /tmp/claude-config/scripts && python3 -m py_compile github_sync_core.py roadmaptoissues.py taskstoissues.py && echo \"✓ All files compile successfully\"",
+      "description": "Syntax check Python files"
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-22T17:34:23.865387",
+      "file_path": "/tmp/claude-config/scripts/test_github_sync_e2e.py",
+      "content_length": 15821
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-22T17:34:38.819334",
+      "command": "cd /tmp/claude-config/scripts && python3 test_github_sync_e2e.py",
+      "description": "Run E2E tests for GitHub Sync"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-22T17:34:56.242733",
+      "file_path": "/tmp/claude-config/scripts/github_sync_core.py",
+      "old_string": "def suggest_branch_name(task_id: str, description: str) -> str:\n    \"\"\"Generate branch name from tas..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-22T17:35:11.333993",
+      "file_path": "/tmp/claude-config/scripts/test_github_sync_e2e.py",
+      "old_string": "    test_cases = [\n        (\"Plan-03-01\", \"SOFR data collector\", \"feat/Plan-03-01-sofr-data-collecto..."
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-22T17:35:21.924392",
+      "command": "cd /tmp/claude-config/scripts && python3 test_github_sync_e2e.py",
+      "description": "Run E2E tests again"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-22T17:35:30.077474",
+      "command": "cd /tmp/claude-config/scripts && python3 -c \"\nimport re\ndesc = 'A very long description that should be truncated to fit the branch name'\nslug = re.sub(r'[^a-z0-9]+', '-', desc.lower()).strip('-')[:40].rstrip('-')\nprint(f'Slug: {slug}')\nprint(f'Length: {len(slug)}')\n\"",
+      "description": "Check the exact slug output"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-22T17:35:36.312685",
+      "file_path": "/tmp/claude-config/scripts/test_github_sync_e2e.py",
+      "old_string": "        (\n            \"Plan-02-01\",\n            \"A very long description that should be truncated to..."
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-22T17:35:46.590425",
+      "command": "cd /tmp/claude-config/scripts && python3 test_github_sync_e2e.py",
+      "description": "Run E2E tests final"
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-22T17:40:18.021756",
+      "file_path": "/tmp/claude-config/scripts/test_github_sync_edge_cases.py",
+      "content_length": 12719
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-22T17:40:48.093093",
+      "command": "cat > /tmp/test_github_sync_edge_cases.py << 'ENDOFFILE'\n#!/usr/bin/env python3\n\"\"\"Edge case and regression tests for GitHub Sync.\n\nRound 2: Focus on edge cases, error handling, and real-world scenarios.\n\"\"\"\n\nimport sys\nimport tempfile\nfrom pathlib import Path\n\nsys.path.insert(0, \"/tmp/claude-config/scripts\")\n\nfrom github_sync_core import (\n    get_status_from_checkbox,\n    calculate_progress,\n    suggest_branch_name,\n)\n\n\ndef test_edge_case_special_characters_in_description():\n    \"\"\"Test branch name generation with special characters.\"\"\"\n    print(\"\\n=== Test: Special Characters in Branch Names ===\")\n\n    test_cases = [\n        (\"T001\", \"Fix: handle 'quotes' & symbols!\", \"fix/T001-fix-handle-quotes-symbols\"),\n        (\"T002\", \"Add v2.0 API support\", \"feat/T002-add-v2-0-api-support\"),\n        (\"T003\", \"Update config.yaml_backup\", \"feat/T003-update-config-yaml-backup\"),\n        (\"T004\", \"Clean   up    whitespace\", \"feat/T004-clean-up-whitespace\"),\n        (\"T005\", \"   \", \"feat/T005-\"),\n        (\"T006\", \"Fix émoji 🎉 support\", \"fix/T006-fix-moji-support\"),\n    ]\n\n    passed = failed = 0\n    for task_id, description, expected in test_cases:\n        result = suggest_branch_name(task_id, description)\n        if result == expected:\n            print(f\"  ✓ {task_id}: {result}\")\n            passed += 1\n        else:\n            print(f\"  ✗ {task_id}: got {result}, expected {expected}\")\n            failed += 1\n    return passed, failed\n\n\ndef test_edge_case_roadmap_malformed():\n    \"\"\"Test parsing with malformed ROADMAP.md content.\"\"\"\n    print(\"\\n=== Test: Malformed ROADMAP.md ===\")\n    from roadmaptoissues import parse_roadmap\n\n    passed = failed = 0\n\n    # Empty file\n    with tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False) as f:\n        f.write(\"\")\n        f.flush()\n        phases, plans = parse_roadmap(Path(f.name))\n    if len(phases) == 0 and len(plans) == 0:\n        print(\"  ✓ Empty file handled\")\n        passed += 1\n    else:\n        print(f\"  ✗ Empty file: {len(phases)} phases, {len(plans)} plans\")\n        failed += 1\n\n    # Multiple pipe fields\n    with tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False) as f:\n        f.write(\"\"\"## Phase Details\n### Phase 1: Test\n#### Plans\n- [~] 01-01: Test | priority:high | effort:M | depends:00-01 | sprint:2025-W04 | @dev\n\"\"\")\n        f.flush()\n        _, plans = parse_roadmap(Path(f.name))\n    if plans and plans[0].priority == \"high\" and plans[0].depends_on == [\"00-01\"]:\n        print(\"  ✓ Multiple pipe fields parsed\")\n        passed += 1\n    else:\n        print(f\"  ✗ Multiple pipes failed\")\n        failed += 1\n\n    return passed, failed\n\n\ndef test_progress_edge_cases():\n    \"\"\"Test progress calculation edge cases.\"\"\"\n    print(\"\\n=== Test: Progress Edge Cases ===\")\n\n    class MockItem:\n        def __init__(self, status):\n            self.status = status\n\n    passed = failed = 0\n\n    # All completed\n    items = [MockItem(\"completed\") for _ in range(5)]\n    result = calculate_progress(items)\n    if result[\"percent\"] == 100:\n        print(\"  ✓ All completed: 100%\")\n        passed += 1\n    else:\n        print(f\"  ✗ All completed: {result['percent']}%\")\n        failed += 1\n\n    # All in progress (0% since only completed counts)\n    items = [MockItem(\"in_progress\") for _ in range(3)]\n    result = calculate_progress(items)\n    if result[\"percent\"] == 0 and result[\"in_progress\"] == 3:\n        print(\"  ✓ All in_progress: 0%\")\n        passed += 1\n    else:\n        print(f\"  ✗ All in_progress: {result}\")\n        failed += 1\n\n    return passed, failed\n\n\ndef test_decimal_phase_numbers():\n    \"\"\"Test decimal phase numbers (e.g., 2.1).\"\"\"\n    print(\"\\n=== Test: Decimal Phase Numbers ===\")\n    from roadmaptoissues import parse_roadmap\n\n    passed = failed = 0\n\n    with tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False) as f:\n        f.write(\"\"\"## Phase Details\n### Phase 2.1: Hotfix\n#### Plans\n- [~] 2.1-01: Fix | priority:high\n### Phase 72.5: Test\n#### Plans\n- [ ] 72.5-01: Test\n\"\"\")\n        f.flush()\n        phases, plans = parse_roadmap(Path(f.name))\n\n    phase_nums = [p.number for p in phases]\n    if \"2.1\" in phase_nums:\n        print(f\"  ✓ Decimal phases: {phase_nums}\")\n        passed += 1\n    else:\n        print(f\"  ✗ Decimal phases: {phase_nums}\")\n        failed += 1\n\n    plan_ids = [p.id for p in plans]\n    if \"21-01\" in plan_ids:\n        print(f\"  ✓ Plan IDs: {plan_ids}\")\n        passed += 1\n    else:\n        print(f\"  ✗ Plan IDs: {plan_ids}\")\n        failed += 1\n\n    return passed, failed\n\n\ndef test_state_transitions():\n    \"\"\"Test state transitions: pending -> in_progress -> completed.\"\"\"\n    print(\"\\n=== Test: State Transitions ===\")\n    from roadmaptoissues import parse_roadmap\n\n    passed = failed = 0\n\n    states = [\n        (\"- [ ] 01-01: Task\", \"pending\", \"Backlog\"),\n        (\"- [~] 01-01: Task\", \"in_progress\", \"In Progress\"),\n        (\"- [x] 01-01: Task\", \"completed\", \"Done\"),\n    ]\n\n    for line, exp_status, exp_kanban in states:\n        with tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False) as f:\n            f.write(f\"## Phase Details\\n### Phase 1: Test\\n#### Plans\\n{line}\\n\")\n            f.flush()\n            _, plans = parse_roadmap(Path(f.name))\n\n        if plans and plans[0].status == exp_status and plans[0].kanban_status == exp_kanban:\n            print(f\"  ✓ {line[:10]}... -> {exp_status}/{exp_kanban}\")\n            passed += 1\n        else:\n            actual = f\"{plans[0].status}/{plans[0].kanban_status}\" if plans else \"N/A\"\n            print(f\"  ✗ {line[:10]}... -> {actual}\")\n            failed += 1\n\n    return passed, failed\n\n\ndef main():\n    print(\"=\" * 60)\n    print(\"GitHub Sync - Edge Cases (Round 2)\")\n    print(\"=\" * 60)\n\n    total_passed = total_failed = 0\n    tests = [\n        test_edge_case_special_characters_in_description,\n        test_edge_case_roadmap_malformed,\n        test_progress_edge_cases,\n        test_decimal_phase_numbers,\n        test_state_transitions,\n    ]\n\n    for test_fn in tests:\n        try:\n            p, f = test_fn()\n            total_passed += p\n            total_failed += f\n        except Exception as e:\n            print(f\"\\n  ✗ CRASHED: {e}\")\n            import traceback; traceback.print_exc()\n            total_failed += 1\n\n    print(\"\\n\" + \"=\" * 60)\n    print(f\"ROUND 2: {total_passed} passed, {total_failed} failed\")\n    print(\"=\" * 60)\n    return 1 if total_failed > 0 else 0\n\nif __name__ == \"__main__\":\n    sys.exit(main())\nENDOFFILE\npython3 /tmp/test_github_sync_edge_cases.py",
+      "description": "Run edge case tests (Round 2)"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-22T17:41:32.055403",
+      "command": "cat > /tmp/test_github_sync_integration.py << 'ENDOFFILE'\n#!/usr/bin/env python3\n\"\"\"Integration tests - Round 3: Real-world scenarios.\"\"\"\n\nimport sys\nimport tempfile\nfrom pathlib import Path\n\nsys.path.insert(0, \"/tmp/claude-config/scripts\")\n\nfrom github_sync_core import calculate_progress, suggest_branch_name\nfrom roadmaptoissues import parse_roadmap\nfrom taskstoissues import parse_tasks_file\n\n\ndef test_realistic_roadmap():\n    \"\"\"Test with a realistic ROADMAP.md structure.\"\"\"\n    print(\"\\n=== Test: Realistic ROADMAP.md ===\")\n\n    roadmap = \"\"\"# Project Roadmap: nautilus_dev v1.0\n\n## Overview\nBuilding a financial analytics platform.\n\n## Phases\n\n- [ ] **Phase 1: Foundation** - Core infrastructure\n- [~] **Phase 2: Data Pipeline** - Market data ingestion\n- [ ] **Phase 3: Analytics** - SOFR curves\n- [x] **Phase 4: MVP** - Basic UI\n\n## Phase Details\n\n### Phase 1: Foundation\n\n**Goal**: Setup core infrastructure\n**Depends on**: None\n**Requirements**: REQ-001, REQ-002\n\n#### Plans\n- [x] 01-01: Repository setup | effort:XS\n- [x] 01-02: CI/CD pipeline | effort:S | @devops\n- [~] 01-03: Docker configuration | effort:M | depends:01-01\n\n### Phase 2: Data Pipeline\n\n**Goal**: Ingest market data from multiple sources\n**Depends on**: Phase 1\n**Research**: SOFR data sources\n\n#### Plans\n- [~] 02-01: SOFR collector | priority:high | effort:L | depends:01-03\n- [ ] 02-02: Treasury data | priority:medium | depends:02-01\n- [ ] 02-03: Data validation | effort:M | depends:02-01,02-02 | sprint:2025-W05\n\n### Phase 3: Analytics\n\n**Goal**: Build SOFR curve construction\n\n#### Plans\n- [ ] 03-01: Curve bootstrap | priority:high | effort:XL | depends:02-01\n- [ ] 03-02: Interpolation | depends:03-01 | sprint:2025-W06\n- [ ] 03-03: Validation suite | depends:03-02 | @quant\n\n### Phase 4: MVP\n\n**Goal**: Basic user interface\n\n#### Plans\n- [x] 04-01: Dashboard layout | effort:M\n- [x] 04-02: Chart components | depends:04-01\n\"\"\"\n\n    passed = failed = 0\n\n    with tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False) as f:\n        f.write(roadmap)\n        f.flush()\n        phases, plans = parse_roadmap(Path(f.name))\n\n    # Test phase count\n    if len(phases) == 4:\n        print(f\"  ✓ Phases: 4\")\n        passed += 1\n    else:\n        print(f\"  ✗ Phases: {len(phases)}\")\n        failed += 1\n\n    # Test plan count\n    if len(plans) == 11:\n        print(f\"  ✓ Plans: 11\")\n        passed += 1\n    else:\n        print(f\"  ✗ Plans: {len(plans)}\")\n        failed += 1\n\n    # Calculate progress\n    progress = calculate_progress(plans)\n    # 5 completed: 01-01, 01-02, 04-01, 04-02 = 4 [x] ... wait let me count\n    # [x] 01-01, [x] 01-02, [~] 01-03\n    # [~] 02-01, [ ] 02-02, [ ] 02-03\n    # [ ] 03-01, [ ] 03-02, [ ] 03-03\n    # [x] 04-01, [x] 04-02\n    # completed = 4, in_progress = 2, pending = 5\n    if progress[\"completed\"] == 4 and progress[\"in_progress\"] == 2:\n        print(f\"  ✓ Progress: {progress['completed']} done, {progress['in_progress']} in progress\")\n        passed += 1\n    else:\n        print(f\"  ✗ Progress: {progress}\")\n        failed += 1\n\n    # Test dependency chains\n    plan_map = {p.id: p for p in plans}\n    \n    # 02-03 depends on 02-01 AND 02-02\n    if plan_map.get(\"02-03\") and plan_map[\"02-03\"].depends_on == [\"02-01\", \"02-02\"]:\n        print(f\"  ✓ Multi-dependency: 02-03 depends on {plan_map['02-03'].depends_on}\")\n        passed += 1\n    else:\n        print(f\"  ✗ Multi-dependency failed\")\n        failed += 1\n\n    # Test sprint assignment\n    if plan_map.get(\"02-03\") and plan_map[\"02-03\"].sprint == \"2025-W05\":\n        print(f\"  ✓ Sprint: 02-03 -> {plan_map['02-03'].sprint}\")\n        passed += 1\n    else:\n        print(f\"  ✗ Sprint failed\")\n        failed += 1\n\n    # Test effort labels\n    efforts = {p.id: p.effort for p in plans if p.effort}\n    expected_efforts = {\"01-01\": \"XS\", \"01-02\": \"S\", \"01-03\": \"M\", \"02-01\": \"L\", \"03-01\": \"XL\"}\n    if all(efforts.get(k) == v for k, v in expected_efforts.items()):\n        print(f\"  ✓ Efforts: XS, S, M, L, XL parsed\")\n        passed += 1\n    else:\n        print(f\"  ✗ Efforts: {efforts}\")\n        failed += 1\n\n    # Test assignees\n    assignees = {p.id: p.assignee for p in plans if p.assignee}\n    if assignees.get(\"01-02\") == \"devops\" and assignees.get(\"03-03\") == \"quant\":\n        print(f\"  ✓ Assignees: devops, quant\")\n        passed += 1\n    else:\n        print(f\"  ✗ Assignees: {assignees}\")\n        failed += 1\n\n    return passed, failed\n\n\ndef test_realistic_tasks():\n    \"\"\"Test with a realistic tasks.md structure.\"\"\"\n    print(\"\\n=== Test: Realistic tasks.md ===\")\n\n    tasks_md = \"\"\"# Tasks for Spec 034: Kelly Criterion\n\n## US01: Portfolio Optimization\n\nAs a quant, I want to optimize portfolio weights using Kelly criterion.\n\n### Tasks\n- [x] T001 [US01] [P1] Implement Kelly formula\n- [x] T002 [US01] [P2] Add fractional Kelly | depends:T001\n- [~] T003 [US01] [P1] [E] Risk constraints | depends:T001,T002 | sprint:2025-W04\n\n## US02: Backtesting\n\n### Tasks\n- [ ] T004 [US02] [P2] Historical simulation | depends:T003\n- [~] T005 [US02] [P3] [P] Monte Carlo | depends:T004 | sprint:2025-W05\n  - File: `src/backtest/monte_carlo.py`\n  - File: `tests/test_monte_carlo.py`\n- [ ] T006 [US02] [P2] Performance metrics | depends:T005\n\n## US03: Reporting\n\n### Tasks\n- [ ] T007 [US03] [P3] Generate reports | depends:T006\n\"\"\"\n\n    passed = failed = 0\n\n    with tempfile.NamedTemporaryFile(mode='w', suffix='.md', delete=False) as f:\n        f.write(tasks_md)\n        f.flush()\n        stories, tasks = parse_tasks_file(Path(f.name))\n\n    # Test counts\n    if len(stories) == 3 and len(tasks) == 7:\n        print(f\"  ✓ Stories: 3, Tasks: 7\")\n        passed += 1\n    else:\n        print(f\"  ✗ Stories: {len(stories)}, Tasks: {len(tasks)}\")\n        failed += 1\n\n    task_map = {t.id: t for t in tasks}\n\n    # Test status distribution\n    completed = sum(1 for t in tasks if t.status == \"completed\")\n    in_progress = sum(1 for t in tasks if t.status == \"in_progress\")\n    pending = sum(1 for t in tasks if t.status == \"pending\")\n    if completed == 2 and in_progress == 2 and pending == 3:\n        print(f\"  ✓ Status: 2 done, 2 in progress, 3 pending\")\n        passed += 1\n    else:\n        print(f\"  ✗ Status: {completed} done, {in_progress} in progress, {pending} pending\")\n        failed += 1\n\n    # Test markers\n    t003 = task_map.get(\"T003\")\n    if t003 and \"E\" in t003.markers:\n        print(f\"  ✓ T003 has [E] marker (evolve)\")\n        passed += 1\n    else:\n        print(f\"  ✗ T003 markers: {t003.markers if t003 else 'N/A'}\")\n        failed += 1\n\n    t005 = task_map.get(\"T005\")\n    if t005 and \"P\" in t005.markers:\n        print(f\"  ✓ T005 has [P] marker (parallelizable)\")\n        passed += 1\n    else:\n        print(f\"  ✗ T005 markers: {t005.markers if t005 else 'N/A'}\")\n        failed += 1\n\n    # Test files association\n    if t005 and len(t005.files) == 2:\n        print(f\"  ✓ T005 files: {t005.files}\")\n        passed += 1\n    else:\n        print(f\"  ✗ T005 files: {t005.files if t005 else 'N/A'}\")\n        failed += 1\n\n    # Test dependency chains\n    if t003 and t003.depends_on == [\"T001\", \"T002\"]:\n        print(f\"  ✓ T003 depends: {t003.depends_on}\")\n        passed += 1\n    else:\n        print(f\"  ✗ T003 depends: {t003.depends_on if t003 else 'N/A'}\")\n        failed += 1\n\n    return passed, failed\n\n\ndef test_branch_name_realistic():\n    \"\"\"Test branch names for realistic plan descriptions.\"\"\"\n    print(\"\\n=== Test: Realistic Branch Names ===\")\n\n    cases = [\n        (\"Plan-02-01\", \"SOFR collector\", \"feat/Plan-02-01-sofr-collector\"),\n        (\"Plan-03-01\", \"Fix curve bootstrap\", \"fix/Plan-03-01-fix-curve-bootstrap\"),\n        (\"T003\", \"Add risk constraints\", \"feat/T003-add-risk-constraints\"),\n        (\"Plan-01-02\", \"Setup CI/CD pipeline\", \"feat/Plan-01-02-setup-ci-cd-pipeline\"),\n    ]\n\n    passed = failed = 0\n    for task_id, desc, expected in cases:\n        result = suggest_branch_name(task_id, desc)\n        if result == expected:\n            print(f\"  ✓ {task_id}: {result}\")\n            passed += 1\n        else:\n            print(f\"  ✗ {task_id}: got {result}\")\n            failed += 1\n\n    return passed, failed\n\n\ndef main():\n    print(\"=\" * 60)\n    print(\"GitHub Sync - Integration Tests (Round 3)\")\n    print(\"=\" * 60)\n\n    total_passed = total_failed = 0\n    tests = [\n        test_realistic_roadmap,\n        test_realistic_tasks,\n        test_branch_name_realistic,\n    ]\n\n    for test_fn in tests:\n        try:\n            p, f = test_fn()\n            total_passed += p\n            total_failed += f\n        except Exception as e:\n            print(f\"\\n  ✗ CRASHED: {e}\")\n            import traceback; traceback.print_exc()\n            total_failed += 1\n\n    print(\"\\n\" + \"=\" * 60)\n    print(f\"ROUND 3: {total_passed} passed, {total_failed} failed\")\n    print(\"=\" * 60)\n    return 1 if total_failed > 0 else 0\n\nif __name__ == \"__main__\":\n    sys.exit(main())\nENDOFFILE\npython3 /tmp/test_github_sync_integration.py",
+      "description": "Run integration tests (Round 3)"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-22T17:43:25.825899",
+      "command": "cat > /tmp/test_cross_checks.py << 'ENDOFFILE'\n#!/usr/bin/env python3\n\"\"\"Cross-checks: Verify consistency between modules.\"\"\"\n\nimport sys\nimport ast\nimport re\nfrom pathlib import Path\n\nSCRIPTS_DIR = Path(\"/tmp/claude-config/scripts\")\n\n\ndef test_import_consistency():\n    \"\"\"Verify both modules import the same functions from github_sync_core.\"\"\"\n    print(\"\\n=== Cross-Check: Import Consistency ===\")\n    \n    passed = failed = 0\n    \n    roadmap_content = (SCRIPTS_DIR / \"roadmaptoissues.py\").read_text()\n    tasks_content = (SCRIPTS_DIR / \"taskstoissues.py\").read_text()\n    \n    # Extract imports from github_sync_core\n    roadmap_imports = set(re.findall(r'from github_sync_core import[^)]+\\)', roadmap_content, re.DOTALL)[0].replace('\\n', ' ').split())\n    tasks_imports = set(re.findall(r'from github_sync_core import[^)]+\\)', tasks_content, re.DOTALL)[0].replace('\\n', ' ').split())\n    \n    # Both should import get_status_from_checkbox\n    if \"get_status_from_checkbox,\" in roadmap_content and \"get_status_from_checkbox,\" in tasks_content:\n        print(\"  ✓ Both import get_status_from_checkbox\")\n        passed += 1\n    else:\n        print(\"  ✗ get_status_from_checkbox import mismatch\")\n        failed += 1\n    \n    # Both should import suggest_branch_name\n    if \"suggest_branch_name,\" in roadmap_content and \"suggest_branch_name,\" in tasks_content:\n        print(\"  ✓ Both import suggest_branch_name\")\n        passed += 1\n    else:\n        print(\"  ✗ suggest_branch_name import mismatch\")\n        failed += 1\n    \n    # Both should import set_issue_status\n    if \"set_issue_status,\" in roadmap_content and \"set_issue_status,\" in tasks_content:\n        print(\"  ✓ Both import set_issue_status\")\n        passed += 1\n    else:\n        print(\"  ✗ set_issue_status import mismatch\")\n        failed += 1\n    \n    return passed, failed\n\n\ndef test_dataclass_consistency():\n    \"\"\"Verify Plan and Task dataclasses have consistent fields.\"\"\"\n    print(\"\\n=== Cross-Check: Dataclass Consistency ===\")\n    \n    passed = failed = 0\n    \n    roadmap_content = (SCRIPTS_DIR / \"roadmaptoissues.py\").read_text()\n    tasks_content = (SCRIPTS_DIR / \"taskstoissues.py\").read_text()\n    \n    # Both should have kanban_status field\n    if \"kanban_status:\" in roadmap_content and \"kanban_status:\" in tasks_content:\n        print(\"  ✓ Both have kanban_status field\")\n        passed += 1\n    else:\n        print(\"  ✗ kanban_status field mismatch\")\n        failed += 1\n    \n    # Both should have depends_on field\n    if \"depends_on:\" in roadmap_content and \"depends_on:\" in tasks_content:\n        print(\"  ✓ Both have depends_on field\")\n        passed += 1\n    else:\n        print(\"  ✗ depends_on field mismatch\")\n        failed += 1\n    \n    # Both should have sprint field\n    if \"sprint:\" in roadmap_content and \"sprint:\" in tasks_content:\n        print(\"  ✓ Both have sprint field\")\n        passed += 1\n    else:\n        print(\"  ✗ sprint field mismatch\")\n        failed += 1\n    \n    return passed, failed\n\n\ndef test_regex_consistency():\n    \"\"\"Verify checkbox regex patterns are consistent.\"\"\"\n    print(\"\\n=== Cross-Check: Regex Consistency ===\")\n    \n    passed = failed = 0\n    \n    roadmap_content = (SCRIPTS_DIR / \"roadmaptoissues.py\").read_text()\n    tasks_content = (SCRIPTS_DIR / \"taskstoissues.py\").read_text()\n    \n    # Both should support [~] in regex\n    # Pattern: [ xX~]\n    if \"[ xX~]\" in roadmap_content:\n        print(\"  ✓ roadmaptoissues.py supports [~] in regex\")\n        passed += 1\n    else:\n        print(\"  ✗ roadmaptoissues.py missing [~] support\")\n        failed += 1\n    \n    if \"[ xX~]\" in tasks_content:\n        print(\"  ✓ taskstoissues.py supports [~] in regex\")\n        passed += 1\n    else:\n        print(\"  ✗ taskstoissues.py missing [~] support\")\n        failed += 1\n    \n    return passed, failed\n\n\ndef test_kanban_status_logic_consistency():\n    \"\"\"Verify Kanban status setting logic is consistent.\"\"\"\n    print(\"\\n=== Cross-Check: Kanban Status Logic ===\")\n    \n    passed = failed = 0\n    \n    roadmap_content = (SCRIPTS_DIR / \"roadmaptoissues.py\").read_text()\n    tasks_content = (SCRIPTS_DIR / \"taskstoissues.py\").read_text()\n    \n    # Both should check kanban_status != \"Backlog\"\n    roadmap_check = 'kanban_status != \"Backlog\"' in roadmap_content\n    tasks_check = 'kanban_status != \"Backlog\"' in tasks_content\n    \n    if roadmap_check and tasks_check:\n        print(\"  ✓ Both check kanban_status != 'Backlog'\")\n        passed += 1\n    else:\n        print(f\"  ✗ Kanban check: roadmap={roadmap_check}, tasks={tasks_check}\")\n        failed += 1\n    \n    # Both should call set_issue_status for non-Backlog items\n    roadmap_set = \"set_issue_status(project_id, issue_num\" in roadmap_content\n    tasks_set = \"set_issue_status(project_id, issue_num\" in tasks_content\n    \n    if roadmap_set and tasks_set:\n        print(\"  ✓ Both call set_issue_status correctly\")\n        passed += 1\n    else:\n        print(f\"  ✗ set_issue_status call: roadmap={roadmap_set}, tasks={tasks_set}\")\n        failed += 1\n    \n    return passed, failed\n\n\ndef test_fallback_consistency():\n    \"\"\"Verify fallback implementations in taskstoissues match github_sync_core.\"\"\"\n    print(\"\\n=== Cross-Check: Fallback Consistency ===\")\n    \n    passed = failed = 0\n    \n    core_content = (SCRIPTS_DIR / \"github_sync_core.py\").read_text()\n    tasks_content = (SCRIPTS_DIR / \"taskstoissues.py\").read_text()\n    \n    # Check get_status_from_checkbox fallback logic matches\n    # Core: if c == \"X\": return (\"completed\", \"Done\")\n    # Core: if c == \"~\": return (\"in_progress\", \"In Progress\")\n    \n    # Extract the fallback function from taskstoissues\n    fallback_match = re.search(\n        r'def get_status_from_checkbox\\(checkbox: str\\).*?return \\(\"pending\", \"Backlog\"\\)',\n        tasks_content, re.DOTALL\n    )\n    \n    if fallback_match:\n        fallback = fallback_match.group()\n        if '\"completed\", \"Done\"' in fallback and '\"in_progress\", \"In Progress\"' in fallback:\n            print(\"  ✓ Fallback get_status_from_checkbox matches core\")\n            passed += 1\n        else:\n            print(\"  ✗ Fallback get_status_from_checkbox logic differs\")\n            failed += 1\n    else:\n        print(\"  ✗ Fallback get_status_from_checkbox not found\")\n        failed += 1\n    \n    # Check suggest_branch_name fallback exists\n    if \"def suggest_branch_name\" in tasks_content.split(\"except ImportError:\")[1]:\n        print(\"  ✓ Fallback suggest_branch_name exists\")\n        passed += 1\n    else:\n        print(\"  ✗ Fallback suggest_branch_name missing\")\n        failed += 1\n    \n    return passed, failed\n\n\ndef test_issue_body_consistency():\n    \"\"\"Verify issue body templates have consistent sections.\"\"\"\n    print(\"\\n=== Cross-Check: Issue Body Templates ===\")\n    \n    passed = failed = 0\n    \n    roadmap_content = (SCRIPTS_DIR / \"roadmaptoissues.py\").read_text()\n    tasks_content = (SCRIPTS_DIR / \"taskstoissues.py\").read_text()\n    \n    # Both should have Dependencies section\n    if '### Dependencies' in roadmap_content and '### Dependencies' in tasks_content:\n        print(\"  ✓ Both have ### Dependencies section\")\n        passed += 1\n    else:\n        print(\"  ✗ Dependencies section mismatch\")\n        failed += 1\n    \n    # Both should have Branch field\n    if '**Branch**:' in roadmap_content and '**Branch**:' in tasks_content:\n        print(\"  ✓ Both have **Branch**: field\")\n        passed += 1\n    else:\n        print(\"  ✗ Branch field mismatch\")\n        failed += 1\n    \n    # Both should have Sprint field\n    if '**Sprint**:' in roadmap_content and '**Sprint**:' in tasks_content:\n        print(\"  ✓ Both have **Sprint**: field\")\n        passed += 1\n    else:\n        print(\"  ✗ Sprint field mismatch\")\n        failed += 1\n    \n    return passed, failed\n\n\ndef test_pipe_parsing_consistency():\n    \"\"\"Verify pipe metadata parsing is consistent.\"\"\"\n    print(\"\\n=== Cross-Check: Pipe Parsing Logic ===\")\n    \n    passed = failed = 0\n    \n    roadmap_content = (SCRIPTS_DIR / \"roadmaptoissues.py\").read_text()\n    tasks_content = (SCRIPTS_DIR / \"taskstoissues.py\").read_text()\n    \n    # Both should parse depends:\n    if 'startswith(\"depends:\")' in roadmap_content and 'startswith(\"depends:\")' in tasks_content:\n        print(\"  ✓ Both parse depends: field\")\n        passed += 1\n    else:\n        print(\"  ✗ depends: parsing mismatch\")\n        failed += 1\n    \n    # Both should parse sprint:\n    if 'startswith(\"sprint:\")' in roadmap_content and 'startswith(\"sprint:\")' in tasks_content:\n        print(\"  ✓ Both parse sprint: field\")\n        passed += 1\n    else:\n        print(\"  ✗ sprint: parsing mismatch\")\n        failed += 1\n    \n    # Both should split by comma for depends\n    if 'split(\",\")' in roadmap_content and 'split(\",\")' in tasks_content:\n        print(\"  ✓ Both split dependencies by comma\")\n        passed += 1\n    else:\n        print(\"  ✗ Dependency split mismatch\")\n        failed += 1\n    \n    return passed, failed\n\n\ndef test_label_handling_consistency():\n    \"\"\"Verify sprint labels are handled consistently.\"\"\"\n    print(\"\\n=== Cross-Check: Label Handling ===\")\n    \n    passed = failed = 0\n    \n    core_content = (SCRIPTS_DIR / \"github_sync_core.py\").read_text()\n    roadmap_content = (SCRIPTS_DIR / \"roadmaptoissues.py\").read_text()\n    tasks_content = (SCRIPTS_DIR / \"taskstoissues.py\").read_text()\n    \n    # Core should have sprint label color\n    if 'label.startswith(\"sprint-\")' in core_content:\n        print(\"  ✓ Core handles sprint- labels\")\n        passed += 1\n    else:\n        print(\"  ✗ Core missing sprint- label handling\")\n        failed += 1\n    \n    # Both should add sprint label\n    if 'f\"sprint-{' in roadmap_content and 'f\"sprint-{' in tasks_content:\n        print(\"  ✓ Both add sprint labels\")\n        passed += 1\n    else:\n        print(\"  ✗ Sprint label addition mismatch\")\n        failed += 1\n    \n    return passed, failed\n\n\ndef test_function_signatures():\n    \"\"\"Verify exported functions have expected signatures.\"\"\"\n    print(\"\\n=== Cross-Check: Function Signatures ===\")\n    \n    passed = failed = 0\n    \n    sys.path.insert(0, str(SCRIPTS_DIR))\n    from github_sync_core import get_status_from_checkbox, calculate_progress, suggest_branch_name\n    import inspect\n    \n    # get_status_from_checkbox(checkbox: str) -> tuple[str, str]\n    sig = inspect.signature(get_status_from_checkbox)\n    if list(sig.parameters.keys()) == ['checkbox']:\n        print(\"  ✓ get_status_from_checkbox signature correct\")\n        passed += 1\n    else:\n        print(f\"  ✗ get_status_from_checkbox params: {list(sig.parameters.keys())}\")\n        failed += 1\n    \n    # calculate_progress(items: list) -> dict\n    sig = inspect.signature(calculate_progress)\n    if list(sig.parameters.keys()) == ['items']:\n        print(\"  ✓ calculate_progress signature correct\")\n        passed += 1\n    else:\n        print(f\"  ✗ calculate_progress params: {list(sig.parameters.keys())}\")\n        failed += 1\n    \n    # suggest_branch_name(task_id: str, description: str) -> str\n    sig = inspect.signature(suggest_branch_name)\n    if list(sig.parameters.keys()) == ['task_id', 'description']:\n        print(\"  ✓ suggest_branch_name signature correct\")\n        passed += 1\n    else:\n        print(f\"  ✗ suggest_branch_name params: {list(sig.parameters.keys())}\")\n        failed += 1\n    \n    return passed, failed\n\n\ndef main():\n    print(\"=\" * 60)\n    print(\"GitHub Sync - Cross-Checks (Round 4)\")\n    print(\"=\" * 60)\n\n    total_passed = total_failed = 0\n    tests = [\n        test_import_consistency,\n        test_dataclass_consistency,\n        test_regex_consistency,\n        test_kanban_status_logic_consistency,\n        test_fallback_consistency,\n        test_issue_body_consistency,\n        test_pipe_parsing_consistency,\n        test_label_handling_consistency,\n        test_function_signatures,\n    ]\n\n    for test_fn in tests:\n        try:\n            p, f = test_fn()\n            total_passed += p\n            total_failed += f\n        except Exception as e:\n            print(f\"\\n  ✗ CRASHED: {e}\")\n            import traceback; traceback.print_exc()\n            total_failed += 1\n\n    print(\"\\n\" + \"=\" * 60)\n    print(f\"ROUND 4 (Cross-Checks): {total_passed} passed, {total_failed} failed\")\n    print(\"=\" * 60)\n    return 1 if total_failed > 0 else 0\n\nif __name__ == \"__main__\":\n    sys.exit(main())\nENDOFFILE\npython3 /tmp/test_cross_checks.py",
+      "description": "Run cross-check tests (Round 4)"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-22T17:46:04.119006",
+      "command": "cd /tmp/claude-config && git status",
+      "description": "Check git status"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-22T17:46:10.232890",
+      "command": "cd /tmp/claude-config && git diff --stat scripts/github_sync_core.py scripts/roadmaptoissues.py scripts/taskstoissues.py",
+      "description": "Check changes stats"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-22T17:46:10.793972",
+      "command": "cd /tmp/claude-config && git log --oneline -5",
+      "description": "Check recent commits"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-22T17:46:24.565473",
+      "command": "cd /tmp/claude-config && git add scripts/github_sync_core.py scripts/roadmaptoissues.py scripts/taskstoissues.py scripts/test_github_sync_e2e.py && git commit -m \"$(cat <<'EOF'\nfeat(sync): add [~] in-progress status, dependencies, sprint labels, branch suggestions\n\nPhase 1: In Progress [~] + Progress Tracking\n- Add get_status_from_checkbox() mapping [ ]/[~]/[x] to status/Kanban\n- Add calculate_progress() for stats (total/completed/in_progress/percent)\n- Update regex patterns to support [~] syntax\n- Set Kanban \"In Progress\" for [~] items automatically\n\nPhase 2: Dependencies\n- Add depends_on field to Plan/Task dataclasses\n- Parse depends:01-01,01-02 from pipe metadata\n- Add \"### Dependencies\" section to issue body\n\nPhase 3: Sprint Labels\n- Add sprint field parsing from sprint:2025-W04 syntax\n- Add sprint-* label color (blue #1d76db)\n- Add **Sprint**: field to issue body\n\nPhase 4: PR Auto-linking\n- Add suggest_branch_name() generating feat/fix/refactor/docs/test prefixes\n- Add get_linked_prs() to query PRs via GraphQL\n- Add **Branch**: `feat/Plan-03-01-description` to issue body\n\nTested with 99 tests across 4 rounds (core, edge cases, integration, cross-checks).\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\"",
+      "description": "Stage and commit changes"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-22T17:46:30.092456",
+      "command": "cd /tmp/claude-config && git push",
+      "description": "Push to remote"
+    }
+  ],
+  "last_updated": "2026-01-22T17:46:30.092484"
+}

@@ -1,78 +1,60 @@
 version: '1.4'
 updated: '2026-01-17'
-
-# =============================================================================
-# ENVIRONMENT VARIABLES - SSOT Registry
-# =============================================================================
-# Ogni variabile ha UN SOLO file autoritativo. NO duplicati.
-# Drift detector verifica che non ci siano duplicati.
-# =============================================================================
 environment:
-  # SSOT per API keys e secrets (Claude/MCP related)
-  # NOTE: ~/.claude/.env RIMOSSO 2026-01-17 - secrets migrati a SOPS/GSM
   claude_secrets:
-    file: ~/.claude/.env.enc  # Cifrato con SOPS/age (se necessario)
+    file: ~/.claude/.env.enc
     migrated_to_gsm:
-      - LINEAR_API_KEY        # -> GSM: linear-api-key
-      - SENTRY_AUTH_TOKEN     # -> SOPS: secrets.enc
+    - LINEAR_API_KEY
+    - SENTRY_AUTH_TOKEN
     keys:
-      - DISCORD_WEBHOOK_URL   # Notifications
-
-  # SSOT per infrastruttura locale
+    - DISCORD_WEBHOOK_URL
   infra_config:
     file: /media/sam/1TB/nautilus_dev/.env
     keys:
-      - QUESTDB_HOST          # Database host
-      - QUESTDB_ILP_PORT      # Database port
-      - SENTRY_DSN            # Sentry DSN (non token)
-      - SENTRY_ORG            # Sentry org
-      - SENTRY_PROJECT        # Sentry project
-
-  # SSOT per AI/ML tools
+    - QUESTDB_HOST
+    - QUESTDB_ILP_PORT
+    - SENTRY_DSN
+    - SENTRY_ORG
+    - SENTRY_PROJECT
   ai_tools:
     file: /media/sam/1TB/N8N_dev/.env
     keys:
-      - GOOGLE_CLOUD_PROJECT  # GCP project (futuro GSM)
-      - LANGSMITH_API_KEY     # LangSmith tracing
-      - BRAVE_API_KEY         # Brave search
-
-  # GSM (Google Secret Manager) - ATTIVO
+    - GOOGLE_CLOUD_PROJECT
+    - LANGSMITH_API_KEY
+    - BRAVE_API_KEY
   gsm:
     enabled: true
-    project: custom-mix-460500-g9  # GCP project ID
+    project: custom-mix-460500-g9
     secrets:
-      - github-token
-      - linear-api-key          # Added 2026-01-17
-      - sentry-auth-token
-      - discord-bot-token
-      - openai-api-key
-      - gemini-api-key
-      - n8n-api-key
-      - grafana-service-token
-      - jwt-secret-key
-      - hyperliquid-testnet-pk
-    usage: "gcloud secrets versions access latest --secret=SECRET_NAME"
-
-  # Caricamento automatico via ~/.bashrc
-
+    - github-token
+    - linear-api-key
+    - sentry-auth-token
+    - discord-bot-token
+    - openai-api-key
+    - gemini-api-key
+    - n8n-api-key
+    - grafana-service-token
+    - jwt-secret-key
+    - hyperliquid-testnet-pk
+    usage: gcloud secrets versions access latest --secret=SECRET_NAME
 infrastructure:
   backstage:
     path: /media/sam/1TB/backstage-portal
     frontend_port: 3002
     backend_port: 7007
-    database: postgresql  # Reuses n8n PostgreSQL
+    database: postgresql
     catalog:
       system: catalog/system.yaml
-      mcp_config: catalog/mcp-profiles.yaml  # References ~/.mcp.json SSOT
+      mcp_config: catalog/mcp-profiles.yaml
       repos:
-        - /media/sam/1TB/nautilus_dev/catalog-info.yaml
-        - /media/sam/1TB/N8N_dev/catalog-info.yaml
-        - /media/sam/1TB/UTXOracle/catalog-info.yaml
-        - /media/sam/1TB/LiquidationHeatmap/catalog-info.yaml
+      - /media/sam/1TB/nautilus_dev/catalog-info.yaml
+      - /media/sam/1TB/N8N_dev/catalog-info.yaml
+      - /media/sam/1TB/UTXOracle/catalog-info.yaml
+      - /media/sam/1TB/LiquidationHeatmap/catalog-info.yaml
     plugins:
-      - grafana
-      - github-actions
-      - github-pull-requests
+    - grafana
+    - github-actions
+    - github-pull-requests
   questdb:
     host: localhost
     http_port: 9000
@@ -83,86 +65,96 @@ infrastructure:
     port: 6379
   hooks_shared:
     path: /media/sam/1TB/claude-hooks-shared
-  # Monitoring is in nautilus_dev but serves ALL projects (shared infra)
   monitoring:
     path: /media/sam/1TB/nautilus_dev/monitoring
     grafana_port: 3000
     dashboards: /media/sam/1TB/nautilus_dev/monitoring/grafana/dashboards
     dashboard_list:
-      - claude_metrics.json      # Ralph iterations, agents, AI metrics
-      - quality-score.json       # NEW: Quality scores, ClaudeFlow strategy
-      - config-drift.json        # Config drift tracking
-      - security.json            # Security events
-      - infrastructure.json      # Infrastructure metrics
-      - trading.json             # Trading metrics
-      - evolution.json           # Strategy evolution
+    - claude_metrics.json
+    - quality-score.json
+    - config-drift.json
+    - security.json
+    - infrastructure.json
+    - trading.json
+    - evolution.json
     alerts: /media/sam/1TB/nautilus_dev/monitoring/grafana/provisioning/alerting
     prometheus_port: 9090
     cadvisor_port: 8484
-  # Expected services for infrastructure health monitoring
   expected_services:
     systemd:
       critical:
-        - name: grafana-server
-          port: 3000
-        - name: prometheus
-          port: 9090
-        - name: node_exporter
-          port: 9100
-        - name: process-exporter
-          port: 9256
-        - name: docker
-        - name: bitcoind
-          port: 8333
+      - name: grafana-server
+        port: 3000
+      - name: prometheus
+        port: 9090
+      - name: node_exporter
+        port: 9100
+      - name: process-exporter
+        port: 9256
+      - name: docker
+      - name: bitcoind
+        port: 8333
       important:
-        - name: research-events
-        - name: cloudflared
-        - name: ollama
+      - name: research-events
+      - name: cloudflared
+      - name: ollama
     docker:
       critical:
-        - name: nautilus-questdb
-          ports: [9000, 9009, 8812]
-        - name: nautilus-redis
-          ports: [6379]
+      - name: nautilus-questdb
+        ports:
+        - 9000
+        - 9009
+        - 8812
+      - name: nautilus-redis
+        ports:
+        - 6379
       important:
-        - name: backstage-portal
-          ports: [7007]
-        - name: n8n-n8n-1
-          ports: [5678]
-        - name: neo4j-research
-          ports: [7474, 7687]
-        - name: mempool-api
-          ports: [8999]
-        - name: mempool-web
-          ports: [8080]
-        - name: claude-reflection-qdrant
-          ports: [6333]
-        - name: influxdb-production
-          ports: [8086]
+      - name: backstage-portal
+        ports:
+        - 7007
+      - name: n8n-n8n-1
+        ports:
+        - 5678
+      - name: neo4j-research
+        ports:
+        - 7474
+        - 7687
+      - name: mempool-api
+        ports:
+        - 8999
+      - name: mempool-web
+        ports:
+        - 8080
+      - name: claude-reflection-qdrant
+        ports:
+        - 6333
+      - name: influxdb-production
+        ports:
+        - 8086
       optional:
-        - name: nautilus-github-runner
-        - name: n8n-n8n-worker-1
-        - name: n8n-postgres-1
-        - name: n8n-redis-1
-        - name: mempool-electrs
-        - name: mempool-db
-        - name: phoenix-phoenix-1
-        - name: phoenix-postgres-1
-        - name: claude-reflection-mcp
+      - name: nautilus-github-runner
+      - name: n8n-n8n-worker-1
+      - name: n8n-postgres-1
+      - name: n8n-redis-1
+      - name: mempool-electrs
+      - name: mempool-db
+      - name: phoenix-phoenix-1
+      - name: phoenix-postgres-1
+      - name: claude-reflection-mcp
     cron:
-      - name: utxoracle_daily
-        schedule: "*/10 * * * *"
-        command: /media/sam/1TB/UTXOracle/scripts/daily_analysis.py
-        log: /tmp/daily_analysis_cron.log
-        severity: high
-      - name: weekly_scrape
-        schedule: "0 3 * * 0"
-        command: /media/sam/1TB/UTXOracle/scripts/bootstrap/run_weekly_scrape.sh
-        severity: medium
-      - name: nautilus_update
-        schedule: "0 7 * * *"
-        command: /media/sam/1TB/nautilus_dev/scripts/auto_update/run_update.sh
-        severity: medium
+    - name: utxoracle_daily
+      schedule: '*/10 * * * *'
+      command: /media/sam/1TB/UTXOracle/scripts/daily_analysis.py
+      log: /tmp/daily_analysis_cron.log
+      severity: high
+    - name: weekly_scrape
+      schedule: 0 3 * * 0
+      command: /media/sam/1TB/UTXOracle/scripts/bootstrap/run_weekly_scrape.sh
+      severity: medium
+    - name: nautilus_update
+      schedule: 0 7 * * *
+      command: /media/sam/1TB/nautilus_dev/scripts/auto_update/run_update.sh
+      severity: medium
     ports:
       critical:
         3000: grafana
@@ -190,17 +182,17 @@ infrastructure:
       webhook_env: DISCORD_WEBHOOK_URL
       enabled: true
     email:
-      smtp_host_env: SMTP_HOST  # e.g., smtp.gmail.com
+      smtp_host_env: SMTP_HOST
       smtp_port: 587
       smtp_user_env: SMTP_USER
-      smtp_password_env: SMTP_PASSWORD  # Use app password for Gmail
-      smtp_from_env: SMTP_FROM  # e.g., alerts@claudecode.local
-      recipients_env: ALERT_EMAIL  # Comma-separated for multiple
+      smtp_password_env: SMTP_PASSWORD
+      smtp_from_env: SMTP_FROM
+      recipients_env: ALERT_EMAIL
       enabled: true
       triggers:
-        on_critical: true  # Always email for critical severity issues
-        on_discord_failure: true  # Fallback when Discord fails
-        on_health_score_below: 70  # Email if score drops below threshold
+        on_critical: true
+        on_discord_failure: true
+        on_health_score_below: 70
 repositories:
   nautilus_dev:
     path: /media/sam/1TB/nautilus_dev
@@ -240,6 +232,13 @@ repositories:
     features:
     - market_visualization
     - liquidation_data
+  test_new_project:
+    path: /tmp/test-new-project
+    language: python
+    framework: python
+    test_command: uv run pytest tests/ -x
+    lint_command: uv run ruff check .
+    features: []
 global:
   commands:
   - tdd/
@@ -278,7 +277,7 @@ global:
     - post-tool-use.py
     - dora-tracker.py
     - auto-format.py (Write|Edit)
-    - quality-score-tracker.py (Bash)  # NEW: Quality metrics tracking
+    - quality-score-tracker.py (Bash)
     - architecture-validator.py (Bash)
     - readme-generator.py (Bash)
     stop:
@@ -287,7 +286,7 @@ global:
     - session-summary.py
     - auto-ralph.py
     - ralph-loop.py
-    - claudeflow-sync.py  # NEW: Sync ClaudeFlow JSON+SQLite to QuestDB
+    - claudeflow-sync.py
     subagent_stop:
     - subagent-checkpoint.sh
     user_prompt_submit:
@@ -295,56 +294,66 @@ global:
     - ssot_check.py
     - ralph-resume.py
     - verbalized_sampling.py
-    - framework-detector.py  # NEW: Detect SpecKit/CGSD frameworks
-  # Git hooks (native git, separate from Claude Code hooks)
+    - framework-detector.py
   git_hooks:
     global_path: ~/.claude/hooks
     hooks:
-      pre-push: pre-push-review.sh  # ClaudeFlow Bug Hunter
+      pre-push: pre-push-review.sh
     features:
-      - Uses claude --print (Max subscription, FREE)
-      - Blocks CRITICAL issues
-      - Prompts on HIGH severity
-      - Filters code files only (.py, .ts, .js, etc.)
-  # AI Services (localhost)
+    - Uses claude --print (Max subscription, FREE)
+    - Blocks CRITICAL issues
+    - Prompts on HIGH severity
+    - Filters code files only (.py, .ts, .js, etc.)
   ai_services:
     ai_validation:
       path: /media/sam/1TB/claude-hooks-shared/services/ai_validation_service.py
       port: 3848
       endpoints:
-        - /health
-        - /review-pr
-        - /validate-data
-        - /validate-visual
-        - /validate-domain
-        - /quality-score
+      - /health
+      - /review-pr
+      - /validate-data
+      - /validate-visual
+      - /validate-domain
+      - /quality-score
       systemd: ai-validation.service
-      domains: [nautilus, bitcoin, n8n, visualization, default]
-  # N8N Workflows (automation)
+      domains:
+      - nautilus
+      - bitcoin
+      - n8n
+      - visualization
+      - default
   n8n_workflows:
     ai_pr_review:
       id: W7.1_AI_PR_Review
       webhook: https://n8nubuntu.princyx.xyz/webhook/ai-pr-review
       spec: ~/.claude/plans/modular-snuggling-snail.md#appendice-b
-      status: pending  # Delegated to N8N team
+      status: pending
   utility_scripts:
     drift_detector:
       path: ~/.claude/scripts/drift-detector.py
       description: Check for config drift across repositories
-      checks: [duplicates, missing_files, settings_drift, obsolete, ports, services, containers, cron]
+      checks:
+      - duplicates
+      - missing_files
+      - settings_drift
+      - obsolete
+      - ports
+      - services
+      - containers
+      - cron
     drift_to_questdb:
       path: ~/.claude/scripts/drift-to-questdb.py
       description: Send drift metrics to QuestDB for Grafana visualization
-      schedule: "*/30 * * * *"  # Every 30 minutes
+      schedule: '*/30 * * * *'
       dashboard: config-drift
     weekly_health_report:
       path: ~/.claude/scripts/weekly-health-report.sh
       description: Send health report to Discord + email fallback
-      schedule: "0 8 * * 1"  # Every Monday 8:00 AM
+      schedule: 0 8 * * 1
     daily_health_report:
       path: ~/.claude/scripts/daily-health-report.sh
       description: Conditional daily health check (only if issues)
-      schedule: "0 8 * * *"  # Every day 8:00 AM
+      schedule: 0 8 * * *
     issue_resolver:
       path: ~/.claude/scripts/issue-resolver.py
       description: Auto-resolution pipeline for drift issues
@@ -389,12 +398,12 @@ metrics:
   - claude_hooks
   - claude_tasks
   - claude_context
-  - claude_quality_scores      # NEW: Quality metrics from pytest/ruff/mypy
-  - claude_strategy_metrics    # NEW: ClaudeFlow strategy performance
-  - claude_strategy_trends     # NEW: ClaudeFlow strategy score trends
-  - claude_agent_learning      # NEW: Per-agent learning patterns
-  - claude_neural_patterns     # NEW: Neural patterns from SQLite
-  - claude_swarm_metrics       # NEW: Swarm performance metrics
+  - claude_quality_scores
+  - claude_strategy_metrics
+  - claude_strategy_trends
+  - claude_agent_learning
+  - claude_neural_patterns
+  - claude_swarm_metrics
   retention:
     default: 90d
     sessions: 365d
@@ -453,23 +462,23 @@ features:
   optimization_tips:
     enabled: true
     tips_file: ~/.claude/metrics/last_session_tips.json
-    command: /tips  # Manual command, user decides when to view/use
+    command: /tips
 claudeflow:
-  enabled: true  # DEFAULT ON (Claude Max 20x = unlimited budget)
-  mode: orchestrator  # Full orchestration, not just on-demand
+  enabled: true
+  mode: orchestrator
   install_path: /media/sam/1TB/claude-flow
-  version: v3  # Updated to v3 branch (DDD architecture, 15-agent swarm)
-  global_hive_mind_db: ~/.claude/hive-mind/hive-mind.db  # Global SQLite for learning
+  version: v3
+  global_hive_mind_db: ~/.claude/hive-mind/hive-mind.db
   speckit_integration:
     checkpoints:
-      - phase: specify
-        validator: truth_score
-        threshold: 0.7
-      - phase: plan
-        validator: feasibility_check
-        threshold: 0.7
-      - phase: implement
-        validator: tests_pass
+    - phase: specify
+      validator: truth_score
+      threshold: 0.7
+    - phase: plan
+      validator: feasibility_check
+      threshold: 0.7
+    - phase: implement
+      validator: tests_pass
     worktrees:
       enabled: true
       base_dir: /tmp/claude-worktrees
@@ -479,7 +488,7 @@ claudeflow:
       max_failures: 3
       cooldown_seconds: 300
     rollback:
-      mode: partial  # strict|partial|recovery
+      mode: partial
       auto_on_failure: true
   hooks_integration:
     external_hooks:
@@ -489,49 +498,39 @@ claudeflow:
     session_sync:
       provider: questdb
       sync_interval_ms: 30000
-
-# =============================================================================
-# MCP SERVERS - Global Configuration (2026-01-17)
-# =============================================================================
-# SSOT: ~/.mcp.json (global) + project/.mcp.json (project-specific)
-# Secrets via SOPS or GSM - NO inline credentials.
-# =============================================================================
 mcp:
-  ssot: ~/.mcp.json  # Single source of truth for global MCP servers
-
+  ssot: ~/.mcp.json
   tool_search:
     enabled: true
     threshold: 10
-    token_savings: "85-95%"
-
-  # Global servers (in ~/.mcp.json)
+    token_savings: 85-95%
   global_servers:
-    - linear        # GSM wrapper
-    - context7      # No secrets
-    - serena        # No secrets
-    - sentry        # OAuth
-    - firecrawl-mcp # SOPS inline
-    - wolframalpha  # SOPS inline
-    - paper-search-mcp  # No secrets
-    - download-mcp  # No secrets
-
-  # Project-specific servers (in project/.mcp.json)
+  - linear
+  - context7
+  - serena
+  - sentry
+  - firecrawl-mcp
+  - wolframalpha
+  - paper-search-mcp
+  - download-mcp
   project_servers:
-    nautilus_dev: [matlab-server]
-    N8N_dev: [n8n-mcp]
-    UTXOracle: [brk]
-
+    nautilus_dev:
+    - matlab-server
+    N8N_dev:
+    - n8n-mcp
+    UTXOracle:
+    - brk
   secrets_sources:
     sops:
       file: /media/sam/1TB/secrets.enc
-      keys: [FIRECRAWL_API_KEY, WOLFRAM_LLM_APP_ID]
+      keys:
+      - FIRECRAWL_API_KEY
+      - WOLFRAM_LLM_APP_ID
     gsm:
       project: custom-mix-460500-g9
-      secrets: [linear-api-key]
-
+      secrets:
+      - linear-api-key
 sync:
-  # NOTE: Commands speckit/tdd/undo are GLOBAL ONLY (no longer synced to repos)
-  # Repos use the global versions directly via ~/.claude/commands/
   global_only:
   - commands/speckit.*.md
   - commands/tdd/
@@ -545,41 +544,33 @@ sync:
   - agents/architecture-validator.md
   - agents/readme-generator.md
   project_only:
-  - CLAUDE.md  # At repo root, NOT in .claude/
+  - CLAUDE.md
   - .claude/settings.local.json
-  - .claude/agents/  # Project-specific agents
-  - .claude/commands/  # Project-specific commands only
+  - .claude/agents/
+  - .claude/commands/
   consistency_check:
   - hooks configuration in settings.json
   - env variables (QUESTDB_HOST, etc.)
-
-# Standard repository structure (established 2026-01-10)
 standard_structure:
   documentation:
-    # CLAUDE.md must be at repo ROOT (not in .claude/)
     claude_md: /CLAUDE.md
-    architecture_md: /docs/ARCHITECTURE.md  # Auto-generated by architecture-validator
-    readme_md: /README.md  # Auto-generated by readme-generator
-
+    architecture_md: /docs/ARCHITECTURE.md
+    readme_md: /README.md
   claude_folder:
-    # .claude/ contains ONLY project-specific items
-    agents: .claude/agents/  # Project-specific agents
-    commands: .claude/commands/  # Project-specific commands ONLY
-    settings: .claude/settings.local.json  # Local overrides (gitignored)
-    context_bundles: .claude/context_bundles/  # Auto-generated
-    stats: .claude/stats/  # Auto-generated
-    # NOTE: speckit/, tdd/, undo/ should NOT exist here - use global
-
+    agents: .claude/agents/
+    commands: .claude/commands/
+    settings: .claude/settings.local.json
+    context_bundles: .claude/context_bundles/
+    stats: .claude/stats/
   hooks:
     location: /media/sam/1TB/claude-hooks-shared/hooks/
     auto_generation:
-      - architecture-validator.py  # Triggers on git commit
-      - readme-generator.py  # Triggers on git commit (rate-limited)
-
+    - architecture-validator.py
+    - readme-generator.py
   ssot_principles:
-    - Commands: Global ~/.claude/commands/ is SSOT (no duplicates in repos)
-    - Skills: Global ~/.claude/skills/ is SSOT
-    - Hooks: /media/sam/1TB/claude-hooks-shared/ is SSOT
-    - CLAUDE.md: Each repo has its own at ROOT (not .claude/)
-    - ARCHITECTURE.md: Auto-generated, validated on commit
-    - README.md: Auto-generated, validated on commit (rate-limited)
+  - Commands: Global ~/.claude/commands/ is SSOT (no duplicates in repos)
+  - Skills: Global ~/.claude/skills/ is SSOT
+  - Hooks: /media/sam/1TB/claude-hooks-shared/ is SSOT
+  - CLAUDE.md: Each repo has its own at ROOT (not .claude/)
+  - ARCHITECTURE.md: Auto-generated, validated on commit
+  - README.md: Auto-generated, validated on commit (rate-limited)

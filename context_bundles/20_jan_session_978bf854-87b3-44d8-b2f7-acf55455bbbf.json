@@ -1,0 +1,75 @@
+{
+  "session_id": "978bf854-87b3-44d8-b2f7-acf55455bbbf",
+  "created_at": "2026-01-20T15:30:33.706562",
+  "operations": [
+    {
+      "operation": "read",
+      "timestamp": "2026-01-20T15:30:33.706603",
+      "file_path": "/media/sam/1TB/nautilus_dev/.github/workflows/auto-fix-drift.yml"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-20T15:30:33.720317",
+      "file_path": "/media/sam/1TB/nautilus_dev/.github/workflows/dev-loop.yml"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-20T15:30:34.171113",
+      "command": "grep -l \"questdb\\|metrics\\|claude-flow\" /media/sam/1TB/nautilus_dev/.github/workflows/*.yml 2>/dev/null",
+      "description": "Search nautilus workflows for questdb/metrics/claude-flow"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-20T15:30:38.136050",
+      "file_path": "/media/sam/1TB/nautilus_dev/.github/workflows/breaking-change-response.yml"
+    },
+    {
+      "operation": "read",
+      "timestamp": "2026-01-20T15:30:38.158424",
+      "file_path": "/media/sam/1TB/nautilus_dev/.github/workflows/ci-cd-pipeline.yml"
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-20T15:32:08.761785",
+      "file_path": "/home/sam/.claude/plans/zany-exploring-llama.md",
+      "content_length": 13900
+    },
+    {
+      "operation": "askuserquestion",
+      "timestamp": "2026-01-20T15:32:23.126349"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-20T15:40:46.729470",
+      "file_path": "/home/sam/.claude/plans/zany-exploring-llama.md",
+      "old_string": "## Timeline\n\n| Phase | Effort | Impact |\n|-------|--------|--------|\n| Phase 1: Session Recovery | 2..."
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-20T15:41:01.795790",
+      "file_path": "/home/sam/.claude/plans/zany-exploring-llama.md",
+      "old_string": "## Success Criteria\n\nDopo implementazione:\n- [ ] `memory_list` mostra 50+ entries (non 10)\n- [ ] `ho..."
+    },
+    {
+      "operation": "exitplanmode",
+      "timestamp": "2026-01-20T15:41:09.451597",
+      "plan": "# Piano: Integrazione Sistematica Claude-Flow\n\n## Executive Summary\n\nClaude-flow MCP è **95% infrast..."
+    },
+    {
+      "operation": "askuserquestion",
+      "timestamp": "2026-01-20T15:45:51.739587"
+    },
+    {
+      "operation": "edit",
+      "timestamp": "2026-01-20T15:46:29.706268",
+      "file_path": "/home/sam/.claude/plans/zany-exploring-llama.md",
+      "old_string": "# Piano: Integrazione Sistematica Claude-Flow\n\n## Executive Summary"
+    },
+    {
+      "operation": "exitplanmode",
+      "timestamp": "2026-01-20T15:46:34.603865",
+      "plan": "# Piano: Integrazione Sistematica Claude-Flow\n\n## Decisioni\n- **Approccio:** Hooks automatici (Pytho..."
+    }
+  ],
+  "last_updated": "2026-01-20T15:46:34.603889"
+}

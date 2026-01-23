@@ -322,6 +322,10 @@ def setup_project(
     else:
         print("Skipped: .claude/settings.local.json (already exists)")
 
+    # MCP servers are configured at user scope in ~/.claude.json
+    # No per-project .mcp.json needed
+    print("MCP: Using user-scoped servers from ~/.claude.json")
+
     # Update canonical.yaml
     print()
     update_canonical(canonical, repo_path, language, framework, commands)

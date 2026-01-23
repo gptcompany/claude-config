@@ -1,0 +1,665 @@
+{
+  "session_id": "7d03dace-b39f-4503-bc53-4b8654ee9ff4",
+  "created_at": "2026-01-21T17:26:04.936281",
+  "operations": [
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T17:26:04.936301",
+      "command": "ping -c 2 -W 2 192.168.1.100",
+      "description": "Check if remote machine is reachable"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T17:26:08.089701",
+      "command": "nc -zv -w 3 192.168.1.100 22 2>&1",
+      "description": "Check if SSH port 22 is open"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T17:42:01.052566",
+      "command": "nc -zv -w 3 192.168.1.100 22 2>&1",
+      "description": "Check if SSH port is now open"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T17:42:05.439958",
+      "command": "ssh -o ConnectTimeout=5 -o StrictHostKeyChecking=accept-new db@192.168.1.100 \"echo 'Connected!' && uname -a\"",
+      "description": "Test SSH connection to remote machine"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T17:42:24.805945",
+      "command": "cat ~/.ssh/id_ed25519.pub 2>/dev/null || cat ~/.ssh/id_rsa.pub 2>/dev/null",
+      "description": "Show SSH public key"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T17:43:06.845450",
+      "command": "ls -la ~/.ssh/",
+      "description": "List SSH keys available"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T17:43:06.872555",
+      "command": "cat ~/.ssh/config 2>/dev/null | grep -A5 \"192.168.1.100\\|db@\"",
+      "description": "Check SSH config for this host"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T17:43:14.022377",
+      "command": "cat ~/.ssh/config",
+      "description": "Show full SSH config"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T17:43:14.374617",
+      "command": "ssh -v -o ConnectTimeout=5 db@192.168.1.100 \"echo connected\" 2>&1 | grep -E \"Offering|Trying|Authentication|debug1: identity\"",
+      "description": "Debug SSH connection attempt"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T17:52:02.719879",
+      "command": "ssh -o ConnectTimeout=5 db@192.168.1.100 \"echo 'Connesso!' && hostname && uname -a\"",
+      "description": "Test SSH connection"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T17:53:21.225006",
+      "command": "ssh -o ConnectTimeout=5 sam@192.168.1.100 \"echo 'Connesso!' && hostname\"",
+      "description": "SSH as sam user"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T17:53:36.509182",
+      "command": "ssh sam@192.168.1.100 \"cat /etc/fstab\"",
+      "description": "Check fstab for mount issues"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T17:53:49.253449",
+      "command": "ssh sam@192.168.1.100 \"lsblk -f\"",
+      "description": "List block devices with filesystems"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T17:53:52.498383",
+      "command": "ssh sam@192.168.1.100 \"journalctl -b -p err --no-pager | tail -30\"",
+      "description": "Check recent boot errors"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T17:55:47.630310",
+      "command": "ssh sam@192.168.1.100 \"sudo fdisk -l /dev/sdb 2>/dev/null | head -20\"",
+      "description": "Check disk details"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T17:56:00.587677",
+      "command": "ssh sam@192.168.1.100 \"ls -la /var/lib/clickhouse/ 2>/dev/null | head -10\"",
+      "description": "Check ClickHouse data directory"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-21T17:57:44.008166",
+      "todo_count": 4
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T17:57:49.177739",
+      "command": "ssh sam@192.168.1.100 \"sudo systemctl stop clickhouse-server && sudo systemctl disable clickhouse-server && echo 'ClickHouse disabilitato'\"",
+      "description": "Disable ClickHouse service"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T17:58:14.728855",
+      "command": "ssh sam@192.168.1.100 \"sudo smartctl -a /dev/sdb 2>/dev/null || sudo apt-get install -y smartmontools && sudo smartctl -a /dev/sdb\"",
+      "description": "Check SMART health of the disk"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:00:19.910548",
+      "command": "cat /tmp/claude/-home-sam/tasks/b13dfd4.output",
+      "description": "Read SMART output"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:00:24.757495",
+      "command": "ssh sam@192.168.1.100 \"sudo smartctl -a /dev/sdb\"",
+      "description": "Get SMART data for WD Red disk"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:00:31.116271",
+      "command": "sleep 5 && ssh sam@192.168.1.100 \"sudo smartctl -a /dev/sdb\"",
+      "description": "Get SMART data after install completes"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:00:43.381085",
+      "command": "cat /tmp/claude/-home-sam/tasks/b13dfd4.output",
+      "description": "Read full SMART output"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:00:50.501767",
+      "command": "ssh -t sam@192.168.1.100 \"sudo DEBIAN_FRONTEND=noninteractive apt-get install -y smartmontools\" 2>&1 | tail -5",
+      "description": "Force install smartmontools non-interactively"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:00:58.267738",
+      "command": "ssh sam@192.168.1.100 \"sudo kill 57426 2>/dev/null; sleep 2; sudo dpkg --configure -a && sudo apt-get install -y smartmontools\"",
+      "description": "Fix dpkg and install smartmontools"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:01:11.299508",
+      "command": "ssh sam@192.168.1.100 \"sudo killall apt apt-get dpkg 2>/dev/null; sleep 3; sudo rm -f /var/lib/dpkg/lock-frontend /var/lib/apt/lists/lock /var/cache/apt/archives/lock /var/lib/dpkg/lock 2>/dev/null; sudo dpkg --configure -a\"",
+      "description": "Clear all apt locks"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:02:15.927771",
+      "command": "sleep 3 && ssh sam@192.168.1.100 \"which smartctl || sudo apt-get install -y smartmontools 2>&1\"",
+      "description": "Check if smartctl is available"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-21T18:02:27.315116",
+      "todo_count": 4
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:02:27.616032",
+      "command": "ssh sam@192.168.1.100 \"sudo smartctl -a /dev/sdb\"",
+      "description": "Get SMART health data for WD Red"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-21T18:07:56.926729",
+      "todo_count": 6
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:08:03.403678",
+      "command": "ssh sam@192.168.1.100 \"sudo umount /dev/sdb1 /dev/sdb2 /dev/sdb3 2>/dev/null; echo 'Partizioni smontate'\"",
+      "description": "Unmount all partitions on sdb"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:08:11.381498",
+      "command": "ssh sam@192.168.1.100 \"nohup sudo badblocks -wsv -o /tmp/badblocks_sdb.txt /dev/sdb > /tmp/badblocks_progress.log 2>&1 & echo \\$!\"",
+      "description": "Start badblocks write test in background"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:08:21.275994",
+      "command": "ssh sam@192.168.1.100 \"echo '=== LOAD ===' && uptime && echo && echo '=== TOP CPU ===' && ps aux --sort=-%cpu | head -15\"",
+      "description": "Check system load and top processes"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:08:24.337612",
+      "command": "ssh sam@192.168.1.100 \"echo '=== MEMORIA ===' && free -h && echo && echo '=== SERVIZI ATTIVI ===' && systemctl list-units --type=service --state=running | grep -E 'bitcoin|docker|postgres|mysql|elastic|redis|mongo|grafana|prometheus|node_exporter'\"",
+      "description": "Check memory and heavy services"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:08:39.995709",
+      "command": "ssh sam@192.168.1.100 \"docker ps --format 'table {{.Names}}\\t{{.Status}}\\t{{.Image}}' 2>/dev/null\"",
+      "description": "List running Docker containers"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:08:48.364525",
+      "command": "ssh sam@192.168.1.100 \"docker stats --no-stream --format 'table {{.Name}}\\t{{.CPUPerc}}\\t{{.MemUsage}}' 2>/dev/null | head -15\"",
+      "description": "Docker container resource usage"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:09:21.206116",
+      "command": "ssh sam@192.168.1.100 \"cat /tmp/badblocks_progress.log 2>/dev/null | tail -5; echo '---'; ps aux | grep badblocks | grep -v grep\"",
+      "description": "Check badblocks progress"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:09:48.540177",
+      "command": "ssh sam@192.168.1.100 \"docker stop n8n-n8n-1 mcp_server-neo4j-1 mcp_server-graphiti-mcp-1 2>/dev/null && echo 'Fermati: n8n, neo4j, graphiti-mcp'\"",
+      "description": "Stop n8n and neo4j containers"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:10:21.759220",
+      "command": "ssh sam@192.168.1.100 \"systemctl --user stop n8n 2>/dev/null; sudo systemctl stop n8n 2>/dev/null; pkill -f 'n8n' 2>/dev/null; echo 'n8n process killato'\"",
+      "description": "Stop n8n service if running outside docker"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:10:33.576687",
+      "command": "ssh sam@192.168.1.100 \"echo '=== DOCKER CONTAINERS (all) ===' && docker ps -a --format 'table {{.Names}}\\t{{.Status}}\\t{{.Image}}' | head -30\"",
+      "description": "List all Docker containers"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:10:36.306130",
+      "command": "ssh sam@192.168.1.100 \"echo '=== SYSTEMD SERVICES (running) ===' && systemctl list-units --type=service --state=running --no-pager | grep -v 'session\\|user@\\|systemd' | head -40\"",
+      "description": "List running systemd services"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:10:38.523940",
+      "command": "ssh sam@192.168.1.100 \"echo '=== LOAD ATTUALE ===' && uptime && free -h\"",
+      "description": "Check current load"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:11:09.281371",
+      "command": "ssh sam@192.168.1.100 \"echo '=== DOCKER RESTART POLICY ===' && docker inspect --format '{{.Name}} -> {{.HostConfig.RestartPolicy.Name}}' \\$(docker ps -aq) 2>/dev/null | grep -v '^$'\"",
+      "description": "Check Docker restart policies"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:11:23.944510",
+      "command": "ssh sam@192.168.1.100 \"echo '=== SYSTEMD ENABLED SERVICES ===' && systemctl list-unit-files --type=service --state=enabled --no-pager | grep -E 'cloudflared|mcp|n8n|cups|modem|prometheus' 2>/dev/null\"",
+      "description": "Check enabled systemd services"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-21T18:12:11.824419",
+      "todo_count": 8
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:12:19.555844",
+      "command": "ssh sam@192.168.1.100 \"echo '=== FERMANDO SUPABASE ===' && find . -maxdepth 3 -name 'docker-compose.yml' -o -name 'docker-compose.yaml' 2>/dev/null | xargs grep -l supabase 2>/dev/null | head -1\"",
+      "description": "Find Supabase docker-compose location"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:12:42.039822",
+      "command": "ssh sam@192.168.1.100 \"docker ps -q --filter 'name=supabase' | xargs -r docker update --restart=no && docker stop \\$(docker ps -q --filter 'name=supabase') 2>/dev/null && echo 'Supabase fermato e restart disabilitato'\"",
+      "description": "Stop Supabase and disable restart"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:12:46.221906",
+      "command": "ssh sam@192.168.1.100 \"docker ps -q --filter 'name=playwright' | xargs -r docker update --restart=no && docker stop \\$(docker ps -q --filter 'name=playwright') 2>/dev/null && echo 'Playwright fermato'\"",
+      "description": "Stop playwright and disable restart"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:12:59.341905",
+      "command": "cat /tmp/claude/-home-sam/tasks/b06d288.output /tmp/claude/-home-sam/tasks/b11e151.output",
+      "description": "Check Supabase and Playwright stop results"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:13:07.646038",
+      "command": "ssh sam@192.168.1.100 \"sudo systemctl stop desktop-commander-mcp shrimp-task-manager-mcp supabase-mcp wolframalpha-mcp cups cups-browsed 2>/dev/null && sudo systemctl disable desktop-commander-mcp shrimp-task-manager-mcp supabase-mcp wolframalpha-mcp cups cups-browsed 2>/dev/null && echo 'MCP servers e CUPS disabilitati'\"",
+      "description": "Stop and disable MCP servers and CUPS"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:13:48.644923",
+      "command": "ssh sam@192.168.1.100 \"echo '=== LOAD DOPO CLEANUP ===' && uptime && free -h && echo && docker ps --format 'table {{.Names}}\\t{{.Status}}'\"",
+      "description": "Check system load after cleanup"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:14:04.360482",
+      "command": "ssh sam@192.168.1.100 \"docker update --restart=no n8n-n8n-1 mcp_server-neo4j-1 mcp_server-graphiti-mcp-1 2>/dev/null && echo 'n8n, neo4j, graphiti restart disabilitato'\"",
+      "description": "Disable restart for n8n and neo4j"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-21T18:14:07.225722",
+      "todo_count": 8
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:14:14.887391",
+      "command": "ssh sam@192.168.1.100 \"which promtail 2>/dev/null || echo 'promtail non installato'\"",
+      "description": "Check if promtail is installed"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:14:17.804437",
+      "command": "echo \"=== LOKI SU QUESTA MACCHINA ===\" && curl -s http://localhost:3100/ready 2>/dev/null && echo \"Loki locale OK\" || echo \"Nessun Loki locale\"",
+      "description": "Check if Loki is running locally"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:14:18.255815",
+      "command": "grep -r \"loki\" /etc/grafana/provisioning/datasources/ 2>/dev/null | head -5 || echo \"Checking grafana config...\"",
+      "description": "Check Grafana datasources for Loki"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:14:25.925011",
+      "command": "ssh sam@192.168.1.100 \"curl -s http://localhost:3100/ready 2>/dev/null && echo 'Loki locale su db' || echo 'Nessun Loki su db'\"",
+      "description": "Check if Loki is on remote machine"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:14:37.879138",
+      "command": "ssh sam@192.168.1.100 \"curl -s http://192.168.1.111:3100/ready && echo ' - Loki raggiungibile da db'\"",
+      "description": "Test Loki reachability from remote"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:14:47.178885",
+      "command": "ps aux | grep -E \"loki|promtail\" | grep -v grep",
+      "description": "Find Loki process"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:14:47.198886",
+      "command": "find /home/sam -maxdepth 4 -type d -name \"*loki*\" 2>/dev/null | head -5; find /home/sam -maxdepth 4 -name \"loki*.yml\" -o -name \"loki*.yaml\" 2>/dev/null | head -5",
+      "description": "Find Loki config location"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:14:58.017240",
+      "command": "ssh sam@192.168.1.100 \"sudo apt-get update && sudo apt-get install -y promtail\" 2>&1 | tail -10",
+      "description": "Install promtail on remote machine"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:15:23.194340",
+      "command": "ssh sam@192.168.1.100 \"apt list --upgradable 2>/dev/null | wc -l && apt list --upgradable 2>/dev/null | head -20\"",
+      "description": "Check pending updates on remote"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:15:32.620849",
+      "command": "cat /tmp/claude/-home-sam/tasks/bc76d9a.output | tail -15",
+      "description": "Check promtail install progress"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:15:38.273287",
+      "command": "ssh sam@192.168.1.100 \"cd /tmp && curl -LO https://github.com/grafana/loki/releases/download/v2.9.4/promtail-linux-amd64.zip && unzip -o promtail-linux-amd64.zip && sudo mv promtail-linux-amd64 /usr/local/bin/promtail && sudo chmod +x /usr/local/bin/promtail && promtail --version\"",
+      "description": "Download and install promtail binary"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:15:49.839099",
+      "command": "ssh sam@192.168.1.100 \"sudo mkdir -p /etc/promtail && sudo tee /etc/promtail/config.yml > /dev/null << 'EOF'\nserver:\n  http_listen_port: 9080\n  grpc_listen_port: 0\n\npositions:\n  filename: /tmp/positions.yaml\n\nclients:\n  - url: http://192.168.1.111:3100/loki/api/v1/push\n\nscrape_configs:\n  - job_name: system\n    static_configs:\n      - targets:\n          - localhost\n        labels:\n          job: db-server\n          host: db\n          __path__: /var/log/*.log\n\n  - job_name: journal\n    journal:\n      max_age: 12h\n      labels:\n        job: systemd-journal\n        host: db\n    relabel_configs:\n      - source_labels: ['__journal__systemd_unit']\n        target_label: 'unit'\nEOF\necho 'Config creata'\"",
+      "description": "Create promtail config"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:15:57.922425",
+      "command": "LOKI_URL=\"http://192.168.1.111:3100/loki/api/v1/push\" && ssh sam@192.168.1.100 \"sudo mkdir -p /etc/promtail && cat << EOF | sudo tee /etc/promtail/config.yml > /dev/null\nserver:\n  http_listen_port: 9080\n  grpc_listen_port: 0\n\npositions:\n  filename: /tmp/positions.yaml\n\nclients:\n  - url: $LOKI_URL\n\nscrape_configs:\n  - job_name: system\n    static_configs:\n      - targets:\n          - localhost\n        labels:\n          job: db-server\n          host: db\n          __path__: /var/log/*.log\n\n  - job_name: journal\n    journal:\n      max_age: 12h\n      labels:\n        job: systemd-journal\n        host: db\n    relabel_configs:\n      - source_labels: ['__journal__systemd_unit']\n        target_label: 'unit'\nEOF\necho 'Config promtail creata'\"",
+      "description": "Create promtail config file on remote"
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-21T18:16:04.330727",
+      "file_path": "/tmp/promtail-db-config.yml",
+      "content_length": 569
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:16:18.403737",
+      "command": "scp /tmp/promtail-db-config.yml sam@192.168.1.100:/tmp/ && ssh sam@192.168.1.100 \"sudo mkdir -p /etc/promtail && sudo mv /tmp/promtail-db-config.yml /etc/promtail/config.yml && echo 'Config promtail installata'\"",
+      "description": "Copy promtail config to remote machine"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:16:29.432686",
+      "command": "cat /tmp/claude/-home-sam/tasks/b4a95b4.output",
+      "description": "Check scp result"
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-21T18:16:35.491188",
+      "file_path": "/tmp/promtail.service",
+      "content_length": 339
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:16:49.197841",
+      "command": "scp /tmp/promtail.service sam@192.168.1.100:/tmp/ && ssh sam@192.168.1.100 \"sudo mv /tmp/promtail.service /etc/systemd/system/ && sudo systemctl daemon-reload && sudo systemctl enable promtail && sudo systemctl start promtail && sudo systemctl status promtail --no-pager\"",
+      "description": "Install and start promtail service"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-21T18:17:04.042853",
+      "todo_count": 8
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:17:23.595238",
+      "command": "ssh sam@192.168.1.100 \"echo '=== SISTEMA ===' && uptime && free -h && echo && echo '=== BADBLOCKS PROGRESS ===' && tail -c 300 /tmp/badblocks_progress.log\"",
+      "description": "Check system status and badblocks progress"
+    },
+    {
+      "operation": "write",
+      "timestamp": "2026-01-21T18:19:09.006465",
+      "file_path": "/tmp/disk-recovery-auto.sh",
+      "content_length": 3612
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:19:21.995643",
+      "command": "scp /tmp/disk-recovery-auto.sh sam@192.168.1.100:/tmp/ && ssh sam@192.168.1.100 \"sudo chmod +x /tmp/disk-recovery-auto.sh && sudo nohup /tmp/disk-recovery-auto.sh > /var/log/disk-recovery.log 2>&1 & echo 'Script avviato con PID:' \\$!\"",
+      "description": "Deploy and start disk recovery automation script"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:19:32.258205",
+      "command": "ssh sam@192.168.1.100 \"sudo touch /var/log/disk-recovery.log && sudo chmod 666 /var/log/disk-recovery.log && sudo nohup /tmp/disk-recovery-auto.sh >> /var/log/disk-recovery.log 2>&1 & sleep 1 && ps aux | grep disk-recovery | grep -v grep\"",
+      "description": "Start disk recovery script with proper permissions"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:21:36.867489",
+      "command": "cat /tmp/claude/-home-sam/tasks/bf71560.output && ssh sam@192.168.1.100 \"cat /var/log/disk-recovery.log\"",
+      "description": "Check script status"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-21T18:21:48.022247",
+      "todo_count": 8
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:22:35.525927",
+      "command": "ssh sam@192.168.1.100 \"echo '=== SISTEMA ===' && hostname && uptime && echo && echo '=== MEMORIA ===' && free -h && echo && echo '=== LOAD ===' && cat /proc/loadavg\"",
+      "description": "System status check"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:22:38.158752",
+      "command": "ssh sam@192.168.1.100 \"echo '=== BADBLOCKS ===' && ps aux | grep badblocks | grep -v grep && echo && tail -c 150 /tmp/badblocks_progress.log && echo && echo 'Errori trovati:' && wc -l < /tmp/badblocks_sdb.txt 2>/dev/null || echo '0'\"",
+      "description": "Badblocks status"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:22:42.954222",
+      "command": "ssh sam@192.168.1.100 \"echo '=== SCRIPT AUTOMAZIONE ===' && ps aux | grep disk-recovery | grep -v grep && echo && tail -5 /var/log/disk-recovery.log\"",
+      "description": "Automation script status"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:22:45.352271",
+      "command": "ssh sam@192.168.1.100 \"echo '=== PROMTAIL ===' && systemctl is-active promtail && systemctl is-enabled promtail\"",
+      "description": "Promtail status"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:22:48.363373",
+      "command": "ssh sam@192.168.1.100 \"echo '=== DOCKER ===' && docker ps --format '{{.Names}}: {{.Status}}' 2>/dev/null || echo 'Nessun container attivo'\"",
+      "description": "Docker status"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:22:51.539606",
+      "command": "ssh sam@192.168.1.100 \"echo '=== SERVIZI DISABILITATI ===' && for s in clickhouse-server desktop-commander-mcp shrimp-task-manager-mcp supabase-mcp wolframalpha-mcp cups cups-browsed; do echo -n \\\"\\$s: \\\"; systemctl is-enabled \\$s 2>/dev/null || echo 'non trovato'; done\"",
+      "description": "Disabled services check"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:23:28.332672",
+      "command": "ssh sam@192.168.1.100 \"echo '=== DISK USAGE ===' && df -h / /boot /boot/efi && echo && echo '=== LARGEST DIRS IN / ===' && sudo du -sh /* 2>/dev/null | sort -hr | head -15\"",
+      "description": "Check disk usage on root"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:25:09.594132",
+      "command": "cat /tmp/claude/-home-sam/tasks/bb0002c.output",
+      "description": "Read disk usage output"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:25:10.082180",
+      "command": "echo '=== CLAUDE INSTALLATIONS ===' && ls -la ~/.claude/local/node_modules/.bin/claude 2>/dev/null && ls -la ~/.npm-global/bin/claude 2>/dev/null && which claude && claude --version 2>/dev/null | head -3",
+      "description": "Check Claude installations"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:25:19.176846",
+      "command": "ssh sam@192.168.1.100 \"sudo du -sh /var/* 2>/dev/null | sort -hr | head -10 && echo && sudo du -sh /home/* 2>/dev/null | sort -hr | head -5 && echo && sudo du -sh /usr/* 2>/dev/null | sort -hr | head -5\"",
+      "description": "Find large directories"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:27:19.864190",
+      "command": "ls -la ~/.claude/local/node_modules/.bin/claude 2>/dev/null; ls -la ~/.npm-global/bin/claude 2>/dev/null; which claude; echo \"---\"; file $(which claude 2>/dev/null) 2>/dev/null",
+      "description": "Check Claude installation paths"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:27:26.650784",
+      "command": "cat /tmp/claude/-home-sam/tasks/b34e40b.output",
+      "description": "Read large dirs output"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:27:26.655099",
+      "command": "ls -la ~/.claude/local/ 2>/dev/null && du -sh ~/.claude/local/ 2>/dev/null || echo \"Nessuna installazione locale\"",
+      "description": "Check local Claude installation"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:27:33.291248",
+      "command": "cat /tmp/claude/-home-sam/tasks/b34e40b.output 2>/dev/null || ssh sam@192.168.1.100 \"sudo du -sh /var/* 2>/dev/null | sort -hr | head -10\"",
+      "description": "Get disk usage data"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:27:33.744746",
+      "command": "cat ~/.claude/settings.json 2>/dev/null | grep -E \"install|version\" || echo \"No settings found\"",
+      "description": "Check Claude settings"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:27:38.843102",
+      "command": "ssh sam@192.168.1.100 \"du -sh /var/* 2>/dev/null | sort -hr | head -10\"",
+      "description": "Get /var disk usage"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:27:44.886901",
+      "command": "ssh sam@192.168.1.100 \"du -sh /home/sam/* 2>/dev/null | sort -hr | head -10\"",
+      "description": "Get /home/sam disk usage"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:28:01.190523",
+      "command": "ssh sam@192.168.1.100 \"echo '=== PULIZIA SICURA ===' && sudo journalctl --vacuum-time=7d && sudo apt-get clean && sudo apt-get autoremove -y 2>&1 | tail -5 && echo && echo '=== DOCKER CLEANUP ===' && docker system prune -af 2>&1 | tail -5\"",
+      "description": "Clean logs, apt cache, docker"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:30:08.485822",
+      "command": "ssh sam@192.168.1.100 \"rm -rf /home/sam/claude-code-multimodel /home/sam/Cline /home/sam/supabase && echo 'Eliminati: claude-code-multimodel, Cline, supabase'\"",
+      "description": "Remove large unused directories"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:30:23.760310",
+      "command": "ssh sam@192.168.1.100 \"rm -rf /home/sam/servers /home/sam/claude1 /home/sam/claude-prompts-mcp /home/sam/n8n-mcp-server /home/sam/infinite-loop-mcp-server /home/sam/clickhouse-mcp /home/sam/wolframalpha-llm-mcp && echo 'Eliminati MCP servers non usati'\"",
+      "description": "Remove MCP server directories"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:30:30.890805",
+      "command": "cat /tmp/claude/-home-sam/tasks/b27184c.output | tail -20",
+      "description": "Check cleanup output"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:30:36.778121",
+      "command": "ssh sam@192.168.1.100 \"sudo rm -rf /home/sam/supabase && echo 'Supabase eliminato'\"",
+      "description": "Remove supabase with sudo"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:30:44.843109",
+      "command": "ssh sam@192.168.1.100 \"echo '=== SPAZIO LIBERATO ===' && df -h / && echo && echo '=== HOME DOPO PULIZIA ===' && du -sh /home/sam/* 2>/dev/null | sort -hr | head -10\"",
+      "description": "Check disk space after cleanup"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:30:56.437159",
+      "command": "echo '=== CLAUDE CURRENT ===' && which claude && claude --version 2>/dev/null | head -2",
+      "description": "Check current Claude version"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:31:00.541072",
+      "command": "npm list -g @anthropic-ai/claude-code 2>/dev/null | head -5",
+      "description": "Check npm global claude installation"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:31:09.659208",
+      "command": "npm update -g @anthropic-ai/claude-code && claude --version 2>/dev/null | head -2",
+      "description": "Update Claude globally"
+    },
+    {
+      "operation": "todowrite",
+      "timestamp": "2026-01-21T18:33:38.862134",
+      "todo_count": 8
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:33:57.307181",
+      "command": "cat /tmp/claude/-home-sam/tasks/b27184c.output | grep -E \"reclaimed|freed|deleted|Total\" | tail -10",
+      "description": "Check Docker cleanup results"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:35:32.900286",
+      "command": "ssh sam@192.168.1.100 \"echo '=== SISTEMA ===' && uptime && free -h | grep Mem && df -h / | tail -1\"",
+      "description": "Quick system check"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:35:35.687657",
+      "command": "ssh sam@192.168.1.100 \"echo '=== BADBLOCKS ===' && tail -c 150 /tmp/badblocks_progress.log && echo && echo 'Errori:' \\$(cat /tmp/badblocks_sdb.txt 2>/dev/null | wc -l)\"",
+      "description": "Badblocks progress"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:35:39.526223",
+      "command": "ssh sam@192.168.1.100 \"echo '=== SERVIZI ===' && systemctl is-active promtail prometheus cloudflared ssh 2>/dev/null | paste - - - - && echo && echo '=== RETE ===' && ip -4 addr show | grep inet | grep -v 127.0.0\"",
+      "description": "Services and network check"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:35:42.854406",
+      "command": "ssh sam@192.168.1.100 \"echo '=== SECURITY ===' && sudo ufw status 2>/dev/null | head -3 && echo && echo '=== UPDATES PENDING ===' && apt list --upgradable 2>/dev/null | wc -l\"",
+      "description": "Security and updates check"
+    },
+    {
+      "operation": "bash",
+      "timestamp": "2026-01-21T18:35:54.784908",
+      "command": "ssh sam@192.168.1.100 \"sudo snap start prometheus 2>/dev/null && systemctl is-active snap.prometheus.prometheus.service\"",
+      "description": "Start Prometheus"
+    }
+  ],
+  "last_updated": "2026-01-21T18:35:54.784928"
+}

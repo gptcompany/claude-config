@@ -396,6 +396,20 @@ try:
 except ImportError:
     OSSReuseValidatorImpl = None
 
+try:
+    from validators.mathematical.validator import (
+        MathematicalValidator as MathematicalValidatorImpl,
+    )
+except ImportError:
+    MathematicalValidatorImpl = None
+
+try:
+    from validators.api_contract.validator import (
+        APIContractValidator as APIContractValidatorImpl,
+    )
+except ImportError:
+    APIContractValidatorImpl = None
+
 
 class DesignPrinciplesValidator(BaseValidator):
     """Tier 2: Design principles (KISS, YAGNI, DRY) - stub fallback."""
@@ -562,6 +576,50 @@ class AccessibilityValidator(BaseValidator):
         )
 
 
+class MathematicalValidator(BaseValidator):
+    """Tier 3: Mathematical formula validation - stub fallback."""
+
+    dimension = "mathematical"
+    tier = ValidationTier.MONITOR
+
+    async def validate(self) -> ValidationResult:
+        # Use real implementation if available
+        if MathematicalValidatorImpl:
+            impl = MathematicalValidatorImpl()
+            return await impl.validate()
+
+        # Fallback stub
+        return ValidationResult(
+            dimension=self.dimension,
+            tier=self.tier,
+            passed=True,
+            message="Mathematical validator not installed (stub)",
+            details={"using_stub": True, "cas_available": False},
+        )
+
+
+class APIContractValidator(BaseValidator):
+    """Tier 3: API contract validation - stub fallback."""
+
+    dimension = "api_contract"
+    tier = ValidationTier.MONITOR
+
+    async def validate(self) -> ValidationResult:
+        # Use real implementation if available
+        if APIContractValidatorImpl:
+            impl = APIContractValidatorImpl()
+            return await impl.validate()
+
+        # Fallback stub
+        return ValidationResult(
+            dimension=self.dimension,
+            tier=self.tier,
+            passed=True,
+            message="API contract validator not installed (stub)",
+            details={"using_stub": True, "oasdiff_available": False},
+        )
+
+
 # =============================================================================
 # Orchestrator
 # =============================================================================
@@ -594,10 +652,11 @@ class ValidationOrchestrator:
         "accessibility": AccessibilityValidator,
         # Phase 9-10 validators
         "oss_reuse": OSSReuseValidator,
+        "mathematical": MathematicalValidator,
+        "api_contract": APIContractValidator,
+        # Remaining stubs (Phase 12)
         "visual": BaseValidator,
-        "mathematical": BaseValidator,
         "data_integrity": BaseValidator,
-        "api_contract": BaseValidator,
     }
 
     def __init__(self, config_path: Path | None = None):
