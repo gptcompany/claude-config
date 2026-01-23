@@ -1,9 +1,0 @@
-{
-  "id": "2",
-  "subject": "Install prometheus_client and test metrics",
-  "description": "Install prometheus_client package and run full metrics tests. Currently 9 tests are skipped. Test: metric initialization, label values, push to gateway, error handling.",
-  "activeForm": "Testing prometheus metrics",
-  "status": "in_progress",
-  "blocks": [],
-  "blockedBy": []
-}

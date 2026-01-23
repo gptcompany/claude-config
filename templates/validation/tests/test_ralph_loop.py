@@ -513,5 +513,386 @@ class TestConfigEdgeCases:
         assert restored.tier2_timeout_seconds == original.tier2_timeout_seconds
 
 
+class TestHelperMethods:
+    """Tests for RalphLoop helper methods."""
+
+    @pytest.fixture
+    def loop_with_mocks(self):
+        """Create RalphLoop with mocked orchestrator."""
+        mock_orchestrator = MagicMock()
+        # Setup validators for _get_tier_class
+        # The _get_tier_class method does: first_validator.tier.__class__(tier_num)
+        # So tier.__class__ should be callable with a single int argument
+        mock_validator = MagicMock()
+        mock_tier_class = MagicMock(side_effect=lambda x: MagicMock(value=x))
+        mock_validator.tier.__class__ = mock_tier_class
+        mock_orchestrator.validators = {"test": mock_validator}
+
+        config = RalphLoopConfig()
+        loop = RalphLoop(mock_orchestrator, config)
+        return loop
+
+    def test_get_tier_class(self, loop_with_mocks):
+        """Test _get_tier_class returns tier enum."""
+        loop = loop_with_mocks
+        tier_class = loop._get_tier_class(1)
+        assert tier_class.value == 1
+
+    def test_elapsed_ms_no_start(self, loop_with_mocks):
+        """Test _elapsed_ms returns 0 when not started."""
+        loop = loop_with_mocks
+        assert loop._elapsed_ms() == 0
+
+    def test_elapsed_ms_with_start(self, loop_with_mocks):
+        """Test _elapsed_ms returns positive value after start."""
+        from datetime import datetime, timedelta
+
+        loop = loop_with_mocks
+        loop._start_time = datetime.now() - timedelta(milliseconds=100)
+        elapsed = loop._elapsed_ms()
+        assert elapsed >= 100
+
+    def test_create_result(self, loop_with_mocks):
+        """Test _create_result creates correct LoopResult."""
+        loop = loop_with_mocks
+        loop.iteration = 3
+        loop.history = [
+            IterationHistory(iteration=1, score=60.0, tier1_passed=True),
+            IterationHistory(iteration=2, score=75.0, tier1_passed=True),
+        ]
+
+        result = loop._create_result(
+            state=LoopState.COMPLETE,
+            score=85.0,
+            blockers=[],
+            message="Test complete",
+        )
+
+        assert result.state == LoopState.COMPLETE
+        assert result.iteration == 3
+        assert result.score == 85.0
+        assert len(result.history) == 2
+
+    def test_calculate_tier_score_empty(self, loop_with_mocks):
+        """Test _calculate_tier_score with empty results."""
+        loop = loop_with_mocks
+        tier_result = MagicMock()
+        tier_result.results = []
+        assert loop._calculate_tier_score(tier_result) == 100.0
+
+    def test_calculate_tier_score_no_attr(self, loop_with_mocks):
+        """Test _calculate_tier_score with no results attr."""
+        loop = loop_with_mocks
+        tier_result = MagicMock(spec=[])  # No 'results' attribute
+        assert loop._calculate_tier_score(tier_result) == 100.0
+
+    def test_calculate_tier_score_all_pass(self, loop_with_mocks):
+        """Test _calculate_tier_score with all passing."""
+        loop = loop_with_mocks
+        tier_result = MagicMock()
+        tier_result.results = [MagicMock(passed=True), MagicMock(passed=True)]
+        assert loop._calculate_tier_score(tier_result) == 100.0
+
+    def test_calculate_tier_score_partial(self, loop_with_mocks):
+        """Test _calculate_tier_score with partial pass."""
+        loop = loop_with_mocks
+        tier_result = MagicMock()
+        tier_result.results = [
+            MagicMock(passed=True),
+            MagicMock(passed=True),
+            MagicMock(passed=False),
+            MagicMock(passed=False),
+        ]
+        assert loop._calculate_tier_score(tier_result) == 50.0
+
+    def test_record_iteration(self, loop_with_mocks):
+        """Test _record_iteration adds to history."""
+        from datetime import datetime
+
+        loop = loop_with_mocks
+        loop.iteration = 2
+
+        tier1 = MagicMock()
+        tier1.passed = True
+
+        tier2 = MagicMock()
+        tier2.results = [MagicMock(passed=False), MagicMock(passed=True)]
+
+        tier3 = MagicMock()
+        tier3.results = [MagicMock(), MagicMock(), MagicMock()]
+
+        loop._record_iteration(datetime.now(), 80.0, tier1, tier2, tier3)
+
+        assert len(loop.history) == 1
+        assert loop.history[0].iteration == 2
+        assert loop.history[0].score == 80.0
+        assert loop.history[0].tier1_passed is True
+        assert loop.history[0].tier2_warnings == 1
+        assert loop.history[0].tier3_monitors == 3
+
+
+class TestAsyncMethods:
+    """Async tests for RalphLoop async methods."""
+
+    @pytest.fixture
+    def mock_orchestrator(self):
+        """Create mock orchestrator for async tests."""
+        mock = MagicMock()
+        mock_validator = MagicMock()
+        mock_tier_class = MagicMock(side_effect=lambda x: MagicMock(value=x))
+        mock_validator.tier.__class__ = mock_tier_class
+        mock.validators = {"test": mock_validator}
+        return mock
+
+    @pytest.mark.asyncio
+    async def test_run_tier1_success(self, mock_orchestrator):
+        """Test _run_tier1 returns result on success."""
+
+        tier1_result = MagicMock()
+        tier1_result.passed = True
+        tier1_result.results = []
+
+        async def mock_run_tier(tier):
+            return tier1_result
+
+        mock_orchestrator.run_tier = mock_run_tier
+
+        loop = RalphLoop(mock_orchestrator, RalphLoopConfig())
+        result, error = await loop._run_tier1()
+
+        assert result is not None
+        assert error is None
+        assert result.passed is True
+
+    @pytest.mark.asyncio
+    async def test_run_tier1_timeout(self, mock_orchestrator):
+        """Test _run_tier1 handles timeout."""
+        import asyncio
+
+        async def mock_run_tier(tier):
+            await asyncio.sleep(10)  # Will timeout
+            return MagicMock()
+
+        mock_orchestrator.run_tier = mock_run_tier
+
+        config = RalphLoopConfig(tier1_timeout_seconds=0.01)
+        loop = RalphLoop(mock_orchestrator, config)
+        from datetime import datetime
+
+        loop._start_time = datetime.now()
+
+        result, error = await loop._run_tier1()
+
+        assert result is None
+        assert error is not None
+        assert error.state == LoopState.BLOCKED
+        assert "timed out" in error.message.lower()
+
+    @pytest.mark.asyncio
+    async def test_run_tier1_blocked(self, mock_orchestrator):
+        """Test _run_tier1 returns error on failure."""
+        tier1_result = MagicMock()
+        tier1_result.passed = False
+        tier1_result.failed_dimensions = ["syntax", "security"]
+
+        async def mock_run_tier(tier):
+            return tier1_result
+
+        mock_orchestrator.run_tier = mock_run_tier
+
+        loop = RalphLoop(mock_orchestrator, RalphLoopConfig())
+        from datetime import datetime
+
+        loop._start_time = datetime.now()
+
+        result, error = await loop._run_tier1()
+
+        assert result is None
+        assert error is not None
+        assert error.state == LoopState.BLOCKED
+        assert "syntax" in error.blockers
+
+    @pytest.mark.asyncio
+    async def test_run_tier2_and_tier3_success(self, mock_orchestrator):
+        """Test _run_tier2_and_tier3 returns both results."""
+        tier2_result = MagicMock()
+        tier2_result.results = [MagicMock(passed=True)]
+
+        tier3_result = MagicMock()
+        tier3_result.results = [MagicMock()]
+
+        call_count = 0
+
+        async def mock_run_tier(tier):
+            nonlocal call_count
+            call_count += 1
+            if tier.value == 2:
+                return tier2_result
+            return tier3_result
+
+        mock_orchestrator.run_tier = mock_run_tier
+
+        loop = RalphLoop(mock_orchestrator, RalphLoopConfig())
+        t2, t3 = await loop._run_tier2_and_tier3()
+
+        assert t2 == tier2_result
+        assert t3 == tier3_result
+
+    @pytest.mark.asyncio
+    async def test_run_tier2_and_tier3_timeout(self, mock_orchestrator):
+        """Test _run_tier2_and_tier3 handles timeout gracefully."""
+        import asyncio
+
+        async def mock_run_tier(tier):
+            await asyncio.sleep(10)  # Will timeout
+            return MagicMock()
+
+        mock_orchestrator.run_tier = mock_run_tier
+
+        config = RalphLoopConfig(tier2_timeout_seconds=0.01)
+        loop = RalphLoop(mock_orchestrator, config)
+        t2, t3 = await loop._run_tier2_and_tier3()
+
+        # Should return empty tier results, not crash
+        assert t2.passed is True
+        assert t3.passed is True
+
+    @pytest.mark.asyncio
+    async def test_run_iteration_early_exit(self, mock_orchestrator):
+        """Test _run_iteration returns early on tier1 failure."""
+        tier1_result = MagicMock()
+        tier1_result.passed = False
+        tier1_result.failed_dimensions = ["syntax"]
+
+        async def mock_run_tier(tier):
+            return tier1_result
+
+        mock_orchestrator.run_tier = mock_run_tier
+
+        loop = RalphLoop(mock_orchestrator, RalphLoopConfig())
+        from datetime import datetime
+
+        loop._start_time = datetime.now()
+        loop.iteration = 1
+
+        score, error = await loop._run_iteration(datetime.now())
+
+        assert score == 0.0
+        assert error is not None
+        assert error.state == LoopState.BLOCKED
+
+    @pytest.mark.asyncio
+    async def test_run_iteration_success(self, mock_orchestrator):
+        """Test _run_iteration returns score on success."""
+        tier1_result = MagicMock()
+        tier1_result.passed = True
+        tier1_result.results = [MagicMock(passed=True)]
+
+        tier2_result = MagicMock()
+        tier2_result.results = [MagicMock(passed=True)]
+
+        tier3_result = MagicMock()
+        tier3_result.results = [MagicMock(passed=True)]
+
+        async def mock_run_tier(tier):
+            if tier.value == 1:
+                return tier1_result
+            elif tier.value == 2:
+                return tier2_result
+            return tier3_result
+
+        mock_orchestrator.run_tier = mock_run_tier
+
+        loop = RalphLoop(mock_orchestrator, RalphLoopConfig())
+        from datetime import datetime
+
+        loop._start_time = datetime.now()
+        loop.iteration = 1
+
+        score, error = await loop._run_iteration(datetime.now())
+
+        assert error is None
+        assert score == 100.0
+        assert len(loop.history) == 1
+
+    @pytest.mark.asyncio
+    async def test_run_complete_on_threshold(self, mock_orchestrator):
+        """Test run() completes when threshold met."""
+        tier1_result = MagicMock()
+        tier1_result.passed = True
+        tier1_result.results = [MagicMock(passed=True)]
+
+        tier2_result = MagicMock()
+        tier2_result.results = [MagicMock(passed=True)]
+
+        tier3_result = MagicMock()
+        tier3_result.results = [MagicMock(passed=True)]
+
+        async def mock_run_tier(tier):
+            if tier.value == 1:
+                return tier1_result
+            elif tier.value == 2:
+                return tier2_result
+            return tier3_result
+
+        mock_orchestrator.run_tier = mock_run_tier
+
+        loop = RalphLoop(mock_orchestrator, RalphLoopConfig())
+        result = await loop.run(["test.py"])
+
+        assert result.state == LoopState.COMPLETE
+        assert result.score == 100.0
+        assert result.iteration == 1
+
+    @pytest.mark.asyncio
+    async def test_run_blocked_on_tier1_failure(self, mock_orchestrator):
+        """Test run() returns BLOCKED on tier1 failure."""
+        tier1_result = MagicMock()
+        tier1_result.passed = False
+        tier1_result.failed_dimensions = ["syntax_error"]
+
+        async def mock_run_tier(tier):
+            return tier1_result
+
+        mock_orchestrator.run_tier = mock_run_tier
+
+        loop = RalphLoop(mock_orchestrator, RalphLoopConfig())
+        result = await loop.run(["test.py"])
+
+        assert result.state == LoopState.BLOCKED
+        assert "syntax_error" in result.blockers
+
+    @pytest.mark.asyncio
+    async def test_run_max_iterations(self, mock_orchestrator):
+        """Test run() stops at max_iterations."""
+        tier1_result = MagicMock()
+        tier1_result.passed = True
+        tier1_result.results = [MagicMock(passed=True)]
+
+        tier2_result = MagicMock()
+        tier2_result.results = [MagicMock(passed=False)]  # 50% score
+
+        tier3_result = MagicMock()
+        tier3_result.results = [MagicMock(passed=False)]  # 50% score
+
+        async def mock_run_tier(tier):
+            if tier.value == 1:
+                return tier1_result
+            elif tier.value == 2:
+                return tier2_result
+            return tier3_result
+
+        mock_orchestrator.run_tier = mock_run_tier
+
+        config = RalphLoopConfig(max_iterations=3, min_score_threshold=100.0)
+        loop = RalphLoop(mock_orchestrator, config)
+        result = await loop.run(["test.py"])
+
+        # Score = 100*0.5 + 0*0.3 + 0*0.2 = 50.0 (tier2 and tier3 have 0% pass rate)
+        assert result.state == LoopState.COMPLETE
+        assert result.iteration == 3
+        assert "Max iterations" in result.message
+
+
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
