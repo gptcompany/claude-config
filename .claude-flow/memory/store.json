@@ -25,7 +25,7 @@
       "value": {
         "status": "in_progress",
         "phase": 16,
-        "started_at": "2026-01-23T17:00:00Z",
+        "started_at": "2026-01-23T18:00:00Z",
         "plans": [
           {
             "plan": "16-01",
@@ -33,18 +33,23 @@
             "note": "ARC deployed but job routing issue identified"
           },
           {
+            "plan": "16-01-fix",
+            "status": "in_progress",
+            "note": "Fixing ARC job routing before 16-02"
+          },
+          {
             "plan": "16-02",
             "status": "pending",
             "depends_on": [
-              "16-01"
+              "16-01-fix"
             ]
           }
         ]
       },
       "metadata": {},
-      "storedAt": "2026-01-23T17:31:21.093Z",
+      "storedAt": "2026-01-23T19:11:08.974Z",
       "accessCount": 0,
-      "lastAccessed": "2026-01-23T17:31:21.093Z"
+      "lastAccessed": "2026-01-23T19:11:08.974Z"
     },
     "gsd:validation-framework:11": {
       "key": "gsd:validation-framework:11",
