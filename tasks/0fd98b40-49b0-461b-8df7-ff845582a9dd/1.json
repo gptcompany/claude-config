@@ -1,0 +1,9 @@
+{
+  "id": "1",
+  "subject": "Add tests for validators",
+  "description": "Add tests for: design_principles/validator.py (40%), mathematical/validator.py (61%), api_contract/validator.py (57%), oss_reuse/validator.py (47%). Test validation logic, edge cases, error handling.",
+  "activeForm": "Testing validators",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": []
+}

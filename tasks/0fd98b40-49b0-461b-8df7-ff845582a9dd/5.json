@@ -1,0 +1,11 @@
+{
+  "id": "5",
+  "subject": "Simplify ralph_loop.py with code-simplifier",
+  "description": "Use code-simplifier agent to simplify ralph_loop.py (260 lines, 38% coverage). The async run() method (lines 275-468) is ~200 lines of complex async code. Simplifying will make it easier to test.",
+  "activeForm": "Simplifying ralph_loop.py",
+  "status": "in_progress",
+  "blocks": [
+    "4"
+  ],
+  "blockedBy": []
+}

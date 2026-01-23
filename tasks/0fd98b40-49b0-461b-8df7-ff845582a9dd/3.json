@@ -1,0 +1,9 @@
+{
+  "id": "3",
+  "subject": "Add tests for hooks/install.py",
+  "description": "Create test_install.py with tests for: CLI argument parsing, --dry-run mode, --remove mode, settings.json backup, hook merging logic. Currently 0% coverage (111 lines).",
+  "activeForm": "Testing hooks/install.py",
+  "status": "in_progress",
+  "blocks": [],
+  "blockedBy": []
+}
