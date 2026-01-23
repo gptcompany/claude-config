@@ -475,7 +475,8 @@ class DesignPrinciplesValidator(BaseValidator):
         # Use real implementation if available
         if DesignPrinciplesValidatorImpl:
             impl = DesignPrinciplesValidatorImpl()
-            return await impl.validate()
+            # ValidationResult from validator module is structurally identical
+            return await impl.validate()  # type: ignore[return-value]
 
         # Fallback stub
         start = datetime.now()
