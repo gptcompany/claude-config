@@ -152,6 +152,35 @@ sops -d /media/sam/1TB/.env.enc 2>/dev/null | grep -q "KEY_NAME" && echo "Exists
    - Usa dati reali quando possibile (non solo mock)
    - Verifica comportamento in condizioni realistiche
 
+### Preferisci Test con Dati Reali (MANDATORY)
+
+**NON creare test con mock inutili.** Usa dati reali quando disponibili:
+
+1. **Se API key disponibile** → Usa l'API vera
+   - Verifica sempre: `grep -q API_KEY .env && echo "disponibile"`
+   - Se disponibile, testa con chiamate reali
+
+2. **Mock SOLO quando necessario:**
+   - API esterne non disponibili (no key)
+   - Rate limiting
+   - Edge cases impossibili con dati reali
+
+3. **Test con dati reali > Test con mock**
+   - I mock possono diventare obsoleti
+   - I dati reali verificano il comportamento effettivo
+   - Più fiducia nei risultati
+
+**Anti-pattern da evitare:**
+```python
+# ❌ Mock inutile quando API disponibile
+with patch('api.fetch', return_value=fake_data):
+    result = collector.collect()
+
+# ✅ Test con dati reali
+result = await collector.collect()
+assert not result.empty
+```
+
 **Prima di considerare un task completato:**
 - [ ] Unit tests passano
 - [ ] Integration tests passano
