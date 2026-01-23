@@ -641,7 +641,8 @@ class MathematicalValidator(BaseValidator):
         # Use real implementation if available
         if MathematicalValidatorImpl:
             impl = MathematicalValidatorImpl()
-            return await impl.validate()
+            # ValidationResult from validator module is structurally identical
+            return await impl.validate()  # type: ignore[return-value]
 
         # Fallback stub
         return ValidationResult(
