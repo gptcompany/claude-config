@@ -6,7 +6,7 @@
 <vision>
 ## How This Should Work
 
-The validation loop becomes intelligent — instead of running a fixed number of iterations, it uses multi-dimensional confidence scoring to know when work is "done enough."
+The validation loop becomes intelligent — instead of running a fixed number of iterations, it uses multi-dimensional confidence scoring to know when work is "done enough" — when the work matches or exceeds the initial requirements.
 
 Multiple validators (visual similarity, DOM structure, accessibility, performance) each contribute to a fused confidence score. The loop continues refining until the combined confidence crosses a threshold, then terminates dynamically.
 
