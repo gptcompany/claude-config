@@ -25,13 +25,26 @@
       "value": {
         "status": "in_progress",
         "phase": 16,
-        "started_at": "2026-01-23T00:00:00Z",
-        "plans": []
+        "started_at": "2026-01-23T17:00:00Z",
+        "plans": [
+          {
+            "plan": "16-01",
+            "status": "pending",
+            "blocking_checkpoint": "human-action: Create GitHub App"
+          },
+          {
+            "plan": "16-02",
+            "status": "pending",
+            "depends_on": [
+              "16-01"
+            ]
+          }
+        ]
       },
       "metadata": {},
-      "storedAt": "2026-01-23T16:58:02.185Z",
+      "storedAt": "2026-01-23T16:58:24.890Z",
       "accessCount": 0,
-      "lastAccessed": "2026-01-23T16:58:02.185Z"
+      "lastAccessed": "2026-01-23T16:58:24.890Z"
     }
   },
   "version": "3.0.0"

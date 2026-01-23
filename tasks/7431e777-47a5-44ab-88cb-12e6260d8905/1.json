@@ -1,0 +1,11 @@
+{
+  "id": "1",
+  "subject": "Execute Plan 16-01: Deploy ARC controller and runner scale set",
+  "description": "Deploy Actions Runner Controller (ARC) with Runner Scale Set on k3s-prod cluster. Requires GitHub App creation (blocking checkpoint), then: 1) Create seal-arc-secret.sh script, 2) Create ARC Helm values and Kustomize structure, 3) Deploy ARC controller and runner scale set, 4) Verify runners register with GitHub.",
+  "activeForm": "Deploying ARC controller",
+  "status": "in_progress",
+  "blocks": [
+    "2"
+  ],
+  "blockedBy": []
+}
