@@ -1,0 +1,65 @@
+{
+  "sessionId": "session-1769190860216-m8u7xc",
+  "name": "gsd-validation-framework-11-start",
+  "description": "Starting Phase 11 Ralph Integration for validation-framework",
+  "savedAt": "2026-01-23T17:54:20.216Z",
+  "stats": {
+    "tasks": 0,
+    "agents": 0,
+    "memoryEntries": 2,
+    "totalSize": 1127
+  },
+  "data": {
+    "memory": {
+      "entries": {
+        "gsd:progressive-deploy:15": {
+          "key": "gsd:progressive-deploy:15",
+          "value": {
+            "status": "completed",
+            "phase": "15-documentation",
+            "completed_at": "2026-01-23T16:25:00Z",
+            "results": {
+              "docs_created": [
+                "troubleshooting.md",
+                "secrets-management.md",
+                "onboarding.md"
+              ],
+              "summary": "15-01-SUMMARY.md"
+            }
+          },
+          "metadata": {},
+          "storedAt": "2026-01-23T16:22:02.005Z",
+          "accessCount": 0,
+          "lastAccessed": "2026-01-23T16:22:02.005Z"
+        },
+        "gsd:progressive-deploy:16": {
+          "key": "gsd:progressive-deploy:16",
+          "value": {
+            "status": "in_progress",
+            "phase": 16,
+            "started_at": "2026-01-23T17:00:00Z",
+            "plans": [
+              {
+                "plan": "16-01",
+                "status": "completed_partial",
+                "note": "ARC deployed but job routing issue identified"
+              },
+              {
+                "plan": "16-02",
+                "status": "pending",
+                "depends_on": [
+                  "16-01"
+                ]
+              }
+            ]
+          },
+          "metadata": {},
+          "storedAt": "2026-01-23T17:31:21.093Z",
+          "accessCount": 0,
+          "lastAccessed": "2026-01-23T17:31:21.093Z"
+        }
+      },
+      "version": "3.0.0"
+    }
+  }
+}

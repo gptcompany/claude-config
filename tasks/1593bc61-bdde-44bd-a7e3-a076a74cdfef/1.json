@@ -1,9 +1,0 @@
-{
-  "id": "1",
-  "subject": "Task 3: Update REQUIREMENTS.md with LIQ requirements",
-  "description": "Add LIQ-01, LIQ-02, LIQ-03 requirements for liquidation stream to REQUIREMENTS.md",
-  "activeForm": "Updating REQUIREMENTS.md with liquidation requirements",
-  "status": "pending",
-  "blocks": [],
-  "blockedBy": []
-}

@@ -1,0 +1,12 @@
+{
+  "id": "3",
+  "subject": "Execute Plan 11-03: Ralph Loop and Grafana dashboard",
+  "description": "Create Ralph Loop iterative validation and Grafana dashboard:\n1. Create Ralph Loop state machine (ralph_loop.py)\n2. Create Grafana dashboard template\n3. Add git post-commit hook template\nDepends on 11-01 and 11-02 completion.",
+  "activeForm": "Creating Ralph Loop",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": [
+    "1",
+    "2"
+  ]
+}
