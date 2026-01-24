@@ -12,16 +12,20 @@ import json
 import subprocess
 from datetime import datetime
 from pathlib import Path
-from typing import TYPE_CHECKING
 
-if TYPE_CHECKING:
-    from orchestrator import ValidationResult
+# Import from parent orchestrator using relative import
+# validators/ecc/ -> validators/ -> validation/orchestrator.py
+try:
+    from ...orchestrator import BaseValidator, ValidationResult, ValidationTier
+except ImportError:
+    # Fallback for when running standalone or in different contexts
+    import sys
 
-# Import from parent orchestrator for type compatibility
-import sys
+    sys.path.insert(0, str(Path(__file__).parent.parent.parent))
+    from orchestrator import BaseValidator, ValidationResult, ValidationTier  # noqa: F401
 
-sys.path.insert(0, str(Path(__file__).parent.parent.parent))
-from orchestrator import BaseValidator, ValidationResult
+# Re-export for subclasses
+__all__ = ["ECCValidatorBase", "ValidationResult", "ValidationTier"]
 
 
 class ECCValidatorBase(BaseValidator):
