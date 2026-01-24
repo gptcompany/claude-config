@@ -76,10 +76,11 @@
     "gsd:validation-framework:14.6": {
       "key": "gsd:validation-framework:14.6",
       "value": {
-        "status": "completed",
+        "status": "verified",
         "phase": "14.6",
         "started_at": "2026-01-24T12:17:43Z",
-        "completed_at": "2026-01-24T12:33:00Z",
+        "completed_at": "2026-01-24T12:38:00Z",
+        "verified_at": "2026-01-24T12:38:30Z",
         "plans": [
           "14.6-01",
           "14.6-02",
@@ -87,36 +88,20 @@
           "14.6-04"
         ],
         "results": {
-          "14.6-01": {
-            "tests": 106,
-            "pass": 105,
-            "skip": 1,
-            "status": "SUCCESS"
-          },
-          "14.6-02": {
-            "tests": 72,
-            "pass": 72,
-            "status": "SUCCESS"
-          },
-          "14.6-03": {
-            "tests": 46,
-            "pass": 46,
-            "status": "SUCCESS"
-          },
-          "14.6-04": {
-            "docs_created": 3,
-            "scripts_created": 2,
-            "confidence": 73,
-            "status": "HUMAN_VERIFY_PENDING"
-          }
+          "total_tests": 224,
+          "pass_rate": "99.6%",
+          "uat_passed": 9,
+          "uat_issues": 1
         },
-        "total_tests": 224,
-        "total_pass": 223
+        "commits": [
+          "8065170",
+          "a3d3fd4"
+        ]
       },
       "metadata": {},
-      "storedAt": "2026-01-24T12:33:10.543Z",
+      "storedAt": "2026-01-24T12:40:05.152Z",
       "accessCount": 0,
-      "lastAccessed": "2026-01-24T12:33:10.543Z"
+      "lastAccessed": "2026-01-24T12:40:05.152Z"
     }
   },
   "version": "3.0.0"

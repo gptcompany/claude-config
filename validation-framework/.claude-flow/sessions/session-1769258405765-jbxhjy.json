@@ -1,0 +1,122 @@
+{
+  "sessionId": "session-1769258405765-jbxhjy",
+  "name": "gsd-validation-framework-14.6-verified",
+  "description": "Phase 14.6 complete and verified via UAT",
+  "savedAt": "2026-01-24T12:40:05.765Z",
+  "stats": {
+    "tasks": 0,
+    "agents": 0,
+    "memoryEntries": 4,
+    "totalSize": 2090
+  },
+  "data": {
+    "memory": {
+      "entries": {
+        "gsd:validation-framework:13": {
+          "key": "gsd:validation-framework:13",
+          "value": {
+            "status": "completed",
+            "phase": 13,
+            "completed_at": "2026-01-24T09:45:00Z",
+            "results": {
+              "plans_completed": 3,
+              "tests_added": 48,
+              "validators_created": 4,
+              "commits": [
+                "7be7d8b",
+                "6b791d8",
+                "e6f6771",
+                "19b8278",
+                "06b0e8f",
+                "242ce2d",
+                "b06ccd3",
+                "9eba42e",
+                "1321755",
+                "35ddfec",
+                "ef52308",
+                "eafb24f",
+                "f1982af",
+                "a9db4b1"
+              ]
+            }
+          },
+          "metadata": {},
+          "storedAt": "2026-01-24T09:44:29.593Z",
+          "accessCount": 0,
+          "lastAccessed": "2026-01-24T09:44:29.593Z"
+        },
+        "gsd:validation-framework:14": {
+          "key": "gsd:validation-framework:14",
+          "value": {
+            "status": "completed",
+            "phase": 14,
+            "completed_at": "2026-01-24T10:30:00Z",
+            "results": {
+              "plans_completed": 5,
+              "tests_total": 80,
+              "tests_passed": 80,
+              "loc_total": 764,
+              "hooks_total": 14
+            }
+          },
+          "metadata": {},
+          "storedAt": "2026-01-24T10:22:45.142Z",
+          "accessCount": 0,
+          "lastAccessed": "2026-01-24T10:22:45.142Z"
+        },
+        "gsd:validation-framework:14.5": {
+          "key": "gsd:validation-framework:14.5",
+          "value": {
+            "status": "complete",
+            "phase": "14.5-hooks-shared-port",
+            "plans_completed": 8,
+            "total_loc": 18767,
+            "total_tests": 273,
+            "test_pass_rate": "99%",
+            "hooks_created": 37,
+            "questdb_tables": 6,
+            "completed_at": "2026-01-24T17:30:00Z"
+          },
+          "metadata": {
+            "project": "validation-framework",
+            "milestone": "v4.0"
+          },
+          "storedAt": "2026-01-24T11:38:30.067Z",
+          "accessCount": 0,
+          "lastAccessed": "2026-01-24T11:38:30.067Z"
+        },
+        "gsd:validation-framework:14.6": {
+          "key": "gsd:validation-framework:14.6",
+          "value": {
+            "status": "verified",
+            "phase": "14.6",
+            "started_at": "2026-01-24T12:17:43Z",
+            "completed_at": "2026-01-24T12:38:00Z",
+            "verified_at": "2026-01-24T12:38:30Z",
+            "plans": [
+              "14.6-01",
+              "14.6-02",
+              "14.6-03",
+              "14.6-04"
+            ],
+            "results": {
+              "total_tests": 224,
+              "pass_rate": "99.6%",
+              "uat_passed": 9,
+              "uat_issues": 1
+            },
+            "commits": [
+              "8065170",
+              "a3d3fd4"
+            ]
+          },
+          "metadata": {},
+          "storedAt": "2026-01-24T12:40:05.152Z",
+          "accessCount": 0,
+          "lastAccessed": "2026-01-24T12:40:05.152Z"
+        }
+      },
+      "version": "3.0.0"
+    }
+  }
+}
