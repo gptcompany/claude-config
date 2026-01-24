@@ -18,6 +18,7 @@ n8n-errors.log
 todos/
 shell-snapshots/
 debug/
+!scripts/hooks/debug/
 file-history/
 paste-cache/
 plans/
