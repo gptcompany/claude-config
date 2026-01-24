@@ -61,21 +61,35 @@
         "plans": [
           {
             "plan": "01",
-            "status": "executing",
-            "agent": "aa3a638"
+            "status": "completed"
           },
           {
             "plan": "02",
-            "status": "executing",
-            "agent": "a4d7c85"
+            "status": "completed"
+          },
+          {
+            "plan": "03",
+            "status": "executing"
+          },
+          {
+            "plan": "04",
+            "status": "executing"
+          },
+          {
+            "plan": "05",
+            "status": "executing"
+          },
+          {
+            "plan": "06",
+            "status": "executing"
           }
         ],
-        "wave": 1
+        "wave": "2-3"
       },
       "metadata": {},
-      "storedAt": "2026-01-24T10:56:24.631Z",
+      "storedAt": "2026-01-24T11:03:54.629Z",
       "accessCount": 0,
-      "lastAccessed": "2026-01-24T10:56:24.631Z"
+      "lastAccessed": "2026-01-24T11:03:54.629Z"
     }
   },
   "version": "3.0.0"

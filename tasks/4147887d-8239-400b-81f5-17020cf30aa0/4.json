@@ -3,7 +3,7 @@
   "subject": "Execute Plan 14.5-04: Quality Hooks",
   "description": "Port quality hooks: ci-autofix.js, plan-validator.js, pr-readiness.js, architecture-validator.js, readme-generator.js (~900 LOC)",
   "activeForm": "Creating quality hooks",
-  "status": "pending",
+  "status": "in_progress",
   "blocks": [],
   "blockedBy": [
     "1"
