@@ -57,13 +57,25 @@
       "value": {
         "status": "in_progress",
         "phase": "14.5",
-        "started_at": "2026-01-24T12:00:00Z",
-        "plans": []
+        "started_at": "2026-01-24T10:55:00Z",
+        "plans": [
+          {
+            "plan": "01",
+            "status": "executing",
+            "agent": "aa3a638"
+          },
+          {
+            "plan": "02",
+            "status": "executing",
+            "agent": "a4d7c85"
+          }
+        ],
+        "wave": 1
       },
       "metadata": {},
-      "storedAt": "2026-01-24T10:54:50.839Z",
+      "storedAt": "2026-01-24T10:56:24.631Z",
       "accessCount": 0,
-      "lastAccessed": "2026-01-24T10:54:50.839Z"
+      "lastAccessed": "2026-01-24T10:56:24.631Z"
     }
   },
   "version": "3.0.0"
