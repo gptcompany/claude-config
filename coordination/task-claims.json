@@ -1,32 +1,5 @@
 {
   "claims": {
-    "task-73b85f03-110851": {
-      "taskId": "task-73b85f03-110851",
-      "issueId": "task:task-73b85f03-110851",
-      "claimant": "agent:test-session-1769252931118:task",
-      "description": "Test task description",
-      "claimedAt": "2026-01-24T11:08:51.191Z",
-      "sessionId": "test-session-1769252931118",
-      "status": "running"
-    },
-    "task-73b85f03-110907": {
-      "taskId": "task-73b85f03-110907",
-      "issueId": "task:task-73b85f03-110907",
-      "claimant": "agent:test-session-1769252947408:task",
-      "description": "Test task description",
-      "claimedAt": "2026-01-24T11:09:07.461Z",
-      "sessionId": "test-session-1769252947408",
-      "status": "running"
-    },
-    "task-d94c6518-110922": {
-      "taskId": "task-d94c6518-110922",
-      "issueId": "task:task-d94c6518-110922",
-      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
-      "description": "Test task execution",
-      "claimedAt": "2026-01-24T11:09:22.107Z",
-      "sessionId": "session-mks7j5xo-rp3lzmdp",
-      "status": "running"
-    },
     "task-321b942c-111907": {
       "taskId": "task-321b942c-111907",
       "issueId": "task:task-321b942c-111907",
@@ -87,6 +60,42 @@
       "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
       "description": "unknown task",
       "claimedAt": "2026-01-24T11:35:38.142Z",
+      "sessionId": "session-mks7j5xo-rp3lzmdp",
+      "status": "running"
+    },
+    "task-321b942c-121130": {
+      "taskId": "task-321b942c-121130",
+      "issueId": "task:task-321b942c-121130",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-24T12:11:30.092Z",
+      "sessionId": "session-mks7j5xo-rp3lzmdp",
+      "status": "running"
+    },
+    "task-73b85f03-121138": {
+      "taskId": "task-73b85f03-121138",
+      "issueId": "task:task-73b85f03-121138",
+      "claimant": "agent:test-session-1769256698362:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-24T12:11:38.425Z",
+      "sessionId": "test-session-1769256698362",
+      "status": "running"
+    },
+    "task-321b942c-121138": {
+      "taskId": "task-321b942c-121138",
+      "issueId": "task:task-321b942c-121138",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-24T12:11:38.937Z",
+      "sessionId": "session-mks7j5xo-rp3lzmdp",
+      "status": "running"
+    },
+    "task-45c82177-121140": {
+      "taskId": "task-45c82177-121140",
+      "issueId": "task:task-45c82177-121140",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "unknown task",
+      "claimedAt": "2026-01-24T12:11:40.414Z",
       "sessionId": "session-mks7j5xo-rp3lzmdp",
       "status": "running"
     }

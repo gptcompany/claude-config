@@ -1,0 +1,60 @@
+{
+  "id": "checkpoint-.claude-2026-01-24T12-11-41-870Z",
+  "timestamp": "2026-01-24T12:11:41.876Z",
+  "project": ".claude",
+  "branch": "main",
+  "commit": "06b1763",
+  "toolCallCount": 20,
+  "filesModified": [
+    "/test/file.js",
+    "/test/file1.js",
+    "/test/file2.js"
+  ],
+  "recentTools": [
+    {
+      "tool": "Bash",
+      "timestamp": "2026-01-24T11:30:12.400Z"
+    },
+    {
+      "tool": "Bash",
+      "timestamp": "2026-01-24T11:30:12.457Z"
+    },
+    {
+      "tool": "Task",
+      "timestamp": "2026-01-24T11:31:43.018Z"
+    },
+    {
+      "tool": "Task",
+      "timestamp": "2026-01-24T11:32:27.531Z"
+    },
+    {
+      "tool": "Bash",
+      "timestamp": "2026-01-24T11:35:34.497Z"
+    },
+    {
+      "tool": "Bash",
+      "timestamp": "2026-01-24T11:35:34.612Z"
+    },
+    {
+      "tool": "Task",
+      "timestamp": "2026-01-24T11:35:37.672Z"
+    },
+    {
+      "tool": "Task",
+      "timestamp": "2026-01-24T12:11:40.067Z"
+    },
+    {
+      "tool": "Bash",
+      "timestamp": "2026-01-24T12:11:41.785Z"
+    },
+    {
+      "tool": "Bash",
+      "timestamp": "2026-01-24T12:11:41.834Z"
+    }
+  ],
+  "gitChanges": {
+    "hasChanges": true,
+    "files": 12,
+    "lines": 257
+  }
+}

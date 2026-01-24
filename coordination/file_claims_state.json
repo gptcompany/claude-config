@@ -31,6 +31,10 @@
     "/tmp/test file with spaces.js": {
       "claimedAt": "2026-01-24T11:32:29.380Z",
       "sessionId": "session-mks7j5xo-rp3lzmdp"
+    },
+    "/tmp/test-unclaimed-1769256698413.js": {
+      "claimedAt": "2026-01-24T12:11:38.414Z",
+      "sessionId": "test-session-1769256698362"
     }
   }
 }

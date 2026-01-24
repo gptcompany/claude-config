@@ -79,6 +79,38 @@
       "description": "unknown task",
       "claimedAt": "2026-01-24T11:35:38.142Z",
       "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-121130",
+      "issueId": "task:task-321b942c-121130",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-24T12:11:30.093Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-121138",
+      "issueId": "task:task-73b85f03-121138",
+      "claimant": "agent:test-session-1769256698362:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-24T12:11:38.426Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-121138",
+      "issueId": "task:task-321b942c-121138",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-24T12:11:38.937Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-45c82177-121140",
+      "issueId": "task:task-45c82177-121140",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "unknown task",
+      "claimedAt": "2026-01-24T12:11:40.415Z",
+      "claimSuccess": true
     }
   ]
 }

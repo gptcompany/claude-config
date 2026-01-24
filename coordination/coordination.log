@@ -39,3 +39,25 @@
 2026-01-24T11:35:38.464Z [file-coordination] Already claimed by us: /tmp/test.js
 2026-01-24T11:35:39.182Z [file-coordination] Already claimed by us: /tmp/perf-test.js
 2026-01-24T11:35:39.569Z [file-coordination] Already claimed by us: /tmp/test file with spaces.js
+2026-01-24T12:11:30.021Z [file-coordination] Expired claim removed: /tmp/test-claim.js (was held by agent:session-mks7j5xo-rp3lzmdp:editor)
+2026-01-24T12:11:30.022Z [file-coordination] Expired claim removed: /tmp/test.js (was held by agent:session-mks7j5xo-rp3lzmdp:editor)
+2026-01-24T12:11:30.022Z [file-coordination] Expired claim removed: /tmp/perf-test.js (was held by agent:session-mks7j5xo-rp3lzmdp:editor)
+2026-01-24T12:11:30.022Z [file-coordination] Expired claim removed: /tmp/test file with spaces.js (was held by agent:session-mks7j5xo-rp3lzmdp:editor)
+2026-01-24T12:11:30.023Z [file-coordination] Already claimed by us: /tmp/test.js
+2026-01-24T12:11:30.090Z [task-coordination] Stale claim removed: task-73b85f03-110851 (was held by agent:test-session-1769252931118:task)
+2026-01-24T12:11:30.091Z [task-coordination] Stale claim removed: task-73b85f03-110907 (was held by agent:test-session-1769252947408:task)
+2026-01-24T12:11:30.091Z [task-coordination] Stale claim removed: task-d94c6518-110922 (was held by agent:session-mks7j5xo-rp3lzmdp:task)
+2026-01-24T12:11:30.093Z [task-coordination] Task claimed: task-321b942c-121130 - Test task...
+2026-01-24T12:11:30.967Z [file-coordination] Already claimed by us: /tmp/x.js
+2026-01-24T12:11:38.412Z [file-coordination] Expired claim removed: /old/file.js (was held by agent1)
+2026-01-24T12:11:38.414Z [file-coordination] Claimed file: /tmp/test-unclaimed-1769256698413.js
+2026-01-24T12:11:38.423Z [task-coordination] Stale claim removed: task-old (was held by agent1)
+2026-01-24T12:11:38.426Z [task-coordination] Task claimed: task-73b85f03-121138 - Test task description...
+2026-01-24T12:11:38.879Z [file-coordination] Already claimed by us: /tmp/test.js
+2026-01-24T12:11:38.937Z [task-coordination] Task claimed: task-321b942c-121138 - Test task...
+2026-01-24T12:11:39.867Z [file-coordination] Already claimed by us: /tmp/x.js
+2026-01-24T12:11:40.361Z [file-coordination] Already claimed by us: /tmp/test-claim.js
+2026-01-24T12:11:40.415Z [task-coordination] Task claimed: task-45c82177-121140 - unknown task...
+2026-01-24T12:11:40.741Z [file-coordination] Already claimed by us: /tmp/test.js
+2026-01-24T12:11:41.438Z [file-coordination] Already claimed by us: /tmp/perf-test.js
+2026-01-24T12:11:41.791Z [file-coordination] Already claimed by us: /tmp/test file with spaces.js

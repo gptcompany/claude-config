@@ -72,6 +72,33 @@
       "storedAt": "2026-01-24T11:38:30.067Z",
       "accessCount": 0,
       "lastAccessed": "2026-01-24T11:38:30.067Z"
+    },
+    "gsd:validation-framework:14.6": {
+      "key": "gsd:validation-framework:14.6",
+      "value": {
+        "status": "in_progress",
+        "phase": "14.6",
+        "started_at": "2026-01-24T12:17:43Z",
+        "plans": [
+          "14.6-01",
+          "14.6-02",
+          "14.6-03",
+          "14.6-04"
+        ],
+        "wave1": [
+          "14.6-01",
+          "14.6-02"
+        ],
+        "wave2": [
+          "14.6-03",
+          "14.6-04"
+        ],
+        "current_wave": 1
+      },
+      "metadata": {},
+      "storedAt": "2026-01-24T12:18:02.575Z",
+      "accessCount": 0,
+      "lastAccessed": "2026-01-24T12:18:02.575Z"
     }
   },
   "version": "3.0.0"
