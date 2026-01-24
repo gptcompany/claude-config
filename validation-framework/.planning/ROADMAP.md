@@ -92,7 +92,7 @@ Plans:
 **Depends on**: Phase 14
 **Research**: Complete (cross-check analysis done)
 **Source**: `/media/sam/1TB/claude-hooks-shared/`
-**Plans**: 7 plans
+**Plans**: 8 plans
 
 Plans:
 - [ ] 14.5-01: Core libs (mcp-client, git-utils, metrics, tips-engine)
@@ -102,11 +102,35 @@ Plans:
 - [ ] 14.5-05: Productivity hooks (auto-format, tdd-guard, task-checkpoint, auto-simplify)
 - [ ] 14.5-06: Metrics & Coordination (dora-tracker, quality-score, claudeflow-sync, file/task coordination)
 - [ ] 14.5-07: UX & Control (tips-injector, ralph-loop, hive-manager, session-insights)
+- [ ] 14.5-08: **Debug System** (hook-debugger, hook-validator, hook-tracer, hook-health, effectiveness tests)
+
+### Phase 14.6: Hooks Integration & Validation
+
+**Goal**: Comprehensive integration testing and validation for 95% confidence
+**Depends on**: Phase 14.5
+**Research**: Complete
+**Plans**: 4 plans
+
+Plans:
+- [ ] 14.6-01: E2E integration tests (session lifecycle, GSD workflow, multi-agent, ValidationOrchestrator) — 90 tests
+- [ ] 14.6-02: Regression tests (Phase 13/14 compat, upgrade path, Phase 15 forward compat) — 59 tests
+- [ ] 14.6-03: Performance & reliability tests (benchmarks, error recovery, concurrent, stress) — 43 tests
+- [ ] 14.6-04: Documentation & diagnostics (catalog, troubleshooting, performance guide, final validation)
+
+**Test Target:**
+| Category | Tests | Purpose |
+|----------|-------|---------|
+| Unit tests | ~150 | Per-hook functionality |
+| Effectiveness | 50 | Hooks actually work |
+| E2E integration | 90 | Full workflow tests |
+| Regression | 59 | Backward/forward compat |
+| Reliability | 43 | Performance, errors, stress |
+| **Total** | **~392** | **95% confidence** |
 
 ### Phase 15: Skills Port
 
 **Goal**: Port ECC skills we don't have (tdd-workflow, verification-loop, coding-standards)
-**Depends on**: Phase 14
+**Depends on**: Phase 14.6 (hooks fully validated)
 **Research**: Unlikely (port existing code)
 **Plans**: 5 plans
 
@@ -128,7 +152,10 @@ Plans:
 | 7-12 | v3.0 | 14/14 | ✅ Complete | 2026-01-24 |
 | 13. ECC Full Integration | v4.0 | 3/3 | ✅ Complete | 2026-01-24 |
 | 14. Hooks Node.js Port (ECC) | v4.0 | 5/5 | ✅ Complete | 2026-01-24 |
-| 14.5. claude-hooks-shared Port | v4.0 | 0/7 | Not started | - |
+| 14.5. claude-hooks-shared Port | v4.0 | 0/8 | Not started | - |
+| 14.6. Hooks Integration & Validation | v4.0 | 0/4 | Not started | - |
 | 15. Skills Port | v4.0 | 0/5 | Not started | - |
 
-**Total:** 33 plans shipped, 12 remaining for v4.0
+**Total:** 33 plans shipped, 17 remaining for v4.0
+
+**Test Coverage Target:** ~392 tests for 95% confidence in hooks system
