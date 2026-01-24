@@ -68,9 +68,9 @@ Build a reusable validation pipeline framework starting with core templates, the
 **Plans**: 3 plans
 
 Plans:
-- [ ] 13-01: Create hybrid validation workflow (ECC 6-phase → our 14-dim)
+- [x] 13-01: Create hybrid validation workflow (ECC 6-phase → our 14-dim)
 - [ ] 13-02: Port ECC agents (e2e-runner, security-reviewer) to our system
-- [ ] 13-03: Create unified `/validate` skill
+- [x] 13-03: Create unified `/validate` skill
 
 ### Phase 14: Hooks Node.js Port
 
@@ -110,8 +110,8 @@ Plans:
 | 1-5 | v1.0 | 7/7 | ✅ Complete | 2026-01-19 |
 | 6 | v2.0 | 4/4 | ✅ Complete | 2026-01-20 |
 | 7-12 | v3.0 | 14/14 | ✅ Complete | 2026-01-24 |
-| 13. ECC Full Integration | v4.0 | 0/3 | Not started | - |
+| 13. ECC Full Integration | v4.0 | 2/3 | In progress | - |
 | 14. Hooks Node.js Port | v4.0 | 0/5 | Not started | - |
 | 15. Skills Port | v4.0 | 0/5 | Not started | - |
 
-**Total:** 25 plans shipped, 13 planned for v4.0
+**Total:** 27 plans shipped, 11 remaining for v4.0
