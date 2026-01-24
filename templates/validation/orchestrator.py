@@ -914,6 +914,71 @@ class ValidationOrchestrator:
 
         return report
 
+    async def run_from_cli(self, tier: str | None = None) -> int:
+        """
+        Run validation from CLI with tier filtering and nice output.
+
+        This method is designed for the /validate skill to invoke.
+
+        Args:
+            tier: Tier filter - None/"all" runs all, "1"/"quick" runs Tier 1,
+                  "2" runs Tier 2, "3" runs Tier 3
+
+        Returns:
+            Exit code: 0 if passed, 1 if Tier 1 blockers failed, 2 on error
+        """
+        try:
+            # Parse tier argument
+            if tier is None or tier.lower() in ("all", ""):
+                # Run all tiers
+                report = await self.run_all()
+
+                # Output
+                print(f"\n{'=' * 60}")
+                print(f"VALIDATION REPORT: {report.project}")
+                print(f"{'=' * 60}")
+
+                for tier_result in report.tiers:
+                    status = "[PASS]" if tier_result.passed else "[FAIL]"
+                    print(
+                        f"\nTier {tier_result.tier.value} ({tier_result.tier.name}): {status}"
+                    )
+                    for r in tier_result.results:
+                        icon = "[+]" if r.passed else "[-]"
+                        print(f"  {icon} {r.dimension}: {r.message}")
+
+                print(f"\n{'=' * 60}")
+                if report.blocked:
+                    print("RESULT: BLOCKED (Tier 1 failures)")
+                    return 1
+                else:
+                    print(f"RESULT: PASSED ({report.execution_time_ms}ms)")
+                    return 0
+
+            elif tier.lower() in ("1", "quick"):
+                tier_enum = ValidationTier.BLOCKER
+            elif tier == "2":
+                tier_enum = ValidationTier.WARNING
+            elif tier == "3":
+                tier_enum = ValidationTier.MONITOR
+            else:
+                print(f"Unknown tier: {tier}. Use 1/quick, 2, 3, or all.")
+                return 2
+
+            # Run single tier
+            result = await self.run_tier(tier_enum)
+            status = "[PASS]" if result.passed else "[FAIL]"
+            print(f"Tier {tier_enum.value} ({tier_enum.name}): {status}")
+            for r in result.results:
+                icon = "[+]" if r.passed else "[-]"
+                print(f"  {icon} {r.dimension}: {r.message}")
+
+            return 0 if result.passed else 1
+
+        except Exception as e:
+            print(f"Validation error: {e}")
+            return 2
+
     async def validate_file(
         self, file_path: str, tier: int = 1
     ) -> "FileValidationResult":
@@ -1090,4 +1155,17 @@ async def main():
 
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Run validation orchestrator")
+    parser.add_argument(
+        "tier",
+        nargs="?",
+        default=None,
+        help="Tier to run (1/quick, 2, 3, or all)",
+    )
+    args = parser.parse_args()
+
+    orchestrator = ValidationOrchestrator()
+    exit_code = asyncio.run(orchestrator.run_from_cli(args.tier))
+    sys.exit(exit_code)
