@@ -12,7 +12,7 @@ See: .planning/PROJECT.md (updated 2026-01-24)
 Phase: 13 of 15 (ECC Full Integration)
 Plan: 2 of 3 in current phase
 Status: In progress
-Last activity: 2026-01-24 — Completed 13-03-PLAN.md
+Last activity: 2026-01-24 — Completed 13-02-PLAN.md
 
 Progress: ██████████ 100% v1.0-v3.0 | ██░░░░░░░░ 15% v4.0
 
@@ -55,9 +55,9 @@ Progress: ██████████ 100% v1.0-v3.0 | ██░░░░░�
 ## Session Continuity
 
 Last session: 2026-01-24
-Stopped at: Completed 13-03-PLAN.md (/validate skill + ECC registration)
+Stopped at: Completed 13-02-PLAN.md (ECC agent validators)
 Resume file: None
-Next: `/gsd:execute-plan .planning/phases/13-ecc-integration/13-02-PLAN.md`
+Next: `/gsd:execute-plan .planning/phases/13-ecc-integration/13-03-PLAN.md`
 
 ## Pending Todos
 
