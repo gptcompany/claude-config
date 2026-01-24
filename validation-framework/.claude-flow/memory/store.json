@@ -51,6 +51,19 @@
       "storedAt": "2026-01-24T10:22:45.142Z",
       "accessCount": 0,
       "lastAccessed": "2026-01-24T10:22:45.142Z"
+    },
+    "gsd:validation-framework:14.5": {
+      "key": "gsd:validation-framework:14.5",
+      "value": {
+        "status": "in_progress",
+        "phase": "14.5",
+        "started_at": "2026-01-24T12:00:00Z",
+        "plans": []
+      },
+      "metadata": {},
+      "storedAt": "2026-01-24T10:54:50.839Z",
+      "accessCount": 0,
+      "lastAccessed": "2026-01-24T10:54:50.839Z"
     }
   },
   "version": "3.0.0"

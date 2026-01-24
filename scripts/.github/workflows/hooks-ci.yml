@@ -1,0 +1,104 @@
+name: Hooks CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'scripts/**'
+      - 'hooks/**'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'scripts/**'
+      - 'hooks/**'
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        node-version: [20]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+
+      - name: Create ~/.claude directory structure
+        run: |
+          mkdir -p ~/.claude/scripts/lib
+          mkdir -p ~/.claude/scripts/hooks
+          mkdir -p ~/.claude/hooks
+          mkdir -p ~/.claude/sessions
+          mkdir -p ~/.claude/skills/learned
+
+      - name: Copy hooks files to home directory
+        run: |
+          # Copy library files
+          cp scripts/lib/*.js ~/.claude/scripts/lib/
+
+          # Copy hook scripts
+          cp scripts/hooks/*.js ~/.claude/scripts/hooks/
+
+          # Copy hooks.json
+          cp hooks/hooks.json ~/.claude/hooks/
+
+          # Copy test files
+          cp scripts/test-hooks.js ~/.claude/scripts/
+
+      - name: Run unit tests - utils.js
+        run: node --test ~/.claude/scripts/lib/utils.test.js
+
+      - name: Run unit tests - package-manager.js
+        run: node --test ~/.claude/scripts/lib/package-manager.test.js
+
+      - name: Run integration tests
+        run: node ~/.claude/scripts/test-hooks.js
+
+      - name: Verify hooks.json syntax
+        run: |
+          node -e "
+            const fs = require('fs');
+            const config = JSON.parse(fs.readFileSync('$HOME/.claude/hooks/hooks.json', 'utf8'));
+            console.log('Events:', Object.keys(config.hooks).join(', '));
+            const total = Object.values(config.hooks).flat().length;
+            console.log('Total hooks:', total);
+            if (total !== 14) {
+              console.error('Expected 14 hooks, got', total);
+              process.exit(1);
+            }
+          "
+
+      - name: Test cross-platform paths
+        run: |
+          node -e "
+            const utils = require('$HOME/.claude/scripts/lib/utils.js');
+            console.log('Platform:', process.platform);
+            console.log('Home:', utils.getHomeDir());
+            console.log('Claude dir:', utils.getClaudeDir());
+            console.log('Sessions dir:', utils.getSessionsDir());
+
+            // Verify paths are absolute
+            const path = require('path');
+            if (!path.isAbsolute(utils.getHomeDir())) {
+              console.error('Home dir should be absolute');
+              process.exit(1);
+            }
+          "
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results-${{ matrix.os }}
+          path: |
+            ~/.claude/sessions/
+            ~/.claude/scripts/lib/*.test.js
+          retention-days: 7

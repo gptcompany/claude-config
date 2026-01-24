@@ -1,0 +1,9 @@
+{
+  "id": "2",
+  "subject": "Execute Plan 14.5-02: Safety Hooks",
+  "description": "Port safety hooks: git-safety-check.js, smart-safety-check.js, port-conflict-check.js, ci-batch-check.js (~600 LOC)",
+  "activeForm": "Creating safety hooks",
+  "status": "in_progress",
+  "blocks": [],
+  "blockedBy": []
+}

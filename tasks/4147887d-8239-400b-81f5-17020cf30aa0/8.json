@@ -1,0 +1,13 @@
+{
+  "id": "8",
+  "subject": "Execute Plan 14.5-06: Metrics & Coordination Hooks",
+  "description": "Port metrics and coordination hooks: dora-tracker.js, quality-score.js, claudeflow-sync.js, file-coordination.js, task-coordination.js (~700 LOC)",
+  "activeForm": "Creating metrics hooks",
+  "status": "pending",
+  "blocks": [
+    "5"
+  ],
+  "blockedBy": [
+    "1"
+  ]
+}
