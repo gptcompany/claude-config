@@ -100,14 +100,14 @@ Plans:
 - Strategy: Dual-write (local JSON + async QuestDB export)
 
 Plans:
-- [ ] 14.5-01: Core libs (mcp-client, git-utils, **metrics.js with QuestDB**, tips-engine)
-- [ ] 14.5-02: Safety hooks (git-safety, smart-safety, port-conflict, ci-batch)
-- [ ] 14.5-03: Intelligence hooks (session-start-tracker, session-analyzer, meta-learning, lesson-injector)
-- [ ] 14.5-04: Quality hooks (ci-autofix, plan-validator, pr-readiness, architecture-validator, readme-generator)
-- [ ] 14.5-05: Productivity hooks (auto-format, tdd-guard, task-checkpoint, auto-simplify)
-- [ ] 14.5-06: Metrics & Coordination (dora-tracker, quality-score, claudeflow-sync, file/task coordination)
-- [ ] 14.5-07: UX & Control (tips-injector, ralph-loop, hive-manager, session-insights)
-- [ ] 14.5-08: **Debug System** (hook-debugger, hook-validator, hook-tracer, hook-health + **QuestDB export**)
+- [x] 14.5-01: Core libs (mcp-client, git-utils, **metrics.js with QuestDB**, tips-engine)
+- [x] 14.5-02: Safety hooks (git-safety, smart-safety, port-conflict, ci-batch)
+- [x] 14.5-03: Intelligence hooks (session-start-tracker, session-analyzer, meta-learning, lesson-injector)
+- [x] 14.5-04: Quality hooks (ci-autofix, plan-validator, pr-readiness, architecture-validator, readme-generator)
+- [x] 14.5-05: Productivity hooks (auto-format, tdd-guard, task-checkpoint, auto-simplify)
+- [x] 14.5-06: Metrics & Coordination (dora-tracker, quality-score, claudeflow-sync, file/task coordination)
+- [x] 14.5-07: UX & Control (tips-injector, ralph-loop, hive-manager, session-insights)
+- [x] 14.5-08: **Debug System** (hook-debugger, hook-validator, hook-tracer, hook-health + **QuestDB export**)
 
 ### Phase 14.6: Hooks Integration & Validation
 
@@ -157,10 +157,10 @@ Plans:
 | 7-12 | v3.0 | 14/14 | ✅ Complete | 2026-01-24 |
 | 13. ECC Full Integration | v4.0 | 3/3 | ✅ Complete | 2026-01-24 |
 | 14. Hooks Node.js Port (ECC) | v4.0 | 5/5 | ✅ Complete | 2026-01-24 |
-| 14.5. claude-hooks-shared Port | v4.0 | 0/8 | Not started | - |
+| 14.5. claude-hooks-shared Port | v4.0 | 8/8 | ✅ Complete | 2026-01-24 |
 | 14.6. Hooks Integration & Validation | v4.0 | 0/4 | Not started | - |
 | 15. Skills Port | v4.0 | 0/5 | Not started | - |
 
-**Total:** 33 plans shipped, 17 remaining for v4.0
+**Total:** 41 plans shipped, 9 remaining for v4.0
 
 **Test Coverage Target:** ~392 tests for 95% confidence in hooks system
