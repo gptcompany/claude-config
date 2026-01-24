@@ -32,6 +32,25 @@
       "storedAt": "2026-01-24T09:44:29.593Z",
       "accessCount": 0,
       "lastAccessed": "2026-01-24T09:44:29.593Z"
+    },
+    "gsd:validation-framework:14": {
+      "key": "gsd:validation-framework:14",
+      "value": {
+        "status": "completed",
+        "phase": 14,
+        "completed_at": "2026-01-24T10:30:00Z",
+        "results": {
+          "plans_completed": 5,
+          "tests_total": 80,
+          "tests_passed": 80,
+          "loc_total": 764,
+          "hooks_total": 14
+        }
+      },
+      "metadata": {},
+      "storedAt": "2026-01-24T10:22:45.142Z",
+      "accessCount": 0,
+      "lastAccessed": "2026-01-24T10:22:45.142Z"
     }
   },
   "version": "3.0.0"
