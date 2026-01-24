@@ -742,7 +742,7 @@ class ValidationOrchestrator:
 
     # Conditionally add ECC validators if available
     if ECC_VALIDATORS_AVAILABLE:
-        VALIDATOR_REGISTRY.update(
+        VALIDATOR_REGISTRY.update(  # type: ignore[arg-type]
             {
                 "e2e_validation": E2EValidator,
                 "security_enhanced": SecurityEnhancedValidator,
