@@ -94,15 +94,20 @@ Plans:
 **Source**: `/media/sam/1TB/claude-hooks-shared/`
 **Plans**: 8 plans
 
+**QuestDB Integration**: All metrics exported to QuestDB for Grafana visibility
+- Tables: `claude_sessions`, `claude_tool_usage`, `claude_hook_invocations`, `claude_hook_stats`, `claude_hook_health`, `claude_tip_outcomes`
+- Protocol: ILP (port 9009) for writes, REST (port 9000) for queries
+- Strategy: Dual-write (local JSON + async QuestDB export)
+
 Plans:
-- [ ] 14.5-01: Core libs (mcp-client, git-utils, metrics, tips-engine)
+- [ ] 14.5-01: Core libs (mcp-client, git-utils, **metrics.js with QuestDB**, tips-engine)
 - [ ] 14.5-02: Safety hooks (git-safety, smart-safety, port-conflict, ci-batch)
 - [ ] 14.5-03: Intelligence hooks (session-start-tracker, session-analyzer, meta-learning, lesson-injector)
 - [ ] 14.5-04: Quality hooks (ci-autofix, plan-validator, pr-readiness, architecture-validator, readme-generator)
 - [ ] 14.5-05: Productivity hooks (auto-format, tdd-guard, task-checkpoint, auto-simplify)
 - [ ] 14.5-06: Metrics & Coordination (dora-tracker, quality-score, claudeflow-sync, file/task coordination)
 - [ ] 14.5-07: UX & Control (tips-injector, ralph-loop, hive-manager, session-insights)
-- [ ] 14.5-08: **Debug System** (hook-debugger, hook-validator, hook-tracer, hook-health, effectiveness tests)
+- [ ] 14.5-08: **Debug System** (hook-debugger, hook-validator, hook-tracer, hook-health + **QuestDB export**)
 
 ### Phase 14.6: Hooks Integration & Validation
 
