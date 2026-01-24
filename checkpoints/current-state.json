@@ -1,0 +1,50 @@
+{
+  "toolCalls": [
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T11:07:20.983Z"
+    },
+    {
+      "tool": "Edit",
+      "timestamp": "2026-01-24T11:07:21.045Z"
+    },
+    {
+      "tool": "Edit",
+      "timestamp": "2026-01-24T11:07:21.095Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T11:07:36.666Z"
+    },
+    {
+      "tool": "Edit",
+      "timestamp": "2026-01-24T11:07:36.730Z"
+    },
+    {
+      "tool": "Edit",
+      "timestamp": "2026-01-24T11:07:36.791Z"
+    },
+    {
+      "tool": "Edit",
+      "timestamp": "2026-01-24T11:07:46.944Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T11:08:52.890Z"
+    },
+    {
+      "tool": "Edit",
+      "timestamp": "2026-01-24T11:08:52.961Z"
+    },
+    {
+      "tool": "Edit",
+      "timestamp": "2026-01-24T11:08:53.022Z"
+    }
+  ],
+  "filesModified": [
+    "/test/file.js",
+    "/test/file1.js",
+    "/test/file2.js"
+  ],
+  "sessionStart": "2026-01-24T11:07:20.982Z"
+}

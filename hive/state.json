@@ -1,0 +1,129 @@
+{
+  "agents": {},
+  "tasks": {
+    "task_mks7ura3_stipin": {
+      "id": "task_mks7ura3_stipin",
+      "description": "Test task",
+      "priority": "normal",
+      "status": "pending",
+      "assigned_to": null,
+      "created_at": "2026-01-24T11:18:22.107Z",
+      "started_at": null,
+      "completed_at": null
+    },
+    "task_mks7vqtw_kcr64p": {
+      "id": "task_mks7vqtw_kcr64p",
+      "description": "Test",
+      "priority": "normal",
+      "status": "pending",
+      "assigned_to": null,
+      "created_at": "2026-01-24T11:19:08.180Z",
+      "started_at": null,
+      "completed_at": null
+    },
+    "task_mks7vr1h_uql2cj": {
+      "id": "task_mks7vr1h_uql2cj",
+      "description": "Persistence test",
+      "priority": "normal",
+      "status": "pending",
+      "assigned_to": null,
+      "created_at": "2026-01-24T11:19:08.453Z",
+      "started_at": null,
+      "completed_at": null
+    },
+    "task_mks7w1bn_25rygk": {
+      "id": "task_mks7w1bn_25rygk",
+      "description": "Test task",
+      "priority": "normal",
+      "status": "pending",
+      "assigned_to": null,
+      "created_at": "2026-01-24T11:19:21.779Z",
+      "started_at": null,
+      "completed_at": null
+    },
+    "task_mks7w1xn_e0elyd": {
+      "id": "task_mks7w1xn_e0elyd",
+      "description": "Test",
+      "priority": "normal",
+      "status": "pending",
+      "assigned_to": null,
+      "created_at": "2026-01-24T11:19:22.571Z",
+      "started_at": null,
+      "completed_at": null
+    },
+    "task_mks7w24u_wne1gx": {
+      "id": "task_mks7w24u_wne1gx",
+      "description": "Persistence test",
+      "priority": "normal",
+      "status": "pending",
+      "assigned_to": null,
+      "created_at": "2026-01-24T11:19:22.831Z",
+      "started_at": null,
+      "completed_at": null
+    },
+    "task_mks7w6o4_enfzf1": {
+      "id": "task_mks7w6o4_enfzf1",
+      "description": "Test task",
+      "priority": "normal",
+      "status": "pending",
+      "assigned_to": null,
+      "created_at": "2026-01-24T11:19:28.708Z",
+      "started_at": null,
+      "completed_at": null
+    },
+    "task_mks7w79s_1rzmxu": {
+      "id": "task_mks7w79s_1rzmxu",
+      "description": "Test",
+      "priority": "normal",
+      "status": "pending",
+      "assigned_to": null,
+      "created_at": "2026-01-24T11:19:29.488Z",
+      "started_at": null,
+      "completed_at": null
+    },
+    "task_mks7w7h2_bfsyvv": {
+      "id": "task_mks7w7h2_bfsyvv",
+      "description": "Persistence test",
+      "priority": "normal",
+      "status": "pending",
+      "assigned_to": null,
+      "created_at": "2026-01-24T11:19:29.750Z",
+      "started_at": null,
+      "completed_at": null
+    },
+    "task_mks7wh68_ft7lgk": {
+      "id": "task_mks7wh68_ft7lgk",
+      "description": "Test task",
+      "priority": "normal",
+      "status": "pending",
+      "assigned_to": null,
+      "created_at": "2026-01-24T11:19:42.320Z",
+      "started_at": null,
+      "completed_at": null
+    },
+    "task_mks7whrc_9yigcw": {
+      "id": "task_mks7whrc_9yigcw",
+      "description": "Test",
+      "priority": "normal",
+      "status": "pending",
+      "assigned_to": null,
+      "created_at": "2026-01-24T11:19:43.080Z",
+      "started_at": null,
+      "completed_at": null
+    },
+    "task_mks7whzg_p163oo": {
+      "id": "task_mks7whzg_p163oo",
+      "description": "Persistence test",
+      "priority": "normal",
+      "status": "pending",
+      "assigned_to": null,
+      "created_at": "2026-01-24T11:19:43.372Z",
+      "started_at": null,
+      "completed_at": null
+    }
+  },
+  "hive_id": null,
+  "topology": "hierarchical-mesh",
+  "created_at": null,
+  "updated_at": "2026-01-24T11:19:43.372Z"
+}

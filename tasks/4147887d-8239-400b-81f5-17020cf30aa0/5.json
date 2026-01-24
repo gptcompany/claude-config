@@ -3,7 +3,7 @@
   "subject": "Execute Plan 14.5-07: UX & Control Hooks",
   "description": "Port UX and control hooks: tips-injector.js, session-insights.js, ralph-loop.js, hive-manager.js + update hooks.json (~600 LOC)",
   "activeForm": "Creating UX hooks",
-  "status": "pending",
+  "status": "completed",
   "blocks": [
     "7"
   ],

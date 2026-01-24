@@ -3,7 +3,7 @@
   "subject": "Execute Plan 14.5-05: Productivity Hooks",
   "description": "Port productivity hooks: auto-format.js, tdd-guard.js, task-checkpoint.js, auto-simplify.js (~800 LOC)",
   "activeForm": "Creating productivity hooks",
-  "status": "in_progress",
+  "status": "completed",
   "blocks": [],
   "blockedBy": [
     "1"

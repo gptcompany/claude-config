@@ -1,0 +1,24 @@
+{
+  "claimedFiles": {
+    "/tmp/test-unclaimed-1769252931168.js": {
+      "claimedAt": "2026-01-24T11:08:51.169Z",
+      "sessionId": "test-session-1769252931118"
+    },
+    "/tmp/test-unclaimed-1769252947453.js": {
+      "claimedAt": "2026-01-24T11:09:07.454Z",
+      "sessionId": "test-session-1769252947408"
+    },
+    "/home/sam/.claude/validation-framework/src/shared.js": {
+      "claimedAt": "2026-01-24T11:09:21.230Z",
+      "sessionId": "session-mks7j5xo-rp3lzmdp"
+    },
+    "/tmp/test.js": {
+      "claimedAt": "2026-01-24T11:19:07.781Z",
+      "sessionId": "session-mks7j5xo-rp3lzmdp"
+    },
+    "/tmp/x.js": {
+      "claimedAt": "2026-01-24T11:19:08.698Z",
+      "sessionId": "session-mks7j5xo-rp3lzmdp"
+    }
+  }
+}
