@@ -55,6 +55,30 @@
       "description": "Test task",
       "claimedAt": "2026-01-24T11:19:42.729Z",
       "claimSuccess": true
+    },
+    {
+      "taskId": "task-45c82177-113143",
+      "issueId": "task:task-45c82177-113143",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "unknown task",
+      "claimedAt": "2026-01-24T11:31:43.405Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-45c82177-113227",
+      "issueId": "task:task-45c82177-113227",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "unknown task",
+      "claimedAt": "2026-01-24T11:32:27.918Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-45c82177-113538",
+      "issueId": "task:task-45c82177-113538",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "unknown task",
+      "claimedAt": "2026-01-24T11:35:38.142Z",
+      "claimSuccess": true
     }
   ]
 }

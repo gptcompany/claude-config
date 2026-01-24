@@ -19,6 +19,18 @@
     "/tmp/x.js": {
       "claimedAt": "2026-01-24T11:19:08.698Z",
       "sessionId": "session-mks7j5xo-rp3lzmdp"
+    },
+    "/tmp/test-claim.js": {
+      "claimedAt": "2026-01-24T11:31:43.342Z",
+      "sessionId": "session-mks7j5xo-rp3lzmdp"
+    },
+    "/tmp/perf-test.js": {
+      "claimedAt": "2026-01-24T11:32:28.972Z",
+      "sessionId": "session-mks7j5xo-rp3lzmdp"
+    },
+    "/tmp/test file with spaces.js": {
+      "claimedAt": "2026-01-24T11:32:29.380Z",
+      "sessionId": "session-mks7j5xo-rp3lzmdp"
     }
   }
 }

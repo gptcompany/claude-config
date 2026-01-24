@@ -1,16 +1,28 @@
 {
   "claims": {
+    "/tmp/test-claim.js": {
+      "file": "/tmp/test-claim.js",
+      "agent": "agent:session-mks7j5xo-rp3lzmdp:editor",
+      "timestamp": "2026-01-24T11:35:38.076Z",
+      "expiry": "2026-01-24T11:40:38.075Z"
+    },
     "/tmp/test.js": {
       "file": "/tmp/test.js",
       "agent": "agent:session-mks7j5xo-rp3lzmdp:editor",
-      "timestamp": "2026-01-24T11:19:42.665Z",
-      "expiry": "2026-01-24T11:24:42.664Z"
+      "timestamp": "2026-01-24T11:35:38.464Z",
+      "expiry": "2026-01-24T11:40:38.464Z"
     },
-    "/tmp/x.js": {
-      "file": "/tmp/x.js",
+    "/tmp/perf-test.js": {
+      "file": "/tmp/perf-test.js",
       "agent": "agent:session-mks7j5xo-rp3lzmdp:editor",
-      "timestamp": "2026-01-24T11:19:43.651Z",
-      "expiry": "2026-01-24T11:24:43.650Z"
+      "timestamp": "2026-01-24T11:35:39.183Z",
+      "expiry": "2026-01-24T11:40:39.182Z"
+    },
+    "/tmp/test file with spaces.js": {
+      "file": "/tmp/test file with spaces.js",
+      "agent": "agent:session-mks7j5xo-rp3lzmdp:editor",
+      "timestamp": "2026-01-24T11:35:39.569Z",
+      "expiry": "2026-01-24T11:40:39.568Z"
     }
   }
 }
