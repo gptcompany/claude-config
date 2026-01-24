@@ -13,7 +13,7 @@ Build a reusable validation pipeline framework starting with core templates, the
 - ✅ [**v1.0 Core Framework**](milestones/v1.0-ROADMAP.md) (Phases 1-5) — SHIPPED 2026-01-19
 - ✅ [**v2.0 Hybrid UAT**](milestones/v2.0-ROADMAP.md) (Phase 6) — SHIPPED 2026-01-20
 - ✅ [**v3.0 14-Dimension Orchestrator**](milestones/v3.0-ROADMAP.md) (Phases 7-12) — SHIPPED 2026-01-24
-- 🔮 **v4.0 ECC Integration** (Phases 13-15) — Proposed
+- 🚧 **v4.0 ECC Integration & Hooks Modernization** (Phases 13-15) — In Progress
 
 ## Completed Milestones
 
@@ -53,17 +53,19 @@ Build a reusable validation pipeline framework starting with core templates, the
 
 ---
 
-## 🔮 Milestone 4: ECC Integration & Hooks Modernization (Proposed)
+## 🚧 v4.0 ECC Integration & Hooks Modernization (In Progress)
 
 **Milestone Goal:** Port ECC best practices (Node.js hooks, skills, verification loop) and integrate with existing GSD/claude-flow infrastructure.
 
 **Reference:** `/media/sam/1TB/everything-claude-code/`
-**Effort estimate:** 90-115h
 
 ### Phase 13: ECC Full Integration
+
 **Goal**: Integrate ECC architecture patterns with our GSD/claude-flow system
 **Depends on**: Phase 12 (confidence loop complete)
-**Effort estimate**: 30-40h
+**Research**: Likely (new integration patterns)
+**Research topics**: ECC architecture patterns, hybrid validation strategy
+**Plans**: 3 plans
 
 Plans:
 - [ ] 13-01: Create hybrid validation workflow (ECC 6-phase → our 14-dim)
@@ -71,9 +73,12 @@ Plans:
 - [ ] 13-03: Create unified `/validate` skill
 
 ### Phase 14: Hooks Node.js Port
+
 **Goal**: Migrate critical hooks from Bash/Python to Node.js for cross-platform reliability
 **Depends on**: Phase 13
-**Effort estimate**: 40-50h
+**Research**: Likely (Node.js ecosystem)
+**Research topics**: Node.js cross-platform file ops, hooks.json schema design
+**Plans**: 5 plans
 
 Plans:
 - [ ] 14-01: Create utils.js shared library (port from ECC + our additions)
@@ -83,9 +88,11 @@ Plans:
 - [ ] 14-05: Test cross-platform (Linux + macOS CI)
 
 ### Phase 15: Skills Port
+
 **Goal**: Port ECC skills we don't have (tdd-workflow, verification-loop, coding-standards)
 **Depends on**: Phase 14
-**Effort estimate**: 20-25h
+**Research**: Unlikely (port existing code)
+**Plans**: 5 plans
 
 Plans:
 - [ ] 15-01: Port tdd-workflow skill (enforced TDD, not just docs)
@@ -103,6 +110,8 @@ Plans:
 | 1-5 | v1.0 | 7/7 | ✅ Complete | 2026-01-19 |
 | 6 | v2.0 | 4/4 | ✅ Complete | 2026-01-20 |
 | 7-12 | v3.0 | 14/14 | ✅ Complete | 2026-01-24 |
-| 13-15 | v4.0 | 0/13 | 🔮 Proposed | - |
+| 13. ECC Full Integration | v4.0 | 0/3 | Not started | - |
+| 14. Hooks Node.js Port | v4.0 | 0/5 | Not started | - |
+| 15. Skills Port | v4.0 | 0/5 | Not started | - |
 
-**Total:** 25 plans shipped, 13 planned
+**Total:** 25 plans shipped, 13 planned for v4.0
