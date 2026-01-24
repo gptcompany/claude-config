@@ -55,41 +55,23 @@
     "gsd:validation-framework:14.5": {
       "key": "gsd:validation-framework:14.5",
       "value": {
-        "status": "in_progress",
-        "phase": "14.5",
-        "started_at": "2026-01-24T10:55:00Z",
-        "plans": [
-          {
-            "plan": "01",
-            "status": "completed"
-          },
-          {
-            "plan": "02",
-            "status": "completed"
-          },
-          {
-            "plan": "03",
-            "status": "executing"
-          },
-          {
-            "plan": "04",
-            "status": "executing"
-          },
-          {
-            "plan": "05",
-            "status": "executing"
-          },
-          {
-            "plan": "06",
-            "status": "executing"
-          }
-        ],
-        "wave": "2-3"
+        "status": "complete",
+        "phase": "14.5-hooks-shared-port",
+        "plans_completed": 8,
+        "total_loc": 18767,
+        "total_tests": 273,
+        "test_pass_rate": "99%",
+        "hooks_created": 37,
+        "questdb_tables": 6,
+        "completed_at": "2026-01-24T17:30:00Z"
       },
-      "metadata": {},
-      "storedAt": "2026-01-24T11:03:54.629Z",
+      "metadata": {
+        "project": "validation-framework",
+        "milestone": "v4.0"
+      },
+      "storedAt": "2026-01-24T11:38:30.067Z",
       "accessCount": 0,
-      "lastAccessed": "2026-01-24T11:03:54.629Z"
+      "lastAccessed": "2026-01-24T11:38:30.067Z"
     }
   },
   "version": "3.0.0"
