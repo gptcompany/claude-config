@@ -10,19 +10,15 @@ Build a reusable validation pipeline framework starting with core templates, the
 
 ## Milestones
 
-- ✅ **Milestone 1** - Core Framework (Phases 1-5, shipped 2026-01-19)
-- ✅ **Milestone 2** - Hybrid UAT & Validators (Phase 6, shipped 2026-01-20)
-- ✅ **Milestone 3** - Universal 14-Dimension Orchestrator (Phases 7-12, shipped 2026-01-23)
-- 🔮 **Milestone 4** - ECC Integration & Hooks Modernization (Phases 13-15, proposed)
+- ✅ [**v1.0 Core Framework**](milestones/v1.0-ROADMAP.md) (Phases 1-5) — SHIPPED 2026-01-19
+- ✅ [**v2.0 Hybrid UAT**](milestones/v2.0-ROADMAP.md) (Phase 6) — SHIPPED 2026-01-20
+- ✅ [**v3.0 14-Dimension Orchestrator**](milestones/v3.0-ROADMAP.md) (Phases 7-12) — SHIPPED 2026-01-24
+- 🔮 **v4.0 ECC Integration** (Phases 13-15) — Proposed
 
-## Phases
-
-**Phase Numbering:**
-- Integer phases (1, 2, 3): Planned milestone work
-- Decimal phases (2.1, 2.2): Urgent insertions (marked with INSERTED)
+## Completed Milestones
 
 <details>
-<summary>✅ Milestone 1 & 2 (Phases 1-6) - SHIPPED 2026-01-20</summary>
+<summary>✅ v1.0 & v2.0 (Phases 1-6) - SHIPPED 2026-01-20</summary>
 
 - [x] **Phase 1: Core Framework** - Schema, scaffold script, base smoke tests
 - [x] **Phase 2: CI Workflows** - GitHub Actions templates for smoke and integration
@@ -31,233 +27,53 @@ Build a reusable validation pipeline framework starting with core templates, the
 - [x] **Phase 5: Other Extensions** - Workflow and data domain templates
 - [x] **Phase 6: Hybrid UAT & Validators** - Hybrid verify-work, accessibility, security, performance
 
-### Phase 1: Core Framework
-**Goal**: Create the foundational templates and scaffold script
-**Depends on**: Nothing (first phase)
-**Requirements**: CORE-01, CORE-02, CORE-03, SMOKE-01, SMOKE-02, SMOKE-03, SMOKE-04
-**Research**: Unlikely (established patterns - Jinja2, JSON Schema, pytest)
-**Plans**: 2 plans
+</details>
 
-Plans:
-- [x] 01-01: Create JSON Schema and scaffold script
-- [x] 01-02: Create smoke test Jinja2 templates
+<details>
+<summary>✅ v3.0 Universal 14-Dimension Orchestrator (Phases 7-12) - SHIPPED 2026-01-24</summary>
 
-### Phase 2: CI Workflows
-**Goal**: Create GitHub Actions workflow templates
-**Depends on**: Phase 1
-**Requirements**: CI-01, CI-02
-**Research**: Unlikely (standard GitHub Actions patterns)
-**Plans**: 1 plan
+- [x] **Phase 7: Orchestrator Core** - ValidationOrchestrator with tiered execution
+- [x] **Phase 8: Config Schema v2** - Config generation CLI with domain presets
+- [x] **Phase 9: Tier 2 Validators** - design_principles + oss_reuse validators
+- [x] **Phase 10: Tier 3 Validators** - mathematical + api_contract validators
+- [x] **Phase 11: Ralph Integration** - PostToolUse hooks, Prometheus, Sentry, Grafana
+- [x] **Phase 12: Confidence Loop** - Visual/behavioral validators, score fusion, progressive refinement
 
-Plans:
-- [x] 02-01: Create CI workflow templates
-
-### Phase 3: Local K8s
-**Goal**: Create k3d cluster and Argo Rollouts templates
-**Depends on**: Phase 2
-**Requirements**: CI-03, K8S-01, K8S-02, K8S-03, K8S-04, K8S-05
-**Research**: Likely (k3d configuration, Argo Rollouts analysis)
-**Research topics**: k3d cluster config options, Argo Rollouts AnalysisTemplate syntax, mock Prometheus setup
-**Plans**: 2 plans
-
-Plans:
-- [x] 03-01: Create k3d cluster templates
-- [x] 03-02: Create Argo Rollouts and mock Prometheus templates
-
-### Phase 4: Trading Extension
-**Goal**: Create trading-specific validation templates
-**Depends on**: Phase 1 (uses base smoke templates)
-**Requirements**: EXT-TRADING-01, EXT-TRADING-02, EXT-TRADING-03
-**Research**: Unlikely (patterns from nautilus_dev k8s/rollouts/)
-**Plans**: 1 plan
-
-Plans:
-- [x] 04-01: Create trading domain templates
-
-### Phase 5: Other Extensions
-**Goal**: Create workflow and data domain templates
-**Depends on**: Phase 1 (uses base smoke templates)
-**Requirements**: EXT-WORKFLOW-01, EXT-WORKFLOW-02, EXT-DATA-01, EXT-DATA-02
-**Research**: Unlikely (similar patterns to trading)
-**Plans**: 1 plan
-
-Plans:
-- [x] 05-01: Create workflow and data domain templates
-
-### Phase 6: Hybrid UAT & Validators
-**Goal**: Create hybrid auto/manual UAT workflow with accessibility, security, and performance validators
-**Depends on**: Phase 5 (uses existing templates), AI Validation Service
-**Requirements**: HYBRID-01, A11Y-01, SEC-01, PERF-01
-**Research**: Likely (axe-core integration, Trivy setup, Lighthouse CI)
-**Research topics**: axe-core + Playwright integration, Trivy container scanning, Lighthouse CI configuration
-**Plans**: 4 plans
-
-Plans:
-- [x] 06-01: Hybrid verify-work (auto-check + confidence + manual filter)
-- [x] 06-02: Accessibility validation (axe-core + Playwright)
-- [x] 06-03: Security scanning (Trivy container + dependency)
-- [x] 06-04: Performance validation (Lighthouse CI + Core Web Vitals)
+**Delivered:**
+- ValidationOrchestrator (1,093 LOC) with 14-dimension tiered execution
+- VisualTargetValidator: ODiff + SSIM screenshot comparison
+- BehavioralValidator: Zhang-Shasha DOM tree comparison
+- MultiModalValidator: Weighted quasi-arithmetic mean fusion
+- ProgressiveRefinementLoop: Three-stage refinement (LAYOUT → STYLE → POLISH)
+- TerminationEvaluator: Dynamic termination (threshold, stall, max iterations)
+- TerminalReporter + GrafanaReporter for dual output
+- 367+ tests passing, 19,004 LOC total
 
 </details>
 
-## Phase Details
-
-### ✅ Milestone 3: Universal 14-Dimension Orchestrator (Complete)
-
-**Milestone Goal:** Integrate existing validation components into a unified 14-dimension orchestrator with tiered execution and Ralph loop backpressure.
-
-**Reference Plan:** `/home/sam/.claude/plans/calm-wobbling-ripple.md`
-
-#### Phase 7: Orchestrator Core
-**Goal**: Create ValidationOrchestrator with tiered execution (Tier1=blockers, Tier2=warnings, Tier3=monitors)
-**Depends on**: Phase 6 (uses existing validators)
-**Research**: Unlikely (internal async Python patterns)
-**Plans**: TBD
-
-Plans:
-- [ ] 07-01: Create ValidationOrchestrator template + wire into Ralph loop
-
-#### Phase 8: Config Schema v2 (COMPLETE)
-**Goal**: Extend config generation tooling to expose all 14 dimensions with sensible defaults
-**Depends on**: Phase 7
-**Research**: Unlikely (JSON Schema extension)
-**Plans**: 1 plan
-
-Plans:
-- [x] 08-01: Config generation CLI with domain presets
-
-#### Phase 9: Tier 2 Validators (COMPLETE)
-**Goal**: Create design_principles (KISS/YAGNI/DRY) and oss_reuse (package suggestions) validators
-**Depends on**: Phase 8
-**Research**: Completed (radon complexity metrics)
-**Plans**: 2 plans
-
-Plans:
-- [x] 09-01: Create design_principles validator with radon + AST analysis
-- [x] 09-02: Create oss_reuse validator with pattern detection
-
-#### Phase 10: Tier 3 Validators (COMPLETE)
-**Goal**: Create mathematical (CAS microservice) and api_contract (OpenAPI diff) validators
-**Depends on**: Phase 8
-**Research**: Completed (CAS microservice protocol, oasdiff CLI)
-**Plans**: 2 plans
-
-Plans:
-- [x] 10-01: Create MathematicalValidator with CAS client and formula extractor
-- [x] 10-02: Create APIContractValidator with spec discovery and oasdiff runner
-
-#### Phase 11: Ralph Integration (COMPLETE)
-**Goal**: Wire orchestrator into Ralph loop hook + MCP integration (Playwright, Sentry, Grafana)
-**Depends on**: Phases 9, 10
-**Research**: Completed (hooks integration, Prometheus metrics, Sentry context)
-**Plans**: 3 plans
-
-Plans:
-- [x] 11-01: PostToolUse hook infrastructure with Tier 1 blocking
-- [x] 11-02: Prometheus metrics and Sentry context integration
-- [x] 11-03: Ralph Loop state machine and Grafana dashboard
-
-## Progress
-
-**Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 → 10 → 11
-
-| Phase | Milestone | Plans Complete | Status | Completed |
-|-------|-----------|----------------|--------|-----------|
-| 1. Core Framework | M1 | 2/2 | Complete | 2026-01-19 |
-| 2. CI Workflows | M1 | 1/1 | Complete | 2026-01-19 |
-| 3. Local K8s | M1 | 2/2 | Complete | 2026-01-19 |
-| 4. Trading Extension | M1 | 1/1 | Complete | 2026-01-19 |
-| 5. Other Extensions | M1 | 1/1 | Complete | 2026-01-19 |
-| 6. Hybrid UAT & Validators | M2 | 4/4 | Complete | 2026-01-20 |
-| 7. Orchestrator Core | M3 | 1/1 | Complete | 2026-01-22 |
-| 8. Config Schema v2 | M3 | 1/1 | Complete | 2026-01-22 |
-| 9. Tier 2 Validators | M3 | 2/2 | Complete | 2026-01-22 |
-| 10. Tier 3 Validators | M3 | 2/2 | Complete | 2026-01-22 |
-| 11. Ralph Integration | M3 | 3/3 | Complete | 2026-01-23 |
-| 12. Confidence Loop | M3 | 5/5 | Complete | 2026-01-23 |
-| 13. ECC Full Integration | M4 | 0/? | Not started | - |
-| 14. Hooks Node.js Port | M4 | 0/? | Not started | - |
-| 15. Skills Port | M4 | 0/? | Not started | - |
-
-#### Phase 12: Confidence-Based Loop Extension (COMPLETE)
-**Goal**: Transform Tier 3 from passive monitors to active loop drivers with visual-driven development
-**Depends on**: Phase 11
-**Research**: Completed (visual comparison libraries, behavioral testing frameworks)
-**Plans**: 5 plans
-
-Plans:
-- [x] 12-01: Visual validators (pixel_diff ODiff, perceptual SSIM, combined)
-- [x] 12-02: Behavioral validator (DOM tree edit distance)
-- [x] 12-03: MultiModalValidator (weighted score fusion)
-- [x] 12-04: ProgressiveRefinementLoop (three-stage refinement)
-
-**Delivered:**
-- VisualTargetValidator: Screenshot-driven development with ODiff + SSIM
-- BehavioralValidator: DOM structure comparison
-- MultiModalValidator: Weighted quasi-arithmetic mean fusion (visual 35%, behavioral 25%, a11y 20%, perf 20%)
-- ProgressiveRefinementLoop: Three-stage refinement (LAYOUT 80% → STYLE 90% → POLISH 95%)
-- TerminationEvaluator: Dynamic termination (threshold, stall, max iterations)
-- 132 tests passing with 99%+ coverage
-
 ---
 
-### 🔮 Milestone 4: ECC Integration & Hooks Modernization (Proposed)
+## 🔮 Milestone 4: ECC Integration & Hooks Modernization (Proposed)
 
 **Milestone Goal:** Port ECC best practices (Node.js hooks, skills, verification loop) and integrate with existing GSD/claude-flow infrastructure.
 
 **Reference:** `/media/sam/1TB/everything-claude-code/`
+**Effort estimate:** 90-115h
 
-#### Phase 13: ECC Full Integration
+### Phase 13: ECC Full Integration
 **Goal**: Integrate ECC architecture patterns with our GSD/claude-flow system
-**Depends on**: Phase 11 (Ralph integration complete)
-**Research**: Completed (ECC analysis done 2026-01-23)
+**Depends on**: Phase 12 (confidence loop complete)
 **Effort estimate**: 30-40h
-
-**Scope:**
-- Unify ECC 6-phase verification loop with our 14-dimension orchestrator
-- Sequential gates (ECC) + parallel tiers (ours) = hybrid workflow
-- ECC agents integration (e2e-runner, security-reviewer, code-reviewer)
-- Unified `/validate` skill that runs both systems
 
 Plans:
 - [ ] 13-01: Create hybrid validation workflow (ECC 6-phase → our 14-dim)
 - [ ] 13-02: Port ECC agents (e2e-runner, security-reviewer) to our system
 - [ ] 13-03: Create unified `/validate` skill
 
-#### Phase 14: Hooks Node.js Port
+### Phase 14: Hooks Node.js Port
 **Goal**: Migrate critical hooks from Bash/Python to Node.js for cross-platform reliability
 **Depends on**: Phase 13
-**Research**: Completed (ECC utils.js analyzed)
 **Effort estimate**: 40-50h
-
-**Current state (claude-hooks-shared):**
-- 50+ hooks in Python/Bash
-- Silent failures, no error handling
-- Platform-specific (Linux only)
-- 13,952 LOC total
-
-**Target state (ECC pattern):**
-- Node.js with utils.js shared library
-- try-catch everywhere, visible error messages
-- Cross-platform (Linux/macOS/Windows)
-- hooks.json declarative config
-
-**Migration priority (by impact):**
-1. **Critical** (port first):
-   - `hooks/core/context_bundle_builder.py` → Node.js
-   - `hooks/core/post-tool-use.py` → Node.js
-   - `hooks/safety/smart-safety-check.py` → Node.js
-   - `hooks/safety/git-safety-check.py` → Node.js
-
-2. **High** (port second):
-   - `hooks/productivity/architecture-validator.py` → Node.js
-   - `hooks/productivity/readme-generator.py` → Node.js
-   - `hooks/quality/ci-autofix.py` → Node.js
-
-3. **Medium** (port if time):
-   - `hooks/metrics/*` → Node.js
-   - `hooks/intelligence/*` → Node.js
 
 Plans:
 - [ ] 14-01: Create utils.js shared library (port from ECC + our additions)
@@ -266,31 +82,10 @@ Plans:
 - [ ] 14-04: Create hooks.json declarative config
 - [ ] 14-05: Test cross-platform (Linux + macOS CI)
 
-**Deliverables:**
-- `~/.claude/hooks/lib/utils.js` - shared utilities
-- `~/.claude/hooks/hooks.json` - declarative config
-- `~/.claude/hooks/*.js` - ported hooks
-- GitHub Actions CI testing Linux + macOS
-
-#### Phase 15: Skills Port
+### Phase 15: Skills Port
 **Goal**: Port ECC skills we don't have (tdd-workflow, verification-loop, coding-standards)
 **Depends on**: Phase 14
-**Research**: Completed (ECC skills analyzed)
 **Effort estimate**: 20-25h
-
-**Gap analysis:**
-
-| ECC Skill | LOC | Our equivalent | Action |
-|-----------|-----|----------------|--------|
-| tdd-workflow | 409 | tdd-guard (51 LOC, doc-only) | **PORT** |
-| verification-loop | 120 | orchestrator (different) | **PORT** |
-| coding-standards | 520 | - | **PORT** |
-| eval-harness | 221 | - | **PORT** |
-| security-review | 494 | security validator | MERGE |
-| frontend-patterns | 631 | - | SKIP (domain-specific) |
-| backend-patterns | 582 | - | SKIP (domain-specific) |
-| continuous-learning | 80 | - | DEFER |
-| strategic-compact | 63 | - | DEFER |
 
 Plans:
 - [ ] 15-01: Port tdd-workflow skill (enforced TDD, not just docs)
@@ -299,20 +94,15 @@ Plans:
 - [ ] 15-04: Port eval-harness skill (pass@k metrics)
 - [ ] 15-05: Integrate skills with GSD workflow triggers
 
-**Integration points:**
-- `/gsd:execute-plan` triggers tdd-workflow for `tdd=true` tasks
-- `/gsd:execute-phase` triggers verification-loop at end
-- Pre-commit hook triggers coding-standards check
-
 ---
 
-## Milestone Summary
+## Progress
 
-| Milestone | Phases | Status | Est. Effort |
-|-----------|--------|--------|-------------|
-| M1: Core Framework | 1-5 | ✅ Complete | - |
-| M2: Hybrid UAT | 6 | ✅ Complete | - |
-| M3: 14-Dim Orchestrator | 7-12 | ✅ Complete | - |
-| M4: ECC Integration | 13-15 | 🔮 Proposed | 90-115h |
+| Phase | Milestone | Plans | Status | Completed |
+|-------|-----------|-------|--------|-----------|
+| 1-5 | v1.0 | 7/7 | ✅ Complete | 2026-01-19 |
+| 6 | v2.0 | 4/4 | ✅ Complete | 2026-01-20 |
+| 7-12 | v3.0 | 14/14 | ✅ Complete | 2026-01-24 |
+| 13-15 | v4.0 | 0/13 | 🔮 Proposed | - |
 
-**Total remaining effort:** 90-115h (M4 only)
+**Total:** 25 plans shipped, 13 planned
