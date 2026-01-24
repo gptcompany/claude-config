@@ -117,10 +117,10 @@ Plans:
 **Plans**: 4 plans
 
 Plans:
-- [ ] 14.6-01: E2E integration tests (session lifecycle, GSD workflow, multi-agent, ValidationOrchestrator) — 90 tests
-- [ ] 14.6-02: Regression tests (Phase 13/14 compat, upgrade path, Phase 15 forward compat) — 59 tests
-- [ ] 14.6-03: Performance & reliability tests (benchmarks, error recovery, concurrent, stress) — 43 tests
-- [ ] 14.6-04: Documentation & diagnostics (catalog, troubleshooting, performance guide, final validation)
+- [x] 14.6-01: E2E integration tests (session lifecycle, GSD workflow, multi-agent, ValidationOrchestrator) — 106 tests
+- [x] 14.6-02: Regression tests (Phase 13/14 compat, upgrade path, Phase 15 forward compat) — 72 tests
+- [x] 14.6-03: Performance & reliability tests (benchmarks, error recovery, concurrent, stress) — 46 tests
+- [x] 14.6-04: Documentation & diagnostics (catalog, troubleshooting, performance guide, final validation)
 
 **Test Target:**
 | Category | Tests | Purpose |
@@ -158,9 +158,9 @@ Plans:
 | 13. ECC Full Integration | v4.0 | 3/3 | ✅ Complete | 2026-01-24 |
 | 14. Hooks Node.js Port (ECC) | v4.0 | 5/5 | ✅ Complete | 2026-01-24 |
 | 14.5. claude-hooks-shared Port | v4.0 | 8/8 | ✅ Complete | 2026-01-24 |
-| 14.6. Hooks Integration & Validation | v4.0 | 0/4 | Not started | - |
+| 14.6. Hooks Integration & Validation | v4.0 | 4/4 | ✅ Complete | 2026-01-24 |
 | 15. Skills Port | v4.0 | 0/5 | Not started | - |
 
-**Total:** 41 plans shipped, 9 remaining for v4.0
+**Total:** 45 plans shipped, 5 remaining for v4.0
 
-**Test Coverage Target:** ~392 tests for 95% confidence in hooks system
+**Test Coverage Achieved:** 224 tests in Phase 14.6 + 273 from Phase 14.5 = **497 tests** (target was 392)
