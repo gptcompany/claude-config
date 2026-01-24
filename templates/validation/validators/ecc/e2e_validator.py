@@ -59,13 +59,14 @@ class E2EValidator(ECCValidatorBase):
         start = datetime.now()
 
         # Check if Playwright is configured
-        config_files = [
-            self.project_path / "playwright.config.ts",
-            self.project_path / "playwright.config.js",
-            self.project_path / "playwright.config.mjs",
+        config_patterns = [
+            "playwright.config.ts",
+            "playwright.config.js",
+            "playwright.config.mjs",
         ]
-
-        if not any(f.exists() for f in config_files):
+        if not any(
+            (self.project_path / pattern).exists() for pattern in config_patterns
+        ):
             return self._skip_result("No Playwright config found")
 
         try:
@@ -108,17 +109,13 @@ class E2EValidator(ECCValidatorBase):
 
             # Extract stats from Playwright JSON report
             stats = report.get("stats", {})
-            total = (
-                stats.get("expected", 0)
-                + stats.get("unexpected", 0)
-                + stats.get("flaky", 0)
-            )
             passed = stats.get("expected", 0)
             failed = stats.get("unexpected", 0)
             flaky = stats.get("flaky", 0)
             skipped = stats.get("skipped", 0)
+            total = passed + failed + flaky
 
-            # Fail if any tests failed (not flaky)
+            duration_s = stats.get("duration", 0) / 1000 if stats.get("duration") else 0
             is_passed = failed == 0
 
             return ValidationResult(
@@ -132,9 +129,7 @@ class E2EValidator(ECCValidatorBase):
                     "failed": failed,
                     "flaky": flaky,
                     "skipped": skipped,
-                    "duration_s": stats.get("duration", 0) / 1000
-                    if stats.get("duration")
-                    else 0,
+                    "duration_s": duration_s,
                 },
                 fix_suggestion="Run: npx playwright test --debug"
                 if not is_passed

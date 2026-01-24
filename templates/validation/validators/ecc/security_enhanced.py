@@ -65,27 +65,19 @@ class SecurityEnhancedValidator(ECCValidatorBase):
         src_dir = self.project_path / "src"
         scan_path = src_dir if src_dir.exists() else self.project_path
 
+        # Run all OWASP checks
+        checks = [
+            ("A01_broken_access_control", self._check_a01_access_control(scan_path)),
+            ("A03_injection", self._check_a03_injection(scan_path)),
+            ("A07_xss", self._check_a07_xss(scan_path)),
+            ("A09_logging_failures", self._check_a09_logging(scan_path)),
+        ]
+
         issues: dict[str, list[str]] = {}
-
-        # A01: Broken Access Control - check for auth decorators
-        a01_issues = await self._check_a01_access_control(scan_path)
-        if a01_issues:
-            issues["A01_broken_access_control"] = a01_issues
-
-        # A03: Injection - check for f-string SQL
-        a03_issues = await self._check_a03_injection(scan_path)
-        if a03_issues:
-            issues["A03_injection"] = a03_issues
-
-        # A07: XSS - check for innerHTML
-        a07_issues = await self._check_a07_xss(scan_path)
-        if a07_issues:
-            issues["A07_xss"] = a07_issues
-
-        # A09: Logging failures - check for bare except
-        a09_issues = await self._check_a09_logging(scan_path)
-        if a09_issues:
-            issues["A09_logging_failures"] = a09_issues
+        for category, check in checks:
+            result = await check
+            if result:
+                issues[category] = result
 
         total_issues = sum(len(v) for v in issues.values())
 
@@ -122,38 +114,36 @@ class SecurityEnhancedValidator(ECCValidatorBase):
         """
         issues = []
 
-        # Check Python auth decorators
-        result = await self._run_grep(
-            r"@requires_auth\|@login_required\|@auth_required", path, include="*.py"
+        # Check Python routes and auth
+        py_has_auth = await self._has_pattern(
+            r"@requires_auth\|@login_required\|@auth_required", path, "*.py"
         )
-        py_has_auth = bool(result.strip())
-
-        # Check if there are route handlers but no auth
-        route_result = await self._run_grep(
-            r"@app\.route\|@router\.\|@blueprint\.", path, include="*.py"
+        has_py_routes = await self._has_pattern(
+            r"@app\.route\|@router\.\|@blueprint\.", path, "*.py"
         )
-        has_routes = bool(route_result.strip())
 
-        if has_routes and not py_has_auth:
+        if has_py_routes and not py_has_auth:
             issues.append(
                 "Python routes found without @requires_auth/@login_required decorators"
             )
 
-        # Check TypeScript/JS auth patterns
-        ts_result = await self._run_grep(
-            r"requireAuth\|isAuthenticated\|withAuth", path, include="*.ts"
+        # Check TypeScript routes and auth
+        ts_has_auth = await self._has_pattern(
+            r"requireAuth\|isAuthenticated\|withAuth", path, "*.ts"
         )
-        ts_has_auth = bool(ts_result.strip())
-
-        route_ts_result = await self._run_grep(
-            r"export.*function.*Handler\|app\.get\|router\.get", path, include="*.ts"
+        has_ts_routes = await self._has_pattern(
+            r"export.*function.*Handler\|app\.get\|router\.get", path, "*.ts"
         )
-        has_ts_routes = bool(route_ts_result.strip())
 
         if has_ts_routes and not ts_has_auth:
             issues.append("TypeScript routes found without auth middleware/guards")
 
         return issues
+
+    async def _has_pattern(self, pattern: str, path: Path, include: str) -> bool:
+        """Check if pattern exists in files."""
+        result = await self._run_grep(pattern, path, include=include)
+        return bool(result.strip())
 
     async def _check_a03_injection(self, path: Path) -> list[str]:
         """
@@ -161,30 +151,23 @@ class SecurityEnhancedValidator(ECCValidatorBase):
 
         Looks for f-string SQL queries which may be vulnerable.
         """
-        issues = []
-
-        # Check for f-string SQL patterns
+        sql_keywords = ["SELECT", "INSERT", "UPDATE", "DELETE"]
         patterns = [
-            r'f".*{.*}.*SELECT',
-            r"f'.*{.*}.*SELECT",
-            r'f".*{.*}.*INSERT',
-            r"f'.*{.*}.*INSERT",
-            r'f".*{.*}.*UPDATE',
-            r"f'.*{.*}.*UPDATE",
-            r'f".*{.*}.*DELETE',
-            r"f'.*{.*}.*DELETE",
+            f"{quote}.*{{.*}}.*{keyword}"
+            for keyword in sql_keywords
+            for quote in ['f"', "f'"]
         ]
 
         for pattern in patterns:
             result = await self._run_grep(pattern, path, include="*.py")
             if result.strip():
-                # Extract just the filename:line for each match
-                for line in result.strip().split("\n")[:3]:  # Limit to 3 examples
-                    if line:
-                        issues.append(f"SQL injection risk: {line[:100]}")
-                break  # Don't duplicate if multiple patterns match
+                return [
+                    f"SQL injection risk: {line[:100]}"
+                    for line in result.strip().split("\n")[:3]
+                    if line
+                ]
 
-        return issues
+        return []
 
     async def _check_a07_xss(self, path: Path) -> list[str]:
         """
@@ -198,17 +181,21 @@ class SecurityEnhancedValidator(ECCValidatorBase):
         for ext in ["*.js", "*.ts", "*.tsx", "*.jsx"]:
             result = await self._run_grep(r"innerHTML\s*=", path, include=ext)
             if result.strip():
-                for line in result.strip().split("\n")[:3]:
-                    if line:
-                        issues.append(f"XSS risk (innerHTML): {line[:100]}")
+                issues.extend(
+                    f"XSS risk (innerHTML): {line[:100]}"
+                    for line in result.strip().split("\n")[:3]
+                    if line
+                )
                 break
 
         # Check dangerouslySetInnerHTML in React
         result = await self._run_grep(r"dangerouslySetInnerHTML", path, include="*.tsx")
         if result.strip():
-            for line in result.strip().split("\n")[:3]:
-                if line:
-                    issues.append(f"XSS risk (dangerouslySetInnerHTML): {line[:100]}")
+            issues.extend(
+                f"XSS risk (dangerouslySetInnerHTML): {line[:100]}"
+                for line in result.strip().split("\n")[:3]
+                if line
+            )
 
         return issues
 
@@ -218,26 +205,21 @@ class SecurityEnhancedValidator(ECCValidatorBase):
 
         Looks for bare except blocks without logging.
         """
-        issues = []
-
-        # Check for bare except without logging
-        # This is a simplified heuristic - checks for "except:" not followed by logging
         result = await self._run_grep(r"except:", path, include="*.py")
-        if result.strip():
-            except_lines = result.strip().split("\n")
+        if not result.strip():
+            return []
 
-            # Check if logging is used in the project
-            log_result = await self._run_grep(
-                r"import logging\|from logging\|logger\.", path, include="*.py"
-            )
-            has_logging = bool(log_result.strip())
+        except_lines = result.strip().split("\n")
+        has_logging = await self._has_pattern(
+            r"import logging\|from logging\|logger\.", path, "*.py"
+        )
 
-            if not has_logging and len(except_lines) > 3:
-                issues.append(
-                    f"Multiple except blocks ({len(except_lines)}) without logging setup"
-                )
+        if not has_logging and len(except_lines) > 3:
+            return [
+                f"Multiple except blocks ({len(except_lines)}) without logging setup"
+            ]
 
-        return issues
+        return []
 
     async def _run_grep(self, pattern: str, path: Path, include: str = "*") -> str:
         """

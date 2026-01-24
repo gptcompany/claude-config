@@ -138,12 +138,12 @@ class ECCValidatorBase(BaseValidator):
             True if tool is accessible, False otherwise
         """
         try:
-            subprocess.run(
+            result = subprocess.run(
                 ["which", cmd],
                 capture_output=True,
                 timeout=5,
             )
-            return True
+            return result.returncode == 0
         except (subprocess.TimeoutExpired, FileNotFoundError):
             return False
 

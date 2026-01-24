@@ -64,55 +64,43 @@ class TDDValidator(ECCValidatorBase):
         """
         start = datetime.now()
 
-        # Find source and test files
         source_files = self._find_source_files()
-        test_files = self._find_test_files()
-
         if not source_files:
             return self._skip_result("No source files found")
 
-        # Map source files to expected test file patterns
-        files_with_tests: list[str] = []
-        files_without_tests: list[str] = []
+        test_files = self._find_test_files()
+        files_with_tests = [
+            str(f) for f in source_files if self._has_test_file(f, test_files)
+        ]
+        files_without_tests = [
+            str(f) for f in source_files if not self._has_test_file(f, test_files)
+        ]
 
-        for source_file in source_files:
-            if self._has_test_file(source_file, test_files):
-                files_with_tests.append(str(source_file))
-            else:
-                files_without_tests.append(str(source_file))
-
-        # Calculate coverage ratio
         total = len(source_files)
         covered = len(files_with_tests)
         coverage_ratio = covered / total if total > 0 else 0
-
         is_passed = coverage_ratio >= self.coverage_threshold
 
-        message = f"TDD: {covered}/{total} files ({coverage_ratio:.0%}) have tests"
-
-        details = {
-            "source_files": len(source_files),
-            "files_with_tests": len(files_with_tests),
-            "files_without_tests": len(files_without_tests),
-            "coverage_ratio": round(coverage_ratio, 2),
-            "threshold": self.coverage_threshold,
-            "missing_tests": files_without_tests[:10],  # Limit for readability
-        }
-
         fix_suggestion = None
-        if not is_passed:
-            if files_without_tests:
-                fix_suggestion = (
-                    f"Add tests for: {', '.join(files_without_tests[:5])}"
-                    + ("..." if len(files_without_tests) > 5 else "")
-                )
+        if not is_passed and files_without_tests:
+            shown = files_without_tests[:5]
+            fix_suggestion = f"Add tests for: {', '.join(shown)}"
+            if len(files_without_tests) > 5:
+                fix_suggestion += "..."
 
         return ValidationResult(
             dimension=self.dimension,
             tier=self.tier,
             passed=is_passed,
-            message=message,
-            details=details,
+            message=f"TDD: {covered}/{total} files ({coverage_ratio:.0%}) have tests",
+            details={
+                "source_files": total,
+                "files_with_tests": covered,
+                "files_without_tests": len(files_without_tests),
+                "coverage_ratio": round(coverage_ratio, 2),
+                "threshold": self.coverage_threshold,
+                "missing_tests": files_without_tests[:10],
+            },
             fix_suggestion=fix_suggestion,
             agent=self.agent if not is_passed else None,
             duration_ms=self._format_duration(start),
@@ -125,9 +113,6 @@ class TDDValidator(ECCValidatorBase):
         Looks for Python files in src/, lib/, or root,
         excluding test files, __pycache__, and hidden dirs.
         """
-        source_files = []
-
-        # Common source directories
         src_dirs = [
             self.project_path / "src",
             self.project_path / "lib",
@@ -138,33 +123,28 @@ class TDDValidator(ECCValidatorBase):
             if not src_dir.exists():
                 continue
 
-            for py_file in src_dir.rglob("*.py"):
-                # Skip test files
-                if py_file.name.startswith("test_"):
-                    continue
-                if py_file.name.endswith("_test.py"):
-                    continue
-                if "tests" in py_file.parts:
-                    continue
-                if "__pycache__" in py_file.parts:
-                    continue
-                # Skip hidden directories
-                if any(p.startswith(".") for p in py_file.parts):
-                    continue
-                # Skip __init__.py
-                if py_file.name == "__init__.py":
-                    continue
-                # Skip conftest.py
-                if py_file.name == "conftest.py":
-                    continue
+            source_files = [
+                py_file
+                for py_file in src_dir.rglob("*.py")
+                if self._is_source_file(py_file)
+            ]
 
-                source_files.append(py_file)
-
-            # Only use first matching src_dir to avoid duplicates
             if source_files:
-                break
+                return source_files
 
-        return source_files
+        return []
+
+    def _is_source_file(self, py_file: Path) -> bool:
+        """Check if file is a valid source file to test."""
+        if py_file.name.startswith("test_") or py_file.name.endswith("_test.py"):
+            return False
+        if py_file.name in ("__init__.py", "conftest.py"):
+            return False
+        if "tests" in py_file.parts or "__pycache__" in py_file.parts:
+            return False
+        if any(p.startswith(".") for p in py_file.parts):
+            return False
+        return True
 
     def _find_test_files(self) -> list[Path]:
         """
@@ -172,9 +152,6 @@ class TDDValidator(ECCValidatorBase):
 
         Looks for test_*.py and *_test.py patterns.
         """
-        test_files = []
-
-        # Common test directories
         test_dirs = [
             self.project_path / "tests",
             self.project_path / "test",
@@ -182,21 +159,17 @@ class TDDValidator(ECCValidatorBase):
             self.project_path,
         ]
 
+        test_files = set()
         for test_dir in test_dirs:
             if not test_dir.exists():
                 continue
 
-            # test_*.py pattern
-            for py_file in test_dir.rglob("test_*.py"):
-                if "__pycache__" not in py_file.parts:
-                    test_files.append(py_file)
+            for pattern in ("test_*.py", "*_test.py"):
+                for py_file in test_dir.rglob(pattern):
+                    if "__pycache__" not in py_file.parts:
+                        test_files.add(py_file)
 
-            # *_test.py pattern
-            for py_file in test_dir.rglob("*_test.py"):
-                if "__pycache__" not in py_file.parts:
-                    test_files.append(py_file)
-
-        return list(set(test_files))  # Dedupe
+        return list(test_files)
 
     def _has_test_file(self, source_file: Path, test_files: list[Path]) -> bool:
         """
@@ -207,19 +180,10 @@ class TDDValidator(ECCValidatorBase):
         - {source_name}_test.py
         - test_{source_name} in any test file path
         """
-        source_name = source_file.stem  # e.g., "validator" from "validator.py"
+        source_name = source_file.stem
+        expected_patterns = {f"test_{source_name}.py", f"{source_name}_test.py"}
 
-        expected_patterns = [
-            f"test_{source_name}.py",
-            f"{source_name}_test.py",
-        ]
-
-        for test_file in test_files:
-            test_name = test_file.name
-            if test_name in expected_patterns:
-                return True
-            # Also check if source name appears in test file name
-            if source_name in test_name:
-                return True
-
-        return False
+        return any(
+            test_file.name in expected_patterns or source_name in test_file.name
+            for test_file in test_files
+        )

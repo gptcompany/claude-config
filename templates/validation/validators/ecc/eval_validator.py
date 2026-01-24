@@ -110,8 +110,6 @@ class EvalValidator(ECCValidatorBase):
         """
         results = []
         seen_files: set[Path] = set()
-
-        # Common eval result file patterns
         patterns = ["*.json", "results*.json", "eval*.json"]
 
         for pattern in patterns:
@@ -119,17 +117,19 @@ class EvalValidator(ECCValidatorBase):
                 if json_file in seen_files:
                     continue
                 seen_files.add(json_file)
+
                 try:
                     with open(json_file) as f:
                         data = json.load(f)
-                        if isinstance(data, dict):
-                            data["_source_file"] = str(json_file)
-                            results.append(data)
-                        elif isinstance(data, list):
-                            for item in data:
-                                if isinstance(item, dict):
-                                    item["_source_file"] = str(json_file)
-                                    results.append(item)
+
+                    if isinstance(data, dict):
+                        data["_source_file"] = str(json_file)
+                        results.append(data)
+                    elif isinstance(data, list):
+                        for item in data:
+                            if isinstance(item, dict):
+                                item["_source_file"] = str(json_file)
+                                results.append(item)
                 except (json.JSONDecodeError, IOError):
                     continue
 
@@ -144,50 +144,19 @@ class EvalValidator(ECCValidatorBase):
         - success_rate, accuracy
         - passed/total counts
         """
-        metrics: dict = {
+        metrics = {
             "total_evals": len(results),
             "pass_at_1": None,
             "pass_at_5": None,
             "pass_at_10": None,
         }
 
-        # Aggregate pass@k from all results
         pass_counts = {"1": 0, "5": 0, "10": 0}
         total_counts = {"1": 0, "5": 0, "10": 0}
 
         for result in results:
-            # Try to extract pass@k values
-            for k in ["1", "5", "10"]:
-                # Common field patterns
-                patterns = [
-                    f"pass_at_{k}",
-                    f"pass@{k}",
-                    f"passAt{k}",
-                    f"pass_{k}",
-                ]
-
-                for pattern in patterns:
-                    if pattern in result:
-                        value = result[pattern]
-                        if isinstance(value, (int, float)):
-                            if 0 <= value <= 1:
-                                # It's a ratio
-                                pass_counts[k] += value
-                                total_counts[k] += 1
-                            elif value > 1:
-                                # It's a count, need total
-                                total = result.get("total", result.get("n_samples", 1))
-                                pass_counts[k] += value / total if total else 0
-                                total_counts[k] += 1
-                        break
-
-            # Also check for passed/total structure
-            if "passed" in result and "total" in result:
-                passed = result["passed"]
-                total = result["total"]
-                if total > 0:
-                    pass_counts["1"] += passed / total
-                    total_counts["1"] += 1
+            self._extract_pass_at_k(result, pass_counts, total_counts)
+            self._extract_passed_total(result, pass_counts, total_counts)
 
         # Calculate averages
         for k in ["1", "5", "10"]:
@@ -195,6 +164,42 @@ class EvalValidator(ECCValidatorBase):
                 metrics[f"pass_at_{k}"] = round(pass_counts[k] / total_counts[k], 3)
 
         return metrics
+
+    def _extract_pass_at_k(
+        self, result: dict, pass_counts: dict, total_counts: dict
+    ) -> None:
+        """Extract pass@k values from result using common field patterns."""
+        for k in ["1", "5", "10"]:
+            patterns = [f"pass_at_{k}", f"pass@{k}", f"passAt{k}", f"pass_{k}"]
+
+            for pattern in patterns:
+                if pattern not in result:
+                    continue
+
+                value = result[pattern]
+                if not isinstance(value, (int, float)):
+                    break
+
+                if 0 <= value <= 1:
+                    pass_counts[k] += value
+                    total_counts[k] += 1
+                elif value > 1:
+                    total = result.get("total", result.get("n_samples", 1))
+                    if total:
+                        pass_counts[k] += value / total
+                        total_counts[k] += 1
+                break
+
+    def _extract_passed_total(
+        self, result: dict, pass_counts: dict, total_counts: dict
+    ) -> None:
+        """Extract metrics from passed/total structure."""
+        if "passed" in result and "total" in result:
+            passed = result["passed"]
+            total = result["total"]
+            if total > 0:
+                pass_counts["1"] += passed / total
+                total_counts["1"] += 1
 
     def _format_metrics_message(self, metrics: dict) -> str:
         """
