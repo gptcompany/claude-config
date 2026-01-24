@@ -1,0 +1,52 @@
+{
+  "sessionId": "session-1769247869926-9lo7wd",
+  "name": "gsd-validation-framework-13-done",
+  "description": "Phase 13 ECC Full Integration complete",
+  "savedAt": "2026-01-24T09:44:29.927Z",
+  "stats": {
+    "tasks": 0,
+    "agents": 0,
+    "memoryEntries": 1,
+    "totalSize": 773
+  },
+  "data": {
+    "memory": {
+      "entries": {
+        "gsd:validation-framework:13": {
+          "key": "gsd:validation-framework:13",
+          "value": {
+            "status": "completed",
+            "phase": 13,
+            "completed_at": "2026-01-24T09:45:00Z",
+            "results": {
+              "plans_completed": 3,
+              "tests_added": 48,
+              "validators_created": 4,
+              "commits": [
+                "7be7d8b",
+                "6b791d8",
+                "e6f6771",
+                "19b8278",
+                "06b0e8f",
+                "242ce2d",
+                "b06ccd3",
+                "9eba42e",
+                "1321755",
+                "35ddfec",
+                "ef52308",
+                "eafb24f",
+                "f1982af",
+                "a9db4b1"
+              ]
+            }
+          },
+          "metadata": {},
+          "storedAt": "2026-01-24T09:44:29.593Z",
+          "accessCount": 0,
+          "lastAccessed": "2026-01-24T09:44:29.593Z"
+        }
+      },
+      "version": "3.0.0"
+    }
+  }
+}
