@@ -1,0 +1,96 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "$id": "https://claude.ai/schemas/hooks.schema.json",
+  "title": "Claude Code Hooks Configuration",
+  "description": "Schema for Claude Code hooks.json configuration file",
+  "type": "object",
+  "required": ["hooks"],
+  "properties": {
+    "$schema": {
+      "type": "string",
+      "description": "JSON Schema reference"
+    },
+    "hooks": {
+      "type": "object",
+      "description": "Hook event definitions",
+      "properties": {
+        "PreToolUse": { "$ref": "#/definitions/hookEventArray" },
+        "PostToolUse": { "$ref": "#/definitions/hookEventArray" },
+        "UserPromptSubmit": { "$ref": "#/definitions/hookEventArray" },
+        "Stop": { "$ref": "#/definitions/hookEventArray" },
+        "PreCompact": { "$ref": "#/definitions/hookEventArray" },
+        "PostCompact": { "$ref": "#/definitions/hookEventArray" },
+        "SessionStart": { "$ref": "#/definitions/hookEventArray" },
+        "SessionEnd": { "$ref": "#/definitions/hookEventArray" }
+      },
+      "additionalProperties": false
+    },
+    "_debug": {
+      "type": "object",
+      "description": "Debug hooks configuration (not executed, for documentation)",
+      "additionalProperties": true
+    },
+    "_meta": {
+      "type": "object",
+      "description": "Metadata about the hooks configuration",
+      "properties": {
+        "version": { "type": "string" },
+        "lastUpdated": { "type": "string" },
+        "hookCount": { "type": "integer" },
+        "categories": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "testSuite": { "type": "object" },
+        "effectivenessTests": { "type": "object" }
+      }
+    }
+  },
+  "definitions": {
+    "hookEventArray": {
+      "type": "array",
+      "items": { "$ref": "#/definitions/hookDefinition" }
+    },
+    "hookDefinition": {
+      "type": "object",
+      "required": ["matcher", "hooks"],
+      "properties": {
+        "matcher": {
+          "type": "string",
+          "description": "Matcher expression for when to run this hook"
+        },
+        "hooks": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/hookCommand" }
+        },
+        "description": {
+          "type": "string",
+          "description": "Human-readable description of the hook"
+        },
+        "enabled": {
+          "type": "boolean",
+          "description": "Whether the hook is enabled (default: true)"
+        },
+        "timeout": {
+          "type": "integer",
+          "description": "Timeout in milliseconds (default: 5000)"
+        }
+      }
+    },
+    "hookCommand": {
+      "type": "object",
+      "required": ["type", "command"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "enum": ["command"],
+          "description": "Hook type (currently only 'command' is supported)"
+        },
+        "command": {
+          "type": "string",
+          "description": "Shell command to execute"
+        }
+      }
+    }
+  }
+}

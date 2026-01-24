@@ -385,5 +385,42 @@
         "description": "Evaluate session for extractable patterns"
       }
     ]
+  },
+  "_debug": {
+    "description": "Debug hooks - enable by moving to 'hooks' section or set CLAUDE_HOOK_TRACE=1",
+    "tracer": {
+      "enabled": false,
+      "description": "Trace all hook invocations to ~/.claude/debug/hooks/trace.jsonl",
+      "command": "node \"$HOME/.claude/scripts/hooks/debug/hook-tracer.js\"",
+      "usage": "Set CLAUDE_HOOK_TRACE=1 environment variable"
+    },
+    "health": {
+      "enabled": false,
+      "description": "Run health checks on all hooks",
+      "command": "node \"$HOME/.claude/scripts/hooks/debug/hook-health.js\" --check"
+    },
+    "cli": {
+      "description": "CLI commands for hook diagnostics",
+      "status": "node ~/.claude/scripts/hooks/debug/hooks-cli.js status",
+      "test": "node ~/.claude/scripts/hooks/debug/hooks-cli.js test <hook-name>",
+      "log": "node ~/.claude/scripts/hooks/debug/hooks-cli.js log <hook-name>",
+      "validate": "node ~/.claude/scripts/hooks/debug/hooks-cli.js validate",
+      "stats": "node ~/.claude/scripts/hooks/debug/hooks-cli.js stats"
+    }
+  },
+  "_meta": {
+    "version": "14.5-08",
+    "lastUpdated": "2026-01-24",
+    "hookCount": 37,
+    "categories": ["safety", "intelligence", "quality", "productivity", "metrics", "coordination", "ux", "control"],
+    "testSuite": {
+      "command": "node ~/.claude/scripts/test-all-hooks.js",
+      "passRate": 99,
+      "target": 95
+    },
+    "effectivenessTests": {
+      "command": "node --test ~/.claude/scripts/hooks/debug/effectiveness.test.js",
+      "count": 54
+    }
   }
 }
