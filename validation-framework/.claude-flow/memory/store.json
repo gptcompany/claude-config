@@ -1,0 +1,18 @@
+{
+  "entries": {
+    "gsd:validation-framework:13": {
+      "key": "gsd:validation-framework:13",
+      "value": {
+        "status": "in_progress",
+        "phase": 13,
+        "started_at": "2026-01-24T10:00:00Z",
+        "plans": []
+      },
+      "metadata": {},
+      "storedAt": "2026-01-24T09:28:45.845Z",
+      "accessCount": 0,
+      "lastAccessed": "2026-01-24T09:28:45.845Z"
+    }
+  },
+  "version": "3.0.0"
+}

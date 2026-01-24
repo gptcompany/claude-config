@@ -1,0 +1,12 @@
+{
+  "sessionId": "session-1769246925576-jrcsn2",
+  "name": "gsd-validation-framework-13-start",
+  "description": "Phase 13 execution starting checkpoint",
+  "savedAt": "2026-01-24T09:28:45.576Z",
+  "stats": {
+    "tasks": 0,
+    "agents": 0,
+    "memoryEntries": 0,
+    "totalSize": 242
+  }
+}
