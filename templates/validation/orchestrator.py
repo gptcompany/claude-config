@@ -463,6 +463,23 @@ try:
 except ImportError:
     APIContractValidatorImpl = None
 
+# ECC Validators (from everything-claude-code integration)
+try:
+    from validators.ecc import (
+        E2EValidator,
+        SecurityEnhancedValidator,
+        TDDValidator,
+        EvalValidator,
+    )
+
+    ECC_VALIDATORS_AVAILABLE = True
+except ImportError:
+    ECC_VALIDATORS_AVAILABLE = False
+    E2EValidator = None  # type: ignore[misc, assignment]
+    SecurityEnhancedValidator = None  # type: ignore[misc, assignment]
+    TDDValidator = None  # type: ignore[misc, assignment]
+    EvalValidator = None  # type: ignore[misc, assignment]
+
 
 class DesignPrinciplesValidator(BaseValidator):
     """Tier 2: Design principles (KISS, YAGNI, DRY) - stub fallback."""
@@ -686,6 +703,13 @@ class ValidationOrchestrator:
     """
     Main orchestrator for 14-dimension tiered validation.
 
+    Core dimensions: code_quality, type_safety, security, coverage,
+    design_principles, architecture, documentation, performance,
+    accessibility, oss_reuse, mathematical, api_contract, visual, data_integrity
+
+    ECC dimensions (if available): e2e_validation, security_enhanced,
+    tdd_compliance, eval_metrics
+
     Usage:
         orchestrator = ValidationOrchestrator(config_path)
         report = await orchestrator.run_all()
@@ -715,6 +739,17 @@ class ValidationOrchestrator:
         "visual": BaseValidator,
         "data_integrity": BaseValidator,
     }
+
+    # Conditionally add ECC validators if available
+    if ECC_VALIDATORS_AVAILABLE:
+        VALIDATOR_REGISTRY.update(
+            {
+                "e2e_validation": E2EValidator,
+                "security_enhanced": SecurityEnhancedValidator,
+                "tdd_compliance": TDDValidator,
+                "eval_metrics": EvalValidator,
+            }
+        )
 
     def __init__(self, config_path: Path | None = None):
         self.config = self._load_config(config_path)
