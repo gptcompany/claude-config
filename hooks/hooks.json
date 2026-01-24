@@ -33,6 +33,36 @@
         "description": "Reminder before git push to review changes"
       },
       {
+        "matcher": "tool == \"Bash\" && tool_input.command matches \"(git (push|reset|rebase|checkout)|rm -rf|:(){ :|:& };:)\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/safety/git-safety-check.js\""
+          }
+        ],
+        "description": "[14.5] Git safety check - validate destructive git commands"
+      },
+      {
+        "matcher": "tool == \"Bash\" && tool_input.command matches \"(npm|pnpm|yarn|bun|python|uvicorn|flask|django|node).*\\\\d{4}\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/safety/port-conflict-check.js\""
+          }
+        ],
+        "description": "[14.5] Port conflict check - detect port already in use"
+      },
+      {
+        "matcher": "tool == \"Bash\" && tool_input.command matches \"(pytest|npm test|vitest|jest|cargo test)\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/safety/ci-batch-check.js\""
+          }
+        ],
+        "description": "[14.5] CI batch check - detect tests need grouping"
+      },
+      {
         "matcher": "tool == \"Write\" && tool_input.file_path matches \"\\\\.(md|txt)$\" && !(tool_input.file_path matches \"README\\\\.md|CLAUDE\\\\.md|AGENTS\\\\.md|CONTRIBUTING\\\\.md\")",
         "hooks": [
           {
@@ -51,6 +81,26 @@
           }
         ],
         "description": "Suggest manual compaction at logical intervals"
+      },
+      {
+        "matcher": "tool == \"Edit\" || tool == \"Write\" || tool == \"MultiEdit\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/coordination/file-coordination.js\""
+          }
+        ],
+        "description": "[14.5] File coordination - claim files for multi-agent editing"
+      },
+      {
+        "matcher": "tool == \"Task\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/coordination/task-coordination.js\""
+          }
+        ],
+        "description": "[14.5] Task coordination - prevent duplicate work"
       }
     ],
     "PreCompact": [
@@ -77,6 +127,38 @@
         "description": "Load previous context and detect package manager on new session"
       }
     ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/intelligence/session-start-tracker.js\""
+          }
+        ],
+        "description": "[14.5] Session start tracker - detect new session and inject context"
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/intelligence/lesson-injector.js\""
+          }
+        ],
+        "description": "[14.5] Lesson injector - inject learned lessons into context"
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/ux/tips-injector.js\""
+          }
+        ],
+        "description": "[14.5] Tips injector - inject optimization tips from previous session"
+      }
+    ],
     "PostToolUse": [
       {
         "matcher": "tool == \"Bash\"",
@@ -87,6 +169,36 @@
           }
         ],
         "description": "Log PR URL and provide review command after PR creation"
+      },
+      {
+        "matcher": "tool == \"Bash\" && tool_input.command matches \"(pytest|npm test|vitest|jest|ruff|mypy|bandit|speckit|gsd)\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/metrics/quality-score.js\""
+          }
+        ],
+        "description": "[14.5] Quality score - calculate composite quality score from CI output"
+      },
+      {
+        "matcher": "tool == \"Bash\" && tool_input.command matches \"(pytest|npm test|vitest|jest|ruff|eslint|mypy).*fail\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/quality/ci-autofix.js\""
+          }
+        ],
+        "description": "[14.5] CI autofix - suggest fixes for common CI failures"
+      },
+      {
+        "matcher": "tool == \"Bash\" && tool_input.command matches \"gh pr create\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/quality/pr-readiness.js\""
+          }
+        ],
+        "description": "[14.5] PR readiness - validate PR before creation"
       },
       {
         "matcher": "tool == \"Edit\" && tool_input.file_path matches \"\\\\.(ts|tsx|js|jsx)$\"",
@@ -117,6 +229,86 @@
           }
         ],
         "description": "Warn about console.log statements after edits"
+      },
+      {
+        "matcher": "tool == \"Edit\" || tool == \"Write\" || tool == \"MultiEdit\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/metrics/dora-tracker.js\""
+          }
+        ],
+        "description": "[14.5] DORA tracker - track rework rate and cycle time"
+      },
+      {
+        "matcher": "tool == \"Edit\" && tool_input.file_path matches \"test.*\\\\.(py|js|ts)$\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/productivity/tdd-guard.js\""
+          }
+        ],
+        "description": "[14.5] TDD guard - enforce test-first development"
+      },
+      {
+        "matcher": "tool == \"Edit\" && tool_input.file_path matches \"\\\\.(py|js|ts)$\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/productivity/auto-simplify.js\""
+          }
+        ],
+        "description": "[14.5] Auto simplify - detect and suggest code simplifications"
+      },
+      {
+        "matcher": "tool == \"Task\" || tool == \"TodoWrite\" || tool == \"Skill\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/metrics/claudeflow-sync.js\""
+          }
+        ],
+        "description": "[14.5] Claude-flow sync - sync state for crash recovery"
+      },
+      {
+        "matcher": "tool == \"Task\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/control/hive-manager.js\""
+          }
+        ],
+        "description": "[14.5] Hive manager - track multi-agent coordination"
+      },
+      {
+        "matcher": "tool == \"Task\" || tool == \"TodoWrite\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/productivity/task-checkpoint.js\""
+          }
+        ],
+        "description": "[14.5] Task checkpoint - auto-commit progress"
+      },
+      {
+        "matcher": "tool == \"Write\" && tool_input.file_path matches \"(spec\\.md|PLAN\\.md|plan\\.md)$\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/quality/plan-validator.js\""
+          }
+        ],
+        "description": "[14.5] Plan validator - validate spec/plan file quality"
+      },
+      {
+        "matcher": "tool == \"Write\" && tool_input.file_path matches \"(src/|lib/|app/).*\\\\.(py|js|ts)$\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/quality/architecture-validator.js\""
+          }
+        ],
+        "description": "[14.5] Architecture validator - check file placement and imports"
       }
     ],
     "Stop": [
@@ -129,6 +321,46 @@
           }
         ],
         "description": "Check for console.log in modified files after each response"
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/intelligence/session-analyzer.js\""
+          }
+        ],
+        "description": "[14.5] Session analyzer - analyze session and save stats"
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/intelligence/meta-learning.js\""
+          }
+        ],
+        "description": "[14.5] Meta learning - extract patterns from session"
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/ux/session-insights.js\""
+          }
+        ],
+        "description": "[14.5] Session insights - aggregate data into SSOT"
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/control/ralph-loop.js\""
+          }
+        ],
+        "description": "[14.5] Ralph loop - continuous autonomous development mode"
       }
     ],
     "SessionEnd": [
