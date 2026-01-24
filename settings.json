@@ -102,47 +102,27 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/core/context_bundle_builder.py",
-            "timeout": 3
-          }
-        ]
-      },
-      {
         "matcher": "Bash",
         "hooks": [
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/safety/smart-safety-check.py",
+            "command": "node \"$HOME/.claude/scripts/hooks/safety/smart-safety-check.js\"",
             "timeout": 5
           },
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/safety/git-safety-check.py",
+            "command": "node \"$HOME/.claude/scripts/hooks/safety/git-safety-check.js\"",
             "timeout": 5
           },
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/safety/ci-batch-check.py",
+            "command": "node \"$HOME/.claude/scripts/hooks/safety/ci-batch-check.js\"",
             "timeout": 3
           },
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/safety/port-conflict-check.py",
+            "command": "node \"$HOME/.claude/scripts/hooks/safety/port-conflict-check.js\"",
             "timeout": 3
-          }
-        ]
-      },
-      {
-        "matcher": "WebSearch",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "python3 -c \"import json, sys, re; from datetime import datetime; input_data = json.load(sys.stdin); tool_input = input_data.get('tool_input', {}); query = tool_input.get('query', ''); current_year = str(datetime.now().year); has_year = re.search(r'\\\\b20\\\\d{2}\\\\b', query); has_temporal = any(word in query.lower() for word in ['latest', 'recent', 'current', 'new', 'now', 'today']); should_add_year = not has_year and not has_temporal; modified_query = f'{query} {current_year}' if should_add_year else query; output = {'hookSpecificOutput': {'hookEventName': 'PreToolUse', 'modifiedToolInput': {'query': modified_query}}}; print(json.dumps(output)); sys.exit(0)\"",
-            "timeout": 5
           }
         ]
       },
@@ -151,7 +131,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/productivity/tdd-guard-check.py",
+            "command": "node \"$HOME/.claude/scripts/hooks/productivity/tdd-guard.js\"",
             "timeout": 5
           }
         ]
@@ -161,17 +141,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/quality/plan_validator.py",
-            "timeout": 3
-          }
-        ]
-      },
-      {
-        "matcher": "Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/metrics/agent-spawn-tracker.py",
+            "command": "node \"$HOME/.claude/scripts/hooks/quality/plan-validator.js\"",
             "timeout": 3
           }
         ]
@@ -183,12 +153,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/core/post-tool-use.py",
-            "timeout": 3
-          },
-          {
-            "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/metrics/dora-tracker.py",
+            "command": "node \"$HOME/.claude/scripts/hooks/metrics/dora-tracker.js\"",
             "timeout": 5
           }
         ]
@@ -198,7 +163,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/productivity/auto-format.py",
+            "command": "node \"$HOME/.claude/scripts/hooks/productivity/auto-format.js\"",
             "timeout": 10
           }
         ]
@@ -208,28 +173,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/metrics/quality-score-tracker.py",
+            "command": "node \"$HOME/.claude/scripts/hooks/metrics/quality-score.js\"",
             "timeout": 5
           },
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/quality/ci-autofix.py",
+            "command": "node \"$HOME/.claude/scripts/hooks/quality/ci-autofix.js\"",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/productivity/architecture-validator.py",
+            "command": "node \"$HOME/.claude/scripts/hooks/quality/architecture-validator.js\"",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/productivity/readme-generator.py",
+            "command": "node \"$HOME/.claude/scripts/hooks/quality/readme-generator.js\"",
             "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/quality/sentry-error-context.py",
-            "timeout": 5
           }
         ]
       },
@@ -238,20 +198,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/productivity/task-auto-checkpoint.py",
+            "command": "node \"$HOME/.claude/scripts/hooks/productivity/task-checkpoint.js\"",
             "timeout": 10
-          }
-        ]
-      }
-    ],
-    "Notification": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/ux/notification.py",
-            "timeout": 5
           }
         ]
       }
@@ -262,55 +210,23 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/ux/stop.py",
-            "timeout": 3
-          },
-          {
-            "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/intelligence/strategy_router.py",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/intelligence/session_analyzer.py",
+            "command": "node \"$HOME/.claude/scripts/hooks/intelligence/session-analyzer.js\"",
             "timeout": 10
           },
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/ux/session-summary.py",
+            "command": "node \"$HOME/.claude/scripts/hooks/ux/session-insights.js\"",
             "timeout": 5
           },
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/ux/session_insights_writer.py",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/control/auto-ralph.py",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/control/ralph-loop.py",
+            "command": "node \"$HOME/.claude/scripts/hooks/control/ralph-loop.js\"",
             "timeout": 30
           },
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/metrics/claudeflow-sync.py",
+            "command": "node \"$HOME/.claude/scripts/hooks/metrics/claudeflow-sync.js\"",
             "timeout": 10
-          }
-        ]
-      }
-    ],
-    "SubagentStop": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/productivity/subagent-checkpoint.sh",
-            "timeout": 5
           }
         ]
       }
@@ -321,56 +237,22 @@
         "hooks": [
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/core/run_safe.py /media/sam/1TB/claude-hooks-shared/hooks/ux/tips-auto-inject.py",
-            "timeout": 12
+            "command": "node \"$HOME/.claude/scripts/hooks/ux/tips-injector.js\"",
+            "timeout": 5
           },
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/core/run_safe.py /media/sam/1TB/claude-hooks-shared/hooks/intelligence/session_start_tracker.py",
-            "timeout": 12
+            "command": "node \"$HOME/.claude/scripts/hooks/intelligence/session-start-tracker.js\"",
+            "timeout": 5
           },
           {
             "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/core/run_safe.py /media/sam/1TB/claude-hooks-shared/hooks/intelligence/ci_status_injector.py",
-            "timeout": 12
-          },
-          {
-            "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/core/run_safe.py /media/sam/1TB/claude-hooks-shared/hooks/productivity/task-classifier-v2.py",
-            "timeout": 12
-          },
-          {
-            "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/core/run_safe.py /media/sam/1TB/claude-hooks-shared/hooks/session/ssot_check.py",
-            "timeout": 12
-          },
-          {
-            "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/core/run_safe.py /media/sam/1TB/claude-hooks-shared/hooks/session/ralph-resume.py",
-            "timeout": 12
-          },
-          {
-            "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/core/run_safe.py /media/sam/1TB/claude-hooks-shared/hooks/ux/verbalized_sampling.py",
-            "timeout": 12
-          },
-          {
-            "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/core/run_safe.py /media/sam/1TB/claude-hooks-shared/hooks/productivity/repo-health-notify.py",
-            "timeout": 12
-          },
-          {
-            "type": "command",
-            "command": "/media/sam/1TB/claude-hooks-shared/hooks/core/run_safe.py /media/sam/1TB/claude-hooks-shared/hooks/intelligence/framework-detector.py",
-            "timeout": 12
+            "command": "node \"$HOME/.claude/scripts/hooks/intelligence/lesson-injector.js\"",
+            "timeout": 5
           }
         ]
       }
     ]
-  },
-  "statusLine": {
-    "type": "command",
-    "command": "python3 /media/sam/1TB/claude-hooks-shared/scripts/context-monitor.py"
   },
   "enabledPlugins": {
     "pyright-lsp@claude-plugins-official": true,
