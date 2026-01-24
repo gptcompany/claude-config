@@ -242,6 +242,125 @@ src/app.py:23: except:"""
         assert "A09" in result.message or "A09_logging" in str(result.details)
 
 
+class TestSecurityEnhancedValidatorA01TypeScript:
+    """Test A01 detection for TypeScript routes."""
+
+    @pytest.mark.asyncio
+    async def test_ts_routes_without_auth(self, tmp_path):
+        """Detect TypeScript routes without auth guards."""
+        (tmp_path / "src").mkdir()
+        (tmp_path / "src" / "routes.ts").write_text("""
+export function userHandler(req, res) {
+    return res.json({ users: [] });
+}
+
+app.get('/users', userHandler);
+""")
+
+        validator = SecurityEnhancedValidator(project_path=tmp_path)
+
+        async def mock_run_grep(pattern, path, include="*"):
+            # Python checks return empty
+            if include == "*.py":
+                return ""
+            # TS has routes but no auth
+            if "requireAuth" in pattern or "isAuthenticated" in pattern:
+                return ""
+            if "export.*function.*Handler" in pattern or "app.get" in pattern:
+                return "app.get('/users', userHandler)"
+            return ""
+
+        with patch.object(validator, "_run_grep", side_effect=mock_run_grep):
+            result = await validator.validate()
+
+        assert result.passed is False
+        assert "TypeScript" in str(result.details) or "A01" in result.message
+
+
+class TestSecurityEnhancedValidatorA09CleanPath:
+    """Test A09 clean code paths."""
+
+    @pytest.mark.asyncio
+    async def test_except_with_logging(self, tmp_path):
+        """Pass when except blocks have logging setup."""
+        (tmp_path / "src").mkdir()
+        (tmp_path / "src" / "app.py").write_text("""
+import logging
+logger = logging.getLogger(__name__)
+
+def process():
+    try:
+        do_something()
+    except Exception as e:
+        logger.error(f"Failed: {e}")
+""")
+
+        validator = SecurityEnhancedValidator(project_path=tmp_path)
+
+        async def mock_run_grep(pattern, path, include="*"):
+            if "except:" in pattern:
+                return """src/app.py:8: except:
+src/app.py:12: except:
+src/app.py:16: except:
+src/app.py:20: except:"""
+            if "import logging" in pattern or "logger" in pattern:
+                return "import logging"  # Logging IS present
+            return ""
+
+        with patch.object(validator, "_run_grep", side_effect=mock_run_grep):
+            result = await validator.validate()
+
+        # Should pass - logging is configured
+        # A09 should not be in issues
+        a09_issues = [k for k in result.details.keys() if "A09" in k]
+        assert len(a09_issues) == 0
+
+
+class TestSecurityEnhancedValidatorGrepErrors:
+    """Test _run_grep error handling."""
+
+    @pytest.mark.asyncio
+    async def test_grep_timeout(self, tmp_path):
+        """Handle grep timeout gracefully."""
+        import subprocess
+
+        validator = SecurityEnhancedValidator(project_path=tmp_path)
+
+        async def mock_run_tool(cmd, timeout=None):
+            raise subprocess.TimeoutExpired(cmd, timeout)
+
+        with patch.object(validator, "_run_tool", side_effect=mock_run_tool):
+            result = await validator._run_grep("pattern", tmp_path)
+
+        assert result == ""
+
+    @pytest.mark.asyncio
+    async def test_grep_file_not_found(self, tmp_path):
+        """Handle missing grep binary gracefully."""
+        validator = SecurityEnhancedValidator(project_path=tmp_path)
+
+        async def mock_run_tool(cmd, timeout=None):
+            raise FileNotFoundError("grep not found")
+
+        with patch.object(validator, "_run_tool", side_effect=mock_run_tool):
+            result = await validator._run_grep("pattern", tmp_path)
+
+        assert result == ""
+
+    @pytest.mark.asyncio
+    async def test_grep_generic_exception(self, tmp_path):
+        """Handle unexpected exceptions gracefully."""
+        validator = SecurityEnhancedValidator(project_path=tmp_path)
+
+        async def mock_run_tool(cmd, timeout=None):
+            raise RuntimeError("unexpected error")
+
+        with patch.object(validator, "_run_tool", side_effect=mock_run_tool):
+            result = await validator._run_grep("pattern", tmp_path)
+
+        assert result == ""
+
+
 class TestSecurityEnhancedValidatorEdgeCases:
     """Test edge cases and error handling."""
 
