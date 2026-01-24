@@ -93,12 +93,23 @@
           "14.6-03",
           "14.6-04"
         ],
-        "current_wave": 1
+        "current_wave": 2,
+        "wave1_results": {
+          "14.6-01": {
+            "tests": 106,
+            "pass": 105,
+            "skip": 1
+          },
+          "14.6-02": {
+            "tests": 72,
+            "pass": 72
+          }
+        }
       },
       "metadata": {},
-      "storedAt": "2026-01-24T12:18:02.575Z",
+      "storedAt": "2026-01-24T12:25:29.329Z",
       "accessCount": 0,
-      "lastAccessed": "2026-01-24T12:18:02.575Z"
+      "lastAccessed": "2026-01-24T12:25:29.329Z"
     }
   },
   "version": "3.0.0"

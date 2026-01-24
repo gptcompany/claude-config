@@ -1,0 +1,70 @@
+{
+  "id": "checkpoint-.claude-2026-01-24T12-24-09-275Z",
+  "timestamp": "2026-01-24T12:24:09.281Z",
+  "project": ".claude",
+  "branch": "main",
+  "commit": "318d4be",
+  "toolCallCount": 38,
+  "filesModified": [
+    "/test/file.js",
+    "/test/file1.js",
+    "/test/file2.js",
+    "/tmp/e2e-gsd-workflow-1769257408381/.planning/phases/1.0-test/1.0-01-PLAN.md",
+    "/tmp/e2e-session-lifecycle-1769257408391/chain-test.js",
+    "/tmp/e2e-gsd-workflow-1769257408381/interference-test.js",
+    "/tmp/e2e-gsd-workflow-1769257427288/.planning/phases/1.0-test/1.0-01-PLAN.md",
+    "/tmp/e2e-session-lifecycle-1769257427301/chain-test.js",
+    "/tmp/e2e-gsd-workflow-1769257427288/interference-test.js",
+    "/tmp/e2e-gsd-workflow-1769257438690/.planning/phases/1.0-test/1.0-01-PLAN.md",
+    "/tmp/e2e-session-lifecycle-1769257438692/chain-test.js",
+    "/tmp/e2e-gsd-workflow-1769257438690/interference-test.js",
+    "/tmp/e2e-gsd-workflow-1769257449141/.planning/phases/1.0-test/1.0-01-PLAN.md"
+  ],
+  "recentTools": [
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:23:31.283Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:23:47.362Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:23:47.565Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:23:48.990Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:23:50.425Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:23:58.760Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:23:58.991Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:24:00.279Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:24:01.558Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:24:09.231Z"
+    }
+  ],
+  "gitChanges": {
+    "hasChanges": true,
+    "files": 15,
+    "lines": 1231
+  }
+}

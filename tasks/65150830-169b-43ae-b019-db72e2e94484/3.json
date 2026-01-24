@@ -1,0 +1,12 @@
+{
+  "id": "3",
+  "subject": "Execute 14.6-03: Performance tests",
+  "description": "Create 4 performance test files (~43 tests) in ~/.claude/scripts/hooks/performance/: benchmark.test.js, error-recovery.test.js, concurrent.test.js, stress.test.js. Depends on 14.6-01 and 14.6-02.",
+  "activeForm": "Creating performance tests",
+  "status": "pending",
+  "blocks": [],
+  "blockedBy": [
+    "1",
+    "2"
+  ]
+}

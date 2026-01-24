@@ -1,0 +1,12 @@
+{
+  "id": "1",
+  "subject": "Execute 14.6-01: E2E integration tests",
+  "description": "Create 4 E2E test files (~90 tests) in ~/.claude/scripts/hooks/e2e/: session-lifecycle.test.js, gsd-workflow.test.js, multi-agent.test.js, orchestrator-hooks.test.js",
+  "activeForm": "Creating E2E integration tests",
+  "status": "completed",
+  "blocks": [
+    "4",
+    "3"
+  ],
+  "blockedBy": []
+}

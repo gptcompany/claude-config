@@ -1,0 +1,62 @@
+{
+  "id": "checkpoint-.claude-2026-01-24T12-23-29-958Z",
+  "timestamp": "2026-01-24T12:23:29.963Z",
+  "project": ".claude",
+  "branch": "main",
+  "commit": "8b4e239",
+  "toolCallCount": 28,
+  "filesModified": [
+    "/test/file.js",
+    "/test/file1.js",
+    "/test/file2.js",
+    "/tmp/e2e-gsd-workflow-1769257408381/.planning/phases/1.0-test/1.0-01-PLAN.md",
+    "/tmp/e2e-session-lifecycle-1769257408391/chain-test.js"
+  ],
+  "recentTools": [
+    {
+      "tool": "Bash",
+      "timestamp": "2026-01-24T12:11:41.785Z"
+    },
+    {
+      "tool": "Bash",
+      "timestamp": "2026-01-24T12:11:41.834Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:11:49.914Z"
+    },
+    {
+      "tool": "Edit",
+      "timestamp": "2026-01-24T12:11:49.971Z"
+    },
+    {
+      "tool": "Edit",
+      "timestamp": "2026-01-24T12:11:50.024Z"
+    },
+    {
+      "tool": "Bash",
+      "timestamp": "2026-01-24T12:11:55.089Z"
+    },
+    {
+      "tool": "Bash",
+      "timestamp": "2026-01-24T12:11:55.149Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:23:28.452Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:23:28.667Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:23:29.922Z"
+    }
+  ],
+  "gitChanges": {
+    "hasChanges": true,
+    "files": 14,
+    "lines": 254
+  }
+}

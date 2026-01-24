@@ -99,12 +99,107 @@
     {
       "tool": "Bash",
       "timestamp": "2026-01-24T12:11:55.149Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:23:28.452Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:23:28.667Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:23:29.922Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:23:31.283Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:23:47.362Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:23:47.565Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:23:48.990Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:23:50.425Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:23:58.760Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:23:58.991Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:24:00.279Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:24:01.558Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:24:09.231Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:24:09.492Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:24:10.748Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:24:12.174Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:24:58.694Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:24:58.914Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:25:00.216Z"
+    },
+    {
+      "tool": "Write",
+      "timestamp": "2026-01-24T12:25:01.623Z"
     }
   ],
   "filesModified": [
     "/test/file.js",
     "/test/file1.js",
-    "/test/file2.js"
+    "/test/file2.js",
+    "/tmp/e2e-gsd-workflow-1769257408381/.planning/phases/1.0-test/1.0-01-PLAN.md",
+    "/tmp/e2e-session-lifecycle-1769257408391/chain-test.js",
+    "/tmp/e2e-gsd-workflow-1769257408381/interference-test.js",
+    "/tmp/e2e-gsd-workflow-1769257427288/.planning/phases/1.0-test/1.0-01-PLAN.md",
+    "/tmp/e2e-session-lifecycle-1769257427301/chain-test.js",
+    "/tmp/e2e-gsd-workflow-1769257427288/interference-test.js",
+    "/tmp/e2e-gsd-workflow-1769257438690/.planning/phases/1.0-test/1.0-01-PLAN.md",
+    "/tmp/e2e-session-lifecycle-1769257438692/chain-test.js",
+    "/tmp/e2e-gsd-workflow-1769257438690/interference-test.js",
+    "/tmp/e2e-gsd-workflow-1769257449141/.planning/phases/1.0-test/1.0-01-PLAN.md",
+    "/tmp/e2e-session-lifecycle-1769257449164/chain-test.js",
+    "/tmp/e2e-gsd-workflow-1769257449141/interference-test.js",
+    "/tmp/e2e-gsd-workflow-1769257498618/.planning/phases/1.0-test/1.0-01-PLAN.md",
+    "/tmp/e2e-session-lifecycle-1769257498630/chain-test.js",
+    "/tmp/e2e-gsd-workflow-1769257498618/interference-test.js"
   ],
   "sessionStart": "2026-01-24T11:07:20.982Z"
 }

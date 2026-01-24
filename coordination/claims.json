@@ -1,40 +1,34 @@
 {
   "claims": {
-    "/tmp/test.js": {
-      "file": "/tmp/test.js",
-      "agent": "agent:session-mks7j5xo-rp3lzmdp:editor",
-      "timestamp": "2026-01-24T12:11:40.741Z",
-      "expiry": "2026-01-24T12:16:40.741Z"
+    "/tmp/e2e-session-lifecycle-1769257449164/file4.js": {
+      "file": "/tmp/e2e-session-lifecycle-1769257449164/file4.js",
+      "agent": "agent:e2e-test-1769257452341:editor",
+      "timestamp": "2026-01-24T12:24:12.391Z",
+      "expiry": "2026-01-24T12:29:12.391Z"
     },
-    "/tmp/x.js": {
-      "file": "/tmp/x.js",
-      "agent": "agent:session-mks7j5xo-rp3lzmdp:editor",
-      "timestamp": "2026-01-24T12:11:39.868Z",
-      "expiry": "2026-01-24T12:16:39.867Z"
+    "/tmp/e2e-session-lifecycle-1769257449164/sim.js": {
+      "file": "/tmp/e2e-session-lifecycle-1769257449164/sim.js",
+      "agent": "agent:e2e-test-1769257453858:editor",
+      "timestamp": "2026-01-24T12:24:13.911Z",
+      "expiry": "2026-01-24T12:29:13.911Z"
     },
-    "/tmp/test-unclaimed-1769256698413.js": {
-      "file": "/tmp/test-unclaimed-1769256698413.js",
-      "agent": "agent:test-session-1769256698362:editor",
-      "timestamp": "2026-01-24T12:11:38.414Z",
-      "expiry": "2026-01-24T12:16:38.414Z"
+    "/nonexistent/path/file.js": {
+      "file": "/nonexistent/path/file.js",
+      "agent": "agent:e2e-test-1769257504670:editor",
+      "timestamp": "2026-01-24T12:25:04.718Z",
+      "expiry": "2026-01-24T12:30:04.717Z"
     },
-    "/tmp/test-claim.js": {
-      "file": "/tmp/test-claim.js",
-      "agent": "agent:session-mks7j5xo-rp3lzmdp:editor",
-      "timestamp": "2026-01-24T12:11:40.361Z",
-      "expiry": "2026-01-24T12:16:40.360Z"
+    "/tmp/e2e-session-lifecycle-1769257498630/file4.js": {
+      "file": "/tmp/e2e-session-lifecycle-1769257498630/file4.js",
+      "agent": "agent:e2e-test-1769257501607:editor",
+      "timestamp": "2026-01-24T12:25:01.651Z",
+      "expiry": "2026-01-24T12:30:01.651Z"
     },
-    "/tmp/perf-test.js": {
-      "file": "/tmp/perf-test.js",
-      "agent": "agent:session-mks7j5xo-rp3lzmdp:editor",
-      "timestamp": "2026-01-24T12:11:41.439Z",
-      "expiry": "2026-01-24T12:16:41.438Z"
-    },
-    "/tmp/test file with spaces.js": {
-      "file": "/tmp/test file with spaces.js",
-      "agent": "agent:session-mks7j5xo-rp3lzmdp:editor",
-      "timestamp": "2026-01-24T12:11:41.791Z",
-      "expiry": "2026-01-24T12:16:41.790Z"
+    "/tmp/e2e-session-lifecycle-1769257498630/sim.js": {
+      "file": "/tmp/e2e-session-lifecycle-1769257498630/sim.js",
+      "agent": "agent:e2e-test-1769257502998:editor",
+      "timestamp": "2026-01-24T12:25:03.051Z",
+      "expiry": "2026-01-24T12:30:03.051Z"
     }
   }
 }

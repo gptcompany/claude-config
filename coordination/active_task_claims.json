@@ -111,6 +111,358 @@
       "description": "unknown task",
       "claimedAt": "2026-01-24T12:11:40.415Z",
       "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-122329",
+      "issueId": "task:task-27de87c5-122329",
+      "claimant": "agent:multi-agent-test-1769257408995:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-24T12:23:29.050Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-122329",
+      "issueId": "task:task-6e3b0dd6-122329",
+      "claimant": "agent:multi-agent-test-1769257409059:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-24T12:23:29.117Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-122329",
+      "issueId": "task:task-44dc8c34-122329",
+      "claimant": "agent:multi-agent-test-1769257409126:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-24T12:23:29.181Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-122329",
+      "issueId": "task:task-9559b173-122329",
+      "claimant": "agent:multi-agent-test-1769257409187:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-24T12:23:29.243Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-122329",
+      "issueId": "task:task-a5c8d40d-122329",
+      "claimant": "agent:multi-agent-test-1769257409248:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-24T12:23:29.309Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-122329",
+      "issueId": "task:task-c6fa32fd-122329",
+      "claimant": "agent:e2e-test-1769257409293:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-24T12:23:29.348Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-122329",
+      "issueId": "task:task-07e43f3b-122329",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-24T12:23:29.371Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-122329",
+      "issueId": "task:task-07e43f3b-122329",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-24T12:23:29.441Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-01dd30b7-122330",
+      "issueId": "task:task-01dd30b7-122330",
+      "claimant": "agent:multi-agent-test-1769257410735:task",
+      "description": "Task with unicode: emoji test",
+      "claimedAt": "2026-01-24T12:23:30.801Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-122347",
+      "issueId": "task:task-27de87c5-122347",
+      "claimant": "agent:multi-agent-test-1769257427905:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-24T12:23:47.977Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-122348",
+      "issueId": "task:task-6e3b0dd6-122348",
+      "claimant": "agent:multi-agent-test-1769257427986:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-24T12:23:48.046Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-122348",
+      "issueId": "task:task-44dc8c34-122348",
+      "claimant": "agent:multi-agent-test-1769257428058:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-24T12:23:48.120Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-122348",
+      "issueId": "task:task-9559b173-122348",
+      "claimant": "agent:multi-agent-test-1769257428126:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-24T12:23:48.187Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-122348",
+      "issueId": "task:task-a5c8d40d-122348",
+      "claimant": "agent:multi-agent-test-1769257428193:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-24T12:23:48.250Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-122348",
+      "issueId": "task:task-07e43f3b-122348",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-24T12:23:48.320Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-122348",
+      "issueId": "task:task-c6fa32fd-122348",
+      "claimant": "agent:e2e-test-1769257428301:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-24T12:23:48.361Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-122348",
+      "issueId": "task:task-07e43f3b-122348",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-24T12:23:48.393Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-01dd30b7-122349",
+      "issueId": "task:task-01dd30b7-122349",
+      "claimant": "agent:multi-agent-test-1769257429779:task",
+      "description": "Task with unicode: emoji test",
+      "claimedAt": "2026-01-24T12:23:49.831Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-122359",
+      "issueId": "task:task-27de87c5-122359",
+      "claimant": "agent:multi-agent-test-1769257439316:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-24T12:23:59.369Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-122359",
+      "issueId": "task:task-6e3b0dd6-122359",
+      "claimant": "agent:multi-agent-test-1769257439378:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-24T12:23:59.442Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-122359",
+      "issueId": "task:task-44dc8c34-122359",
+      "claimant": "agent:multi-agent-test-1769257439455:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-24T12:23:59.511Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-122359",
+      "issueId": "task:task-9559b173-122359",
+      "claimant": "agent:multi-agent-test-1769257439516:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-24T12:23:59.571Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-122359",
+      "issueId": "task:task-a5c8d40d-122359",
+      "claimant": "agent:multi-agent-test-1769257439576:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-24T12:23:59.632Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-122359",
+      "issueId": "task:task-07e43f3b-122359",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-24T12:23:59.697Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-122359",
+      "issueId": "task:task-c6fa32fd-122359",
+      "claimant": "agent:e2e-test-1769257439663:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-24T12:23:59.716Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-122359",
+      "issueId": "task:task-07e43f3b-122359",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-24T12:23:59.761Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-01dd30b7-122401",
+      "issueId": "task:task-01dd30b7-122401",
+      "claimant": "agent:multi-agent-test-1769257441098:task",
+      "description": "Task with unicode: emoji test",
+      "claimedAt": "2026-01-24T12:24:01.144Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-122409",
+      "issueId": "task:task-27de87c5-122409",
+      "claimant": "agent:multi-agent-test-1769257449801:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-24T12:24:09.863Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-122409",
+      "issueId": "task:task-6e3b0dd6-122409",
+      "claimant": "agent:multi-agent-test-1769257449873:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-24T12:24:09.930Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-122410",
+      "issueId": "task:task-44dc8c34-122410",
+      "claimant": "agent:multi-agent-test-1769257449940:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-24T12:24:10.012Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-122410",
+      "issueId": "task:task-9559b173-122410",
+      "claimant": "agent:multi-agent-test-1769257450018:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-24T12:24:10.075Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-122410",
+      "issueId": "task:task-a5c8d40d-122410",
+      "claimant": "agent:multi-agent-test-1769257450081:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-24T12:24:10.137Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-122410",
+      "issueId": "task:task-07e43f3b-122410",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-24T12:24:10.203Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-122410",
+      "issueId": "task:task-c6fa32fd-122410",
+      "claimant": "agent:e2e-test-1769257450156:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-24T12:24:10.210Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-122410",
+      "issueId": "task:task-07e43f3b-122410",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-24T12:24:10.261Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-01dd30b7-122411",
+      "issueId": "task:task-01dd30b7-122411",
+      "claimant": "agent:multi-agent-test-1769257451641:task",
+      "description": "Task with unicode: emoji test",
+      "claimedAt": "2026-01-24T12:24:11.704Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-122459",
+      "issueId": "task:task-27de87c5-122459",
+      "claimant": "agent:multi-agent-test-1769257499213:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-24T12:24:59.271Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-122459",
+      "issueId": "task:task-6e3b0dd6-122459",
+      "claimant": "agent:multi-agent-test-1769257499280:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-24T12:24:59.333Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-122459",
+      "issueId": "task:task-44dc8c34-122459",
+      "claimant": "agent:multi-agent-test-1769257499342:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-24T12:24:59.414Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-122459",
+      "issueId": "task:task-9559b173-122459",
+      "claimant": "agent:multi-agent-test-1769257499423:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-24T12:24:59.484Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-122459",
+      "issueId": "task:task-a5c8d40d-122459",
+      "claimant": "agent:multi-agent-test-1769257499491:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-24T12:24:59.547Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-122459",
+      "issueId": "task:task-07e43f3b-122459",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-24T12:24:59.610Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-122459",
+      "issueId": "task:task-07e43f3b-122459",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-24T12:24:59.720Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-01dd30b7-122501",
+      "issueId": "task:task-01dd30b7-122501",
+      "claimant": "agent:multi-agent-test-1769257500962:task",
+      "description": "Task with unicode: emoji test",
+      "claimedAt": "2026-01-24T12:25:01.007Z",
+      "claimSuccess": true
     }
   ]
 }
