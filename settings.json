@@ -258,5 +258,9 @@
     "pyright-lsp@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true
   },
-  "alwaysThinkingEnabled": true
+  "alwaysThinkingEnabled": true,
+  "statusLine": {
+    "type": "command",
+    "command": "node ~/.claude/scripts/statusline/context-monitor.js"
+  }
 }
