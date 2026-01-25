@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-24)
 ## Current Position
 
 Phase: 15 of 15 (Skills Port) — IN PROGRESS
-Plan: 3/5 complete (15-01, 15-02, 15-03)
-Status: Wave 2 complete, ready for Wave 3
-Last activity: 2026-01-25 — 15-03 complete (coding-standards skill)
+Plan: 4/5 complete (15-01, 15-02, 15-03, 15-04)
+Status: Wave 3 in progress, 15-05 remaining
+Last activity: 2026-01-25 — 15-04 complete (eval-harness skill)
 
-Progress: ██████████ 100% v1.0-v3.0 | █████████░ 94% v4.0 (4/5 phases complete, 1 in progress)
+Progress: ██████████ 100% v1.0-v3.0 | █████████░ 96% v4.0 (4/5 phases complete, 1 in progress)
 
 ## Phase 14.6 Summary
 
@@ -60,9 +60,9 @@ Progress: ██████████ 100% v1.0-v3.0 | ███████�
 ## Session Continuity
 
 Last session: 2026-01-25
-Stopped at: 15-03 complete, Wave 2 done
+Stopped at: 15-04 complete, Wave 3 in progress
 Resume file: None
-Next: Execute 15-04 (eval-harness) and 15-05 (GSD integration) - Wave 3
+Next: Execute 15-05 (GSD integration) to complete Phase 15
 
 ## Phase 15 Plan Summary
 
@@ -71,7 +71,7 @@ Next: Execute 15-04 (eval-harness) and 15-05 (GSD integration) - Wave 3
 | 15-01 | tdd-guard + Status Line Port | 1 | ✅ Complete |
 | 15-02 | Verification-Loop Skill (6-phase) | 2 | ✅ Complete |
 | 15-03 | Coding-Standards Skill (patterns) | 2 | ✅ Complete |
-| 15-04 | Eval-Harness Skill (pass@k) | 3 | Pending |
+| 15-04 | Eval-Harness Skill (pass@k) | 3 | ✅ Complete |
 | 15-05 | GSD Integration (triggers) | 3 | Pending |
 
 **Execution order:** ✅ 15-01 → ✅ (15-02, 15-03 parallel) → (15-04, 15-05 parallel)
@@ -102,6 +102,16 @@ Next: Execute 15-04 (eval-harness) and 15-05 (GSD integration) - Wave 3
 - **Commands:** /standards:check, /standards:config
 - **Files:** patterns.js (287 LOC), coding-standards.js (252 LOC), check-file.js (190 LOC)
 - **Tests:** 34 tests, 100% pass rate
+
+## 15-04 Summary (Complete)
+
+- **Eval Harness:** Pass@k metrics tracking for test runs
+- **Auto-detection:** npm, pytest, go, rust, ruby, java test commands
+- **Parsing:** Jest, pytest, Go, Rust, RSpec, Maven output formats
+- **Storage:** Local JSON + async QuestDB export
+- **Commands:** /eval:run, /eval:report
+- **Files:** eval-storage.js (267 LOC), eval-harness.js (421 LOC)
+- **Tests:** 28 tests, 100% pass rate
 
 ## Pending Todos
 
