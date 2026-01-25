@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-24)
 ## Current Position
 
 Phase: 15 of 15 (Skills Port) — IN PROGRESS
-Plan: 1/5 complete (15-01)
+Plan: 2/5 complete (15-01, 15-02)
 Status: Executing Wave 2
-Last activity: 2026-01-25 — 15-01 complete (tdd-guard + status line port)
+Last activity: 2026-01-25 — 15-02 complete (verification-loop skill)
 
-Progress: ██████████ 100% v1.0-v3.0 | █████████░ 90% v4.0 (4/5 phases complete, 1 in progress)
+Progress: ██████████ 100% v1.0-v3.0 | █████████░ 92% v4.0 (4/5 phases complete, 1 in progress)
 
 ## Phase 14.6 Summary
 
@@ -60,16 +60,16 @@ Progress: ██████████ 100% v1.0-v3.0 | ███████�
 ## Session Continuity
 
 Last session: 2026-01-25
-Stopped at: 15-01 complete, ready for Wave 2
+Stopped at: 15-02 complete, Wave 2 in progress
 Resume file: None
-Next: Execute 15-02 and 15-03 in parallel (Wave 2)
+Next: Execute 15-03 (coding-standards) to complete Wave 2
 
 ## Phase 15 Plan Summary
 
 | Plan | Description | Wave | Status |
 |------|-------------|------|--------|
 | 15-01 | tdd-guard + Status Line Port | 1 | ✅ Complete |
-| 15-02 | Verification-Loop Skill (6-phase) | 2 | Pending |
+| 15-02 | Verification-Loop Skill (6-phase) | 2 | ✅ Complete |
 | 15-03 | Coding-Standards Skill (patterns) | 2 | Pending |
 | 15-04 | Eval-Harness Skill (pass@k) | 3 | Pending |
 | 15-05 | GSD Integration (triggers) | 3 | Pending |
@@ -84,6 +84,15 @@ Next: Execute 15-02 and 15-03 in parallel (Wave 2)
   - Persistence from context-monitor.py (JSONL + QuestDB)
 - **Files:** ui-components.js (300 LOC), context-monitor.js (400 LOC)
 - **Tests:** 33 tests, 100% pass rate
+
+## 15-02 Summary (Complete)
+
+- **Verification Loop:** 6-phase sequential pipeline (build > typecheck > lint > test > security > diff)
+- **Multi-language:** npm, python, go, rust, java, ruby project detection
+- **Fail-fast:** Critical phases (build/typecheck/test) stop on failure
+- **Commands:** /verify:loop (full), /verify:quick (skip security)
+- **Files:** phases.js (370 LOC), verification-runner.js (473 LOC)
+- **Tests:** 29 tests, 100% pass rate
 
 ## Pending Todos
 
