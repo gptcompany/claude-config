@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-01-24)
 ## Current Position
 
 Phase: 15 of 15 (Skills Port) — IN PROGRESS
-Plan: 2/5 complete (15-01, 15-02)
-Status: Executing Wave 2
-Last activity: 2026-01-25 — 15-02 complete (verification-loop skill)
+Plan: 3/5 complete (15-01, 15-02, 15-03)
+Status: Wave 2 complete, ready for Wave 3
+Last activity: 2026-01-25 — 15-03 complete (coding-standards skill)
 
-Progress: ██████████ 100% v1.0-v3.0 | █████████░ 92% v4.0 (4/5 phases complete, 1 in progress)
+Progress: ██████████ 100% v1.0-v3.0 | █████████░ 94% v4.0 (4/5 phases complete, 1 in progress)
 
 ## Phase 14.6 Summary
 
@@ -45,7 +45,7 @@ Progress: ██████████ 100% v1.0-v3.0 | ███████�
 | 14 | Hooks Node.js Port (ECC) | 5 | ✅ Complete |
 | 14.5 | claude-hooks-shared Port | 8 | ✅ Complete |
 | 14.6 | Hooks Integration & Validation | 4 | ✅ Complete |
-| 15 | Skills Port | 5 | In Progress (1/5) |
+| 15 | Skills Port | 5 | In Progress (3/5) |
 
 **Reference:** `/media/sam/1TB/everything-claude-code/`
 
@@ -60,9 +60,9 @@ Progress: ██████████ 100% v1.0-v3.0 | ███████�
 ## Session Continuity
 
 Last session: 2026-01-25
-Stopped at: 15-02 complete, Wave 2 in progress
+Stopped at: 15-03 complete, Wave 2 done
 Resume file: None
-Next: Execute 15-03 (coding-standards) to complete Wave 2
+Next: Execute 15-04 (eval-harness) and 15-05 (GSD integration) - Wave 3
 
 ## Phase 15 Plan Summary
 
@@ -70,11 +70,11 @@ Next: Execute 15-03 (coding-standards) to complete Wave 2
 |------|-------------|------|--------|
 | 15-01 | tdd-guard + Status Line Port | 1 | ✅ Complete |
 | 15-02 | Verification-Loop Skill (6-phase) | 2 | ✅ Complete |
-| 15-03 | Coding-Standards Skill (patterns) | 2 | Pending |
+| 15-03 | Coding-Standards Skill (patterns) | 2 | ✅ Complete |
 | 15-04 | Eval-Harness Skill (pass@k) | 3 | Pending |
 | 15-05 | GSD Integration (triggers) | 3 | Pending |
 
-**Execution order:** ✅ 15-01 → (15-02, 15-03 parallel) → (15-04, 15-05 parallel)
+**Execution order:** ✅ 15-01 → ✅ (15-02, 15-03 parallel) → (15-04, 15-05 parallel)
 
 ## 15-01 Summary (Complete)
 
@@ -93,6 +93,15 @@ Next: Execute 15-03 (coding-standards) to complete Wave 2
 - **Commands:** /verify:loop (full), /verify:quick (skip security)
 - **Files:** phases.js (370 LOC), verification-runner.js (473 LOC)
 - **Tests:** 29 tests, 100% pass rate
+
+## 15-03 Summary (Complete)
+
+- **Coding Standards:** Pattern-based anti-pattern detection with configurable enforcement
+- **Patterns:** 13 total (7 JS/TS, 6 Python) covering secrets, console.log, bare except, etc.
+- **Modes:** warn (default), block (strict), off
+- **Commands:** /standards:check, /standards:config
+- **Files:** patterns.js (287 LOC), coding-standards.js (252 LOC), check-file.js (190 LOC)
+- **Tests:** 34 tests, 100% pass rate
 
 ## Pending Todos
 
