@@ -32,6 +32,46 @@ Plan path: $ARGUMENTS
 @.planning/config.json (if exists)
 </context>
 
+<skills_integration>
+## Pre-Execution Setup
+
+Before executing tasks, initialize the appropriate workflow:
+
+### For Implementation Tasks
+```bash
+# Start TDD workflow
+node ~/.claude/scripts/hooks/skills/tdd/tdd-state.js set RED
+```
+
+This enables:
+- Test-first enforcement (blocked until tests exist)
+- Automatic test running on implementation
+- Pass@k metrics tracking
+
+### For Non-Implementation Tasks
+Skip TDD workflow (documentation, configuration, etc.)
+
+## During Execution
+
+The following skills activate automatically via gsd-triggers hook:
+- **TDD Enforcer**: Blocks implementation without tests (warn mode by default)
+- **Coding Standards**: Warns on anti-patterns before writes
+- **Eval Harness**: Tracks test success rates (pass@k metrics)
+
+## Post-Execution
+
+After completing all tasks:
+```bash
+# Exit TDD mode
+node ~/.claude/scripts/hooks/skills/tdd/tdd-state.js clear
+
+# Run full verification
+node ~/.claude/scripts/hooks/skills/verification/verification-runner.js
+```
+
+The gsd-triggers hook will automatically run verification when SUMMARY.md is created.
+</skills_integration>
+
 <process>
 1. **Validate plan exists**
    - Confirm file at $ARGUMENTS exists
