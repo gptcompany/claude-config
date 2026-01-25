@@ -61,14 +61,14 @@ const SYMBOL_SETS = {
     context: "\uF49E",
   },
   emoji: {
-    separator: "▶",
-    separatorThin: "›",
-    branch: "⎇",
-    folder: "📁",
-    cost: "💰",
-    clock: "⏱",
-    lines: "📝",
-    context: "🧠",
+    separator: ">",
+    separatorThin: "|",
+    branch: "", // Git icon problematic, just show branch name
+    folder: "", // Folder emoji can cause issues
+    cost: "$", // Plain dollar sign works everywhere
+    clock: "", // Clock emoji can cause issues
+    lines: "+", // Simple plus for lines
+    context: "Ctx", // Plain text for context
   },
   ascii: {
     separator: ">",

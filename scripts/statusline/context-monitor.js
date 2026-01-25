@@ -36,7 +36,6 @@ const {
   directory,
   contextUsage,
   sessionMetrics,
-  formatTokens,
 } = require("./ui-components");
 
 // Configuration
@@ -383,10 +382,13 @@ function buildStatusLine(modelName, workspace, contextInfo, costData) {
   parts.push(directory(getDirectoryDisplay(workspace)));
 
   // Context usage with visual bar
+  const ctxLabel = SYMBOLS.context ? `${SYMBOLS.context} ` : "Ctx ";
   if (contextInfo) {
-    parts.push(`🧠 ${contextUsage(contextInfo.percent, contextInfo.tokens)}`);
+    parts.push(
+      `${ctxLabel}${contextUsage(contextInfo.percent, contextInfo.tokens)}`,
+    );
   } else {
-    parts.push(`🧠 ${COLORS.blue}???${COLORS.reset}`);
+    parts.push(`${ctxLabel}${COLORS.blue}???${COLORS.reset}`);
   }
 
   // Session metrics (cost, duration, lines)
@@ -445,7 +447,7 @@ async function main() {
     // Fallback display on any error
     const cwd = path.basename(process.cwd());
     console.log(
-      `${COLORS.blue}[Claude]${COLORS.reset} ${COLORS.brightYellow}📁 ${cwd}${COLORS.reset} 🧠 ${COLORS.red}[Error]${COLORS.reset}`,
+      `${COLORS.blue}[Claude]${COLORS.reset} ${COLORS.brightYellow}${cwd}${COLORS.reset} Ctx ${COLORS.red}[Error]${COLORS.reset}`,
     );
   }
 }
