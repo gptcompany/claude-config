@@ -276,6 +276,326 @@ describe("GSD Triggers", () => {
     });
   });
 
+  describe("TDD State Extended", () => {
+    const { setTestFile, setImplFile } = require("./tdd/tdd-state");
+
+    it("setTestFile updates state with testFile", () => {
+      setState(PHASES.RED);
+      setTestFile("tests/auth.test.js");
+
+      const state = getState();
+      assert.equal(state.testFile, "tests/auth.test.js");
+      assert.equal(state.phase, PHASES.RED);
+
+      clearState();
+    });
+
+    it("setImplFile updates state with implFile", () => {
+      setState(PHASES.GREEN);
+      setImplFile("src/auth.js");
+
+      const state = getState();
+      assert.equal(state.implFile, "src/auth.js");
+      assert.equal(state.phase, PHASES.GREEN);
+
+      clearState();
+    });
+
+    it("setState throws on invalid phase", () => {
+      assert.throws(() => {
+        setState("INVALID_PHASE");
+      }, /Invalid phase/);
+    });
+
+    it("setState handles extra properties", () => {
+      setState(PHASES.RED, { customProp: "value" });
+      const state = getState();
+
+      assert.equal(state.phase, PHASES.RED);
+      assert.equal(state.customProp, "value");
+
+      clearState();
+    });
+
+    it("attempt resets on IDLE", () => {
+      setState(PHASES.RED);
+      setState(PHASES.GREEN); // attempt = 1
+      setState(PHASES.RED);
+      setState(PHASES.GREEN); // attempt = 2
+
+      let state = getState();
+      assert.equal(state.attempt, 2);
+
+      setState(PHASES.IDLE);
+      state = getState();
+      assert.equal(state.attempt, 0);
+    });
+  });
+
+  describe("TDD State CLI", () => {
+    const tddStatePath = path.join(__dirname, "tdd/tdd-state.js");
+
+    it("CLI get returns current state", () => {
+      clearState();
+      const output = execSync(`node "${tddStatePath}" get`, {
+        encoding: "utf8",
+      });
+      const state = JSON.parse(output);
+      assert.equal(state.phase, "IDLE");
+    });
+
+    it("CLI set RED changes phase", () => {
+      const output = execSync(`node "${tddStatePath}" set RED`, {
+        encoding: "utf8",
+      });
+      const state = JSON.parse(output);
+      assert.equal(state.phase, "RED");
+
+      clearState();
+    });
+
+    it("CLI set GREEN changes phase", () => {
+      setState(PHASES.RED);
+      const output = execSync(`node "${tddStatePath}" set GREEN`, {
+        encoding: "utf8",
+      });
+      const state = JSON.parse(output);
+      assert.equal(state.phase, "GREEN");
+
+      clearState();
+    });
+
+    it("CLI set REFACTOR changes phase", () => {
+      setState(PHASES.GREEN);
+      const output = execSync(`node "${tddStatePath}" set REFACTOR`, {
+        encoding: "utf8",
+      });
+      const state = JSON.parse(output);
+      assert.equal(state.phase, "REFACTOR");
+
+      clearState();
+    });
+
+    it("CLI clear resets state", () => {
+      setState(PHASES.RED);
+      const output = execSync(`node "${tddStatePath}" clear`, {
+        encoding: "utf8",
+      });
+      const state = JSON.parse(output);
+      assert.equal(state.phase, "IDLE");
+    });
+
+    it("CLI set without phase shows error", () => {
+      try {
+        execSync(`node "${tddStatePath}" set`, {
+          encoding: "utf8",
+          stdio: ["pipe", "pipe", "pipe"],
+        });
+        assert.fail("Should have thrown");
+      } catch (err) {
+        assert.ok(err.stderr.includes("Usage") || err.status === 1);
+      }
+    });
+
+    it("CLI unknown command shows error", () => {
+      try {
+        execSync(`node "${tddStatePath}" unknown`, {
+          encoding: "utf8",
+          stdio: ["pipe", "pipe", "pipe"],
+        });
+        assert.fail("Should have thrown");
+      } catch (err) {
+        assert.ok(err.stderr.includes("Unknown") || err.status === 1);
+      }
+    });
+
+    it("CLI set invalid phase shows error", () => {
+      try {
+        execSync(`node "${tddStatePath}" set INVALID`, {
+          encoding: "utf8",
+          stdio: ["pipe", "pipe", "pipe"],
+        });
+        assert.fail("Should have thrown");
+      } catch (err) {
+        assert.ok(err.stderr.includes("Invalid") || err.status === 1);
+      }
+    });
+  });
+
+  describe("handleTrigger function", () => {
+    const { handleTrigger } = require("./gsd-triggers");
+
+    it("suggest-tdd does nothing when not IDLE", async () => {
+      const messages = await handleTrigger(
+        "plan-created",
+        "suggest-tdd",
+        "PLAN.md",
+        { phase: PHASES.RED },
+      );
+      assert.deepStrictEqual(messages, []);
+    });
+
+    it("suggest-tdd suggests TDD when IDLE", async () => {
+      const messages = await handleTrigger(
+        "plan-created",
+        "suggest-tdd",
+        "PLAN.md",
+        { phase: PHASES.IDLE },
+      );
+      assert.ok(
+        messages.some((m) => m.includes("TDD")),
+        "Should suggest TDD workflow",
+      );
+    });
+
+    it("track-eval does nothing when IDLE", async () => {
+      const messages = await handleTrigger(
+        "test-written",
+        "track-eval",
+        "auth.test.js",
+        { phase: PHASES.IDLE },
+      );
+      assert.deepStrictEqual(messages, []);
+    });
+
+    it("track-eval logs when in TDD mode", async () => {
+      const messages = await handleTrigger(
+        "test-written",
+        "track-eval",
+        "auth.test.js",
+        { phase: PHASES.RED, attempt: 1 },
+      );
+      assert.ok(
+        messages.some((m) => m.includes("Test written")),
+        "Should log test written",
+      );
+    });
+
+    it("run-tests detects npm project", async () => {
+      // This test runs in the gsd-triggers directory which has a package.json in parent
+      const messages = await handleTrigger(
+        "impl-written",
+        "run-tests",
+        "auth.js",
+        { phase: PHASES.GREEN, attempt: 1 },
+      );
+      assert.ok(
+        messages.some((m) => m.includes("updated") || m.includes("tests")),
+        "Should mention test running",
+      );
+    });
+
+    it("run-tests handles test failure", async () => {
+      // The test will likely fail without proper setup, which exercises the failure path
+      const messages = await handleTrigger(
+        "impl-written",
+        "run-tests",
+        "nonexistent.js",
+        { phase: PHASES.GREEN, attempt: 1 },
+      );
+      // Should have messages about running tests
+      assert.ok(messages.length > 0, "Should have messages");
+    });
+
+    it("run-verification messages when runner available", async () => {
+      const messages = await handleTrigger(
+        "plan-complete",
+        "run-verification",
+        "SUMMARY.md",
+        { phase: PHASES.IDLE },
+      );
+      assert.ok(
+        messages.some(
+          (m) =>
+            m.includes("verification") ||
+            m.includes("Verification") ||
+            m.includes("Plan complete"),
+        ),
+        "Should mention verification",
+      );
+    });
+
+    it("returns empty for unknown action", async () => {
+      const messages = await handleTrigger(
+        "unknown",
+        "unknown-action",
+        "file.js",
+        { phase: PHASES.IDLE },
+      );
+      assert.deepStrictEqual(messages, []);
+    });
+  });
+
+  describe("Main hook - error paths", () => {
+    it("handles tool_result with error", async () => {
+      const hookPath = path.join(__dirname, "gsd-triggers.js");
+      const input = JSON.stringify({
+        tool_name: "Write",
+        tool_input: { file_path: "PLAN.md" },
+        tool_result: { error: "Something went wrong" },
+      });
+
+      const output = execSync(`echo '${input}' | node "${hookPath}" 2>&1`, {
+        encoding: "utf8",
+      });
+
+      assert.ok(output.includes("{}"), "Should output empty response on error");
+    });
+
+    it("handles missing file_path", async () => {
+      const hookPath = path.join(__dirname, "gsd-triggers.js");
+      const input = JSON.stringify({
+        tool_name: "Write",
+        tool_input: { content: "test" },
+        tool_result: {},
+      });
+
+      const output = execSync(`echo '${input}' | node "${hookPath}" 2>&1`, {
+        encoding: "utf8",
+      });
+
+      assert.ok(
+        output.includes("{}"),
+        "Should output empty response without file_path",
+      );
+    });
+
+    it("handles Edit tool", async () => {
+      clearState();
+      const hookPath = path.join(__dirname, "gsd-triggers.js");
+      const input = JSON.stringify({
+        tool_name: "Edit",
+        tool_input: { file_path: "PLAN.md", old_string: "a", new_string: "b" },
+        tool_result: {},
+      });
+
+      const output = execSync(`echo '${input}' | node "${hookPath}" 2>&1`, {
+        encoding: "utf8",
+      });
+
+      assert.ok(output.includes("{}") || output.includes("TDD"));
+    });
+
+    it("handles MultiEdit tool", async () => {
+      clearState();
+      const hookPath = path.join(__dirname, "gsd-triggers.js");
+      const input = JSON.stringify({
+        tool_name: "MultiEdit",
+        tool_input: {
+          file_path: "PLAN.md",
+          edits: [{ old_string: "a", new_string: "b" }],
+        },
+        tool_result: {},
+      });
+
+      const output = execSync(`echo '${input}' | node "${hookPath}" 2>&1`, {
+        encoding: "utf8",
+      });
+
+      assert.ok(output.includes("{}") || output.includes("TDD"));
+    });
+  });
+
   describe("Integration Tests", () => {
     it("full PLAN.md write suggests TDD in IDLE", async () => {
       // Ensure IDLE state

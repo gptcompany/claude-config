@@ -634,6 +634,561 @@ FAIL github.com/user/pkg3   0.2s`;
   });
 });
 
+describe("Extended Storage Functions", () => {
+  beforeEach(() => {
+    storage.clearResults();
+  });
+
+  describe("getRunsByProject", () => {
+    it("should filter runs by project name", () => {
+      // Record runs for different projects
+      storage.recordRun({
+        project: "project-a",
+        suite: "unit",
+        attempt: 1,
+        passed: true,
+        total: 1,
+        testsPassed: 1,
+        testsFailed: 0,
+        duration: 100,
+        command: "npm test",
+      });
+      storage.recordRun({
+        project: "project-b",
+        suite: "unit",
+        attempt: 1,
+        passed: true,
+        total: 1,
+        testsPassed: 1,
+        testsFailed: 0,
+        duration: 100,
+        command: "npm test",
+      });
+      storage.recordRun({
+        project: "project-a",
+        suite: "unit",
+        attempt: 2,
+        passed: false,
+        total: 1,
+        testsPassed: 0,
+        testsFailed: 1,
+        duration: 100,
+        command: "npm test",
+      });
+
+      const projectARuns = storage.getRunsByProject("project-a");
+      assert.strictEqual(projectARuns.length, 2);
+      assert.ok(projectARuns.every((r) => r.project === "project-a"));
+    });
+
+    it("should respect limit parameter", () => {
+      // Record 5 runs for same project
+      for (let i = 0; i < 5; i++) {
+        storage.recordRun({
+          project: "limited-project",
+          suite: "unit",
+          attempt: 1,
+          passed: true,
+          total: 1,
+          testsPassed: 1,
+          testsFailed: 0,
+          duration: 100,
+          command: "npm test",
+        });
+      }
+
+      const limitedRuns = storage.getRunsByProject("limited-project", 3);
+      assert.strictEqual(limitedRuns.length, 3);
+    });
+
+    it("should return empty array for unknown project", () => {
+      const runs = storage.getRunsByProject("nonexistent-project");
+      assert.deepStrictEqual(runs, []);
+    });
+  });
+
+  describe("getProjectSummary", () => {
+    it("should return project-specific summary", () => {
+      // Record runs for a specific project
+      storage.recordRun({
+        project: "summary-project",
+        suite: "unit",
+        attempt: 1,
+        passed: true,
+        total: 5,
+        testsPassed: 5,
+        testsFailed: 0,
+        duration: 200,
+        command: "npm test",
+      });
+      storage.recordRun({
+        project: "summary-project",
+        suite: "unit",
+        attempt: 1,
+        passed: false,
+        total: 5,
+        testsPassed: 3,
+        testsFailed: 2,
+        duration: 200,
+        command: "npm test",
+      });
+
+      const summary = storage.getProjectSummary("summary-project");
+      assert.strictEqual(summary.project, "summary-project");
+      assert.strictEqual(summary.totalRuns, 2);
+      assert.ok(summary.passAt["pass@1"]);
+      assert.strictEqual(summary.passAt["pass@1"], "50.0%");
+    });
+
+    it("should return empty summary for unknown project", () => {
+      const summary = storage.getProjectSummary("nonexistent");
+      assert.strictEqual(summary.totalRuns, 0);
+      assert.deepStrictEqual(summary.passAt, {});
+      assert.strictEqual(summary.lastUpdated, null);
+    });
+
+    it("should track multiple attempt levels for project", () => {
+      storage.recordRun({
+        project: "multi-attempt",
+        suite: "unit",
+        attempt: 1,
+        passed: false,
+        total: 1,
+        testsPassed: 0,
+        testsFailed: 1,
+        duration: 100,
+        command: "npm test",
+      });
+      storage.recordRun({
+        project: "multi-attempt",
+        suite: "unit",
+        attempt: 2,
+        passed: true,
+        total: 1,
+        testsPassed: 1,
+        testsFailed: 0,
+        duration: 100,
+        command: "npm test",
+      });
+
+      const summary = storage.getProjectSummary("multi-attempt");
+      assert.strictEqual(summary.passAt["pass@1"], "0.0%");
+      assert.strictEqual(summary.passAt["pass@2"], "100.0%");
+    });
+  });
+
+  describe("clearResults", () => {
+    it("should return true on success", () => {
+      storage.recordRun({
+        project: "clear-test",
+        suite: "unit",
+        attempt: 1,
+        passed: true,
+        total: 1,
+        testsPassed: 1,
+        testsFailed: 0,
+        duration: 100,
+        command: "npm test",
+      });
+
+      const result = storage.clearResults();
+      assert.strictEqual(result, true);
+    });
+
+    it("should return true even if no file exists", () => {
+      // Ensure file doesn't exist
+      storage.clearResults();
+      // Call again - should still succeed
+      const result = storage.clearResults();
+      assert.strictEqual(result, true);
+    });
+  });
+});
+
+describe("Eval Harness CLI", () => {
+  const harnessPath = path.join(__dirname, "eval-harness.js");
+
+  it("should handle --recent flag", () => {
+    const output = execSync(`node "${harnessPath}" --recent --count=3`, {
+      encoding: "utf8",
+    });
+    const parsed = JSON.parse(output);
+    assert.ok(Array.isArray(parsed), "Should return array");
+  });
+
+  it("should handle --help flag", () => {
+    const output = execSync(`node "${harnessPath}" --help`, {
+      encoding: "utf8",
+    });
+    assert.ok(output.includes("Eval Harness"), "Should show title");
+    assert.ok(output.includes("--suite"), "Should document --suite");
+    assert.ok(output.includes("--attempt"), "Should document --attempt");
+    assert.ok(output.includes("--command"), "Should document --command");
+  });
+
+  it("should handle -h flag", () => {
+    const output = execSync(`node "${harnessPath}" -h`, {
+      encoding: "utf8",
+    });
+    assert.ok(output.includes("Eval Harness"), "Should show title");
+  });
+});
+
+describe("Eval Harness Extended", () => {
+  describe("detectTestCommand extended paths", () => {
+    it("should detect pytest for Python project", () => {
+      const tempDir = path.join(os.tmpdir(), "eval-pytest-" + Date.now());
+      fs.mkdirSync(tempDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(tempDir, "test_main.py"),
+        "def test_foo(): pass",
+      );
+
+      const originalCwd = process.cwd();
+      process.chdir(tempDir);
+
+      try {
+        const harness = new EvalHarness();
+        // If pytest is available, should detect it; otherwise falls to default
+        assert.ok(harness.command, "Should have a command");
+      } finally {
+        process.chdir(originalCwd);
+        fs.rmSync(tempDir, { recursive: true });
+      }
+    });
+
+    it("should detect Go tests for Go project", () => {
+      const tempDir = path.join(os.tmpdir(), "eval-go-" + Date.now());
+      fs.mkdirSync(tempDir, { recursive: true });
+      fs.writeFileSync(path.join(tempDir, "go.mod"), "module test\n\ngo 1.19");
+
+      const originalCwd = process.cwd();
+      process.chdir(tempDir);
+
+      try {
+        const harness = new EvalHarness();
+        // Should detect "go test ./..." if go available
+        assert.ok(harness.command, "Should have a command");
+      } finally {
+        process.chdir(originalCwd);
+        fs.rmSync(tempDir, { recursive: true });
+      }
+    });
+
+    it("should detect Rust tests for Cargo project", () => {
+      const tempDir = path.join(os.tmpdir(), "eval-rust-" + Date.now());
+      fs.mkdirSync(tempDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(tempDir, "Cargo.toml"),
+        '[package]\nname = "test"',
+      );
+
+      const originalCwd = process.cwd();
+      process.chdir(tempDir);
+
+      try {
+        const harness = new EvalHarness();
+        assert.strictEqual(harness.command, "cargo test");
+      } finally {
+        process.chdir(originalCwd);
+        fs.rmSync(tempDir, { recursive: true });
+      }
+    });
+
+    it("should detect RSpec for Ruby project with rspec in Gemfile", () => {
+      const tempDir = path.join(os.tmpdir(), "eval-rspec-" + Date.now());
+      fs.mkdirSync(tempDir, { recursive: true });
+      fs.writeFileSync(path.join(tempDir, "Gemfile"), 'gem "rspec"\n');
+
+      const originalCwd = process.cwd();
+      process.chdir(tempDir);
+
+      try {
+        const harness = new EvalHarness();
+        assert.strictEqual(harness.command, "bundle exec rspec");
+      } finally {
+        process.chdir(originalCwd);
+        fs.rmSync(tempDir, { recursive: true });
+      }
+    });
+
+    it("should detect minitest for Ruby project", () => {
+      const tempDir = path.join(os.tmpdir(), "eval-minitest-" + Date.now());
+      fs.mkdirSync(tempDir, { recursive: true });
+      fs.writeFileSync(path.join(tempDir, "Gemfile"), 'gem "minitest"\n');
+
+      const originalCwd = process.cwd();
+      process.chdir(tempDir);
+
+      try {
+        const harness = new EvalHarness();
+        assert.ok(
+          harness.command.includes("minitest") ||
+            harness.command.includes("ruby"),
+        );
+      } finally {
+        process.chdir(originalCwd);
+        fs.rmSync(tempDir, { recursive: true });
+      }
+    });
+
+    it("should detect Maven for Java project", () => {
+      const tempDir = path.join(os.tmpdir(), "eval-maven-" + Date.now());
+      fs.mkdirSync(tempDir, { recursive: true });
+      fs.writeFileSync(path.join(tempDir, "pom.xml"), "<project></project>");
+
+      const originalCwd = process.cwd();
+      process.chdir(tempDir);
+
+      try {
+        const harness = new EvalHarness();
+        assert.strictEqual(harness.command, "mvn test");
+      } finally {
+        process.chdir(originalCwd);
+        fs.rmSync(tempDir, { recursive: true });
+      }
+    });
+
+    it("should detect Gradle for Java project", () => {
+      const tempDir = path.join(os.tmpdir(), "eval-gradle-" + Date.now());
+      fs.mkdirSync(tempDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(tempDir, "build.gradle"),
+        'apply plugin: "java"',
+      );
+
+      const originalCwd = process.cwd();
+      process.chdir(tempDir);
+
+      try {
+        const harness = new EvalHarness();
+        assert.strictEqual(harness.command, "./gradlew test");
+      } finally {
+        process.chdir(originalCwd);
+        fs.rmSync(tempDir, { recursive: true });
+      }
+    });
+
+    it("should fall back to npm test for empty directory", () => {
+      const tempDir = path.join(os.tmpdir(), "eval-empty-" + Date.now());
+      fs.mkdirSync(tempDir, { recursive: true });
+
+      const originalCwd = process.cwd();
+      process.chdir(tempDir);
+
+      try {
+        const harness = new EvalHarness();
+        assert.strictEqual(harness.command, "npm test");
+      } finally {
+        process.chdir(originalCwd);
+        fs.rmSync(tempDir, { recursive: true });
+      }
+    });
+  });
+
+  describe("parseTestOutput extended formats", () => {
+    it("should parse Maven/JUnit format", () => {
+      const harness = new EvalHarness();
+      const output = "Tests run: 10, Failures: 2, Errors: 0, Skipped: 1";
+      const result = harness.parseTestOutput(output);
+
+      assert.strictEqual(result.total, 10);
+      assert.strictEqual(result.failed, 2);
+      assert.strictEqual(result.passed, 8);
+    });
+
+    it("should parse generic PASS/FAIL format", () => {
+      const harness = new EvalHarness();
+      const output = `
+        test_one: PASS
+        test_two: PASS
+        test_three: FAIL
+        test_four: PASS
+      `;
+      const result = harness.parseTestOutput(output);
+
+      assert.strictEqual(result.passed, 3);
+      assert.strictEqual(result.failed, 1);
+      assert.strictEqual(result.total, 4);
+    });
+
+    it("should parse Go format with only ok", () => {
+      const harness = new EvalHarness();
+      const output = `ok   github.com/user/pkg1   0.5s
+ok   github.com/user/pkg2   0.3s
+ok   github.com/user/pkg3   0.2s`;
+      const result = harness.parseTestOutput(output);
+
+      assert.strictEqual(result.passed, 3);
+      assert.strictEqual(result.failed, 0);
+      assert.strictEqual(result.total, 3);
+    });
+
+    it("should parse Go format with only FAIL", () => {
+      const harness = new EvalHarness();
+      const output = `FAIL github.com/user/pkg1   0.5s
+FAIL github.com/user/pkg2   0.3s`;
+      const result = harness.parseTestOutput(output);
+
+      assert.strictEqual(result.passed, 0);
+      assert.strictEqual(result.failed, 2);
+      assert.strictEqual(result.total, 2);
+    });
+
+    it("should handle output without test markers", () => {
+      const harness = new EvalHarness();
+      const output = "No test results here, just logging";
+      const result = harness.parseTestOutput(output);
+
+      assert.strictEqual(result.passed, 0);
+      assert.strictEqual(result.failed, 0);
+      assert.strictEqual(result.total, 0);
+    });
+
+    it("should parse Jest alternative format with failures", () => {
+      const harness = new EvalHarness();
+      const output = "5 passed, 2 failed, 7 total";
+      const result = harness.parseTestOutput(output);
+
+      assert.strictEqual(result.passed, 5);
+      assert.strictEqual(result.failed, 2);
+      assert.strictEqual(result.total, 7);
+    });
+
+    it("should parse pytest passed only format", () => {
+      const harness = new EvalHarness();
+      const output = "12 passed in 0.5s";
+      const result = harness.parseTestOutput(output);
+
+      assert.strictEqual(result.passed, 12);
+      assert.strictEqual(result.failed, 0);
+      assert.strictEqual(result.total, 12);
+    });
+
+    it("should parse pytest with failures", () => {
+      const harness = new EvalHarness();
+      const output = "8 passed, 3 failed in 1.2s";
+      const result = harness.parseTestOutput(output);
+
+      assert.strictEqual(result.passed, 8);
+      assert.strictEqual(result.failed, 3);
+      assert.strictEqual(result.total, 11);
+    });
+  });
+
+  describe("truncateOutput with long content", () => {
+    it("should truncate long output", () => {
+      const harness = new EvalHarness();
+      const lines = [];
+      for (let i = 0; i < 50; i++) {
+        lines.push(`Line ${i}`);
+      }
+      const output = lines.join("\n");
+
+      const truncated = harness.truncateOutput(output, 10);
+      assert.ok(truncated.includes("truncated"));
+      assert.ok(truncated.includes("Line 49"));
+      assert.ok(!truncated.includes("Line 0")); // First lines should be removed
+    });
+  });
+
+  describe("run error handling", () => {
+    it("should handle timeout error", async () => {
+      const tempDir = path.join(os.tmpdir(), "eval-timeout-" + Date.now());
+      fs.mkdirSync(tempDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(tempDir, "package.json"),
+        JSON.stringify({
+          name: "test",
+          scripts: { test: "sleep 10" },
+        }),
+      );
+
+      const originalCwd = process.cwd();
+      process.chdir(tempDir);
+
+      try {
+        const harness = new EvalHarness({ timeout: 100 }); // 100ms timeout
+        const result = await harness.run();
+
+        assert.strictEqual(result.run.passed, false);
+        // Output should mention timeout or error
+        assert.ok(
+          result.output.includes("TIMEOUT") ||
+            result.output.includes("ERROR") ||
+            result.output.includes("SIGTERM"),
+        );
+      } finally {
+        process.chdir(originalCwd);
+        fs.rmSync(tempDir, { recursive: true });
+      }
+    });
+
+    it("should handle execution error", async () => {
+      const tempDir = path.join(os.tmpdir(), "eval-error-" + Date.now());
+      fs.mkdirSync(tempDir, { recursive: true });
+      fs.writeFileSync(
+        path.join(tempDir, "package.json"),
+        JSON.stringify({
+          name: "test",
+          scripts: { test: "nonexistent_command_12345" },
+        }),
+      );
+
+      const originalCwd = process.cwd();
+      process.chdir(tempDir);
+
+      try {
+        const harness = new EvalHarness();
+        const result = await harness.run();
+
+        assert.strictEqual(result.run.passed, false);
+      } finally {
+        process.chdir(originalCwd);
+        fs.rmSync(tempDir, { recursive: true });
+      }
+    });
+  });
+
+  describe("truncateOutput", () => {
+    it("should handle null/undefined input", () => {
+      const harness = new EvalHarness();
+      assert.strictEqual(harness.truncateOutput(null, 10), "");
+      assert.strictEqual(harness.truncateOutput(undefined, 10), "");
+      assert.strictEqual(harness.truncateOutput("", 10), "");
+    });
+
+    it("should not truncate short output", () => {
+      const harness = new EvalHarness();
+      const short = "line1\nline2\nline3";
+      assert.strictEqual(harness.truncateOutput(short, 10), short);
+    });
+  });
+
+  describe("formatReport edge cases", () => {
+    it("should handle empty passAt", () => {
+      const harness = new EvalHarness();
+      const result = {
+        run: {
+          id: "run-empty",
+          suite: "unit",
+          project: "test",
+          attempt: 1,
+          passed: true,
+          testsPassed: 0,
+          total: 0,
+          duration: 100,
+          command: "npm test",
+        },
+        summary: { totalRuns: 0, passAt: {}, lastUpdated: null },
+      };
+
+      const report = harness.formatReport(result);
+      assert.ok(report.includes("No data yet"));
+    });
+  });
+});
+
 describe("Integration Tests", () => {
   beforeEach(() => {
     storage.clearResults();

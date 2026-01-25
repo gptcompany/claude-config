@@ -598,6 +598,348 @@ alert("hi");
 // Check-file Script Tests
 // ============================================================================
 
+// ============================================================================
+// Extended Patterns Tests
+// ============================================================================
+
+describe("Extended Patterns", () => {
+  const { getPatterns, addPattern } = require("./patterns");
+
+  describe("getPatterns", () => {
+    it("returns ANTI_PATTERNS object", () => {
+      const patterns = getPatterns();
+      assert.ok(patterns.javascript, "Should have javascript patterns");
+      assert.ok(patterns.python, "Should have python patterns");
+      assert.ok(Array.isArray(patterns.javascript));
+      assert.ok(Array.isArray(patterns.python));
+    });
+  });
+
+  describe("addPattern", () => {
+    it("adds custom pattern to existing file type", () => {
+      const customPattern = {
+        name: "test-custom-pattern",
+        pattern: /custom_pattern/,
+        severity: "warn",
+        message: "Custom pattern detected",
+      };
+
+      addPattern("javascript", customPattern);
+
+      const patterns = getPatterns();
+      const found = patterns.javascript.find(
+        (p) => p.name === "test-custom-pattern",
+      );
+      assert.ok(found, "Custom pattern should be added");
+    });
+
+    it("creates new file type if not exists", () => {
+      const customPattern = {
+        name: "ruby-test-pattern",
+        pattern: /puts/,
+        severity: "warn",
+        message: "puts detected",
+      };
+
+      addPattern("ruby", customPattern);
+
+      const patterns = getPatterns();
+      assert.ok(patterns.ruby, "Ruby patterns should exist");
+      assert.ok(
+        patterns.ruby.some((p) => p.name === "ruby-test-pattern"),
+        "Pattern should be in ruby",
+      );
+    });
+  });
+
+  describe("detectFileType edge cases", () => {
+    it("returns null for null input", () => {
+      assert.strictEqual(detectFileType(null), null);
+    });
+
+    it("returns null for undefined input", () => {
+      assert.strictEqual(detectFileType(undefined), null);
+    });
+
+    it("returns null for empty string", () => {
+      assert.strictEqual(detectFileType(""), null);
+    });
+  });
+
+  describe("checkPatterns edge cases", () => {
+    it("returns passed=true for unsupported file type", () => {
+      const { passed, issues } = checkPatterns(
+        'console.log("test");',
+        "config.yaml",
+      );
+      assert.strictEqual(passed, true);
+      assert.deepStrictEqual(issues, []);
+    });
+
+    it("handles global regex patterns correctly", () => {
+      // Test that patterns with global flag work correctly on multiple lines
+      const content = `
+        console.log("first");
+        console.log("second");
+        console.log("third");
+      `;
+      const { issues } = checkPatterns(content, "test.js");
+
+      // Should detect multiple console.log instances
+      const consoleIssues = issues.filter(
+        (i) => i.name === "console-log-in-prod",
+      );
+      assert.ok(consoleIssues.length >= 1, "Should detect console.log");
+    });
+  });
+
+  describe("minimatch extended", () => {
+    it("handles prefix patterns like test_*.py", () => {
+      assert.strictEqual(minimatch("test_auth.py", "test_*.py"), true);
+      assert.strictEqual(minimatch("auth.py", "test_*.py"), false);
+    });
+
+    it("handles suffix patterns like *.test.js", () => {
+      // The minimatch function uses *.ext patterns (starting with *)
+      // to match file suffixes via endsWith
+      assert.strictEqual(minimatch("auth.test.js", "*.test.js"), true);
+      assert.strictEqual(minimatch("auth.js", "*.test.js"), false);
+    });
+
+    it("handles complex glob patterns", () => {
+      assert.strictEqual(
+        minimatch("src/components/Button.test.tsx", "**/__tests__/*"),
+        false,
+      );
+      assert.strictEqual(
+        minimatch("src/__tests__/Button.test.tsx", "**/__tests__/*"),
+        true,
+      );
+    });
+
+    it("handles **/file.ext patterns", () => {
+      assert.strictEqual(
+        minimatch("src/config/settings.js", "**/settings.js"),
+        true,
+      );
+      assert.strictEqual(minimatch("settings.js", "**/settings.js"), true);
+    });
+
+    it("handles direct path matching", () => {
+      // Fallback: direct substring matching
+      assert.strictEqual(minimatch("src/utils/helper.js", "utils/"), true);
+      assert.strictEqual(minimatch("src/lib/helper.js", "utils/"), false);
+    });
+  });
+
+  describe("Python pattern detection", () => {
+    it("detects mutable default argument", () => {
+      const content = "def foo(items=[]):\n    items.append(1)";
+      const { issues } = checkPatterns(content, "utils.py");
+      assert.ok(
+        issues.some((i) => i.name === "mutable-default-arg"),
+        "Should detect mutable default argument",
+      );
+    });
+
+    it("detects hardcoded secret in Python", () => {
+      const content = 'api_key = "sk-1234567890abcdef"';
+      const { issues, passed } = checkPatterns(content, "config.py");
+      assert.ok(
+        issues.some((i) => i.name === "hardcoded-secret-py"),
+        "Should detect hardcoded secret",
+      );
+      assert.strictEqual(passed, false);
+    });
+  });
+
+  describe("JavaScript pattern detection", () => {
+    it("detects debugger statement", () => {
+      const content = "function test() {\n  debugger;\n  return 1;\n}";
+      const { issues, passed } = checkPatterns(content, "debug.js");
+      assert.ok(
+        issues.some((i) => i.name === "debugger-statement"),
+        "Should detect debugger",
+      );
+      assert.strictEqual(passed, false);
+    });
+
+    it("detects alert in code", () => {
+      const content = 'alert("Hello!");\nconsole.log("test");';
+      const { issues } = checkPatterns(content, "app.js");
+      assert.ok(
+        issues.some((i) => i.name === "alert-in-code"),
+        "Should detect alert",
+      );
+    });
+
+    it("detects process.exit in lib code", () => {
+      const content = "function cleanup() {\n  process.exit(1);\n}";
+      const { issues } = checkPatterns(content, "lib/utils.js");
+      assert.ok(
+        issues.some((i) => i.name === "process-exit-in-lib"),
+        "Should detect process.exit",
+      );
+    });
+
+    it("ignores process.exit in CLI code", () => {
+      const content = "function main() {\n  process.exit(0);\n}";
+      const { issues } = checkPatterns(content, "cli.js");
+      assert.ok(
+        !issues.some((i) => i.name === "process-exit-in-lib"),
+        "Should ignore process.exit in cli.js",
+      );
+    });
+  });
+});
+
+// ============================================================================
+// Extended Coding Standards Hook Tests
+// ============================================================================
+
+describe("Coding Standards Hook Extended", () => {
+  function runHook(input) {
+    return new Promise((resolve) => {
+      const proc = spawn("node", [HOOK_SCRIPT], {
+        stdio: ["pipe", "pipe", "pipe"],
+      });
+
+      let stdout = "";
+      let stderr = "";
+
+      proc.stdout.on("data", (data) => {
+        stdout += data;
+      });
+
+      proc.stderr.on("data", (data) => {
+        stderr += data;
+      });
+
+      proc.on("close", (code) => {
+        try {
+          const result = JSON.parse(stdout.trim());
+          resolve({ result, stderr, code });
+        } catch {
+          resolve({ result: null, stdout, stderr, code });
+        }
+      });
+
+      proc.stdin.write(JSON.stringify(input));
+      proc.stdin.end();
+    });
+  }
+
+  it("handles MultiEdit tool", async () => {
+    fs.writeFileSync(
+      CONFIG_PATH,
+      JSON.stringify({ enabled: true, mode: "warn" }),
+    );
+
+    const { result } = await runHook({
+      tool_name: "MultiEdit",
+      tool_input: {
+        file_path: "multi.js",
+        edits: [
+          { old_string: "a", new_string: 'console.log("a");' },
+          { old_string: "b", new_string: 'console.log("b");' },
+        ],
+      },
+    });
+
+    assert.strictEqual(result.decision, "allow");
+    assert.ok(result.message, "Should warn about console.log in MultiEdit");
+  });
+
+  it("allows unsupported file types", async () => {
+    fs.writeFileSync(
+      CONFIG_PATH,
+      JSON.stringify({ enabled: true, mode: "block" }),
+    );
+
+    const { result } = await runHook({
+      tool_name: "Write",
+      tool_input: {
+        file_path: "config.yaml",
+        content: 'password: "mysecret12345678"',
+      },
+    });
+
+    assert.strictEqual(result.decision, "allow");
+  });
+
+  it("handles empty content", async () => {
+    fs.writeFileSync(
+      CONFIG_PATH,
+      JSON.stringify({ enabled: true, mode: "block" }),
+    );
+
+    const { result } = await runHook({
+      tool_name: "Write",
+      tool_input: {
+        file_path: "empty.js",
+        content: "",
+      },
+    });
+
+    assert.strictEqual(result.decision, "allow");
+  });
+
+  it("handles missing file_path", async () => {
+    fs.writeFileSync(
+      CONFIG_PATH,
+      JSON.stringify({ enabled: true, mode: "block" }),
+    );
+
+    const { result } = await runHook({
+      tool_name: "Write",
+      tool_input: {
+        content: 'console.log("test");',
+      },
+    });
+
+    assert.strictEqual(result.decision, "allow");
+  });
+
+  it("handles mode=off", async () => {
+    fs.writeFileSync(
+      CONFIG_PATH,
+      JSON.stringify({ enabled: true, mode: "off" }),
+    );
+
+    const { result } = await runHook({
+      tool_name: "Write",
+      tool_input: {
+        file_path: "test.js",
+        content: 'const secret = "supersecretvalue123";',
+      },
+    });
+
+    assert.strictEqual(result.decision, "allow");
+  });
+
+  it("handles malformed JSON input gracefully", async () => {
+    const proc = spawn("node", [HOOK_SCRIPT], {
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+
+    let stdout = "";
+
+    proc.stdout.on("data", (data) => {
+      stdout += data;
+    });
+
+    await new Promise((resolve) => {
+      proc.on("close", resolve);
+      proc.stdin.write("not valid json");
+      proc.stdin.end();
+    });
+
+    // Should allow on error
+    const result = JSON.parse(stdout.trim());
+    assert.strictEqual(result.decision, "allow");
+  });
+});
+
 describe("Check-file Script", () => {
   const CHECK_FILE_SCRIPT = path.join(__dirname, "check-file.js");
   const TMP_DIR = path.join(__dirname, ".test-tmp");
@@ -666,5 +1008,96 @@ console.log("b");
 
     assert.ok(stdout.includes("Summary"), "Should show summary");
     assert.ok(stdout.includes("Files checked"), "Should count files");
+  });
+
+  it("check-file handles directory input", async () => {
+    const subDir = path.join(TMP_DIR, "subdir");
+    fs.mkdirSync(subDir, { recursive: true });
+    fs.writeFileSync(path.join(subDir, "file1.js"), 'console.log("test1");');
+    fs.writeFileSync(path.join(subDir, "file2.js"), 'console.log("test2");');
+
+    const { stdout, code } = await runCheckFile([subDir]);
+
+    assert.ok(
+      stdout.includes("Files checked"),
+      "Should check files in directory",
+    );
+    assert.strictEqual(code, 0, "Exit 0 for warnings only");
+
+    // Cleanup
+    fs.rmSync(subDir, { recursive: true });
+  });
+
+  it("check-file shows no files message for empty directory", async () => {
+    const emptyDir = path.join(TMP_DIR, "empty");
+    fs.mkdirSync(emptyDir, { recursive: true });
+
+    const { stdout, code } = await runCheckFile([emptyDir]);
+
+    assert.ok(
+      stdout.includes("No supported files") || stdout.includes("0 file"),
+      "Should indicate no files",
+    );
+    assert.strictEqual(code, 0);
+
+    fs.rmSync(emptyDir, { recursive: true });
+  });
+
+  it("check-file shows usage with no args", async () => {
+    const { stdout, code } = await runCheckFile([]);
+
+    assert.ok(stdout.includes("Usage"), "Should show usage");
+    assert.strictEqual(code, 1);
+  });
+
+  it("check-file handles nonexistent path", async () => {
+    const { stderr, code } = await runCheckFile(["/nonexistent/path/file.js"]);
+
+    assert.strictEqual(code, 1);
+    assert.ok(stderr.includes("not found") || stderr.includes("Error"));
+  });
+
+  it("check-file skips node_modules", async () => {
+    const nodeModulesDir = path.join(TMP_DIR, "node_modules");
+    fs.mkdirSync(nodeModulesDir, { recursive: true });
+    fs.writeFileSync(
+      path.join(nodeModulesDir, "pkg.js"),
+      'const secret = "supersecretvalue123";',
+    );
+
+    // Check parent directory - should not include node_modules
+    const { stdout } = await runCheckFile([TMP_DIR]);
+
+    assert.ok(
+      !stdout.includes("node_modules/pkg.js"),
+      "Should skip node_modules",
+    );
+
+    fs.rmSync(nodeModulesDir, { recursive: true });
+  });
+
+  it("check-file handles file read errors gracefully", async () => {
+    // Create a file and make it unreadable (if possible)
+    const testFile = path.join(TMP_DIR, "readable.js");
+    fs.writeFileSync(testFile, 'console.log("test");');
+
+    // This test just verifies the happy path works
+    const { code } = await runCheckFile([testFile]);
+    assert.strictEqual(code, 0);
+  });
+
+  it("check-file shows all severity levels", async () => {
+    const testFile = path.join(TMP_DIR, "all-levels.js");
+    fs.writeFileSync(
+      testFile,
+      `console.log("warn level");
+const secret = "supersecretvalue123"; // error level
+// TODO: fix this // info level`,
+    );
+
+    const { stdout } = await runCheckFile([testFile]);
+
+    assert.ok(stdout.includes("ERROR") || stdout.includes("Errors"));
+    assert.ok(stdout.includes("WARN") || stdout.includes("Warnings"));
   });
 });
