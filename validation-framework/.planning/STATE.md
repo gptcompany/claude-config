@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-24)
 
 ## Current Position
 
-Phase: 14.6 of 15 (Hooks Integration & Validation) — COMPLETE
-Plan: 4/4 complete
-Status: Ready for Phase 15
-Last activity: 2026-01-24 — Phase 14.6 complete
+Phase: 15 of 15 (Skills Port) — PLANNED
+Plan: 0/5 complete
+Status: Ready for execution
+Last activity: 2026-01-25 — Phase 15 plans created
 
-Progress: ██████████ 100% v1.0-v3.0 | ████████░░ 80% v4.0 (4/5 phases)
+Progress: ██████████ 100% v1.0-v3.0 | ████████░░ 80% v4.0 (4/5 phases complete, 1 planned)
 
 ## Phase 14.6 Summary
 
@@ -45,7 +45,7 @@ Progress: ██████████ 100% v1.0-v3.0 | ███████�
 | 14 | Hooks Node.js Port (ECC) | 5 | ✅ Complete |
 | 14.5 | claude-hooks-shared Port | 8 | ✅ Complete |
 | 14.6 | Hooks Integration & Validation | 4 | ✅ Complete |
-| 15 | Skills Port | 5 | Not started |
+| 15 | Skills Port | 5 | Planned (0/5) |
 
 **Reference:** `/media/sam/1TB/everything-claude-code/`
 
@@ -59,10 +59,22 @@ Progress: ██████████ 100% v1.0-v3.0 | ███████�
 
 ## Session Continuity
 
-Last session: 2026-01-24
-Stopped at: Phase 14.6 complete (Hooks Integration & Validation)
+Last session: 2026-01-25
+Stopped at: Phase 15 plans created
 Resume file: None
-Next: `/gsd:plan-phase 15` or `/gsd:discuss-phase 15`
+Next: `/gsd:execute-phase 15` to implement skills
+
+## Phase 15 Plan Summary
+
+| Plan | Description | Wave | Dependencies |
+|------|-------------|------|--------------|
+| 15-01 | TDD-Workflow Skill (state machine + enforcer) | 1 | 14.6-04 |
+| 15-02 | Verification-Loop Skill (6-phase sequential) | 2 | 15-01 |
+| 15-03 | Coding-Standards Skill (pattern enforcement) | 2 | 15-01 |
+| 15-04 | Eval-Harness Skill (pass@k metrics) | 3 | 15-02 |
+| 15-05 | GSD Integration (workflow triggers) | 3 | 15-01,02,03,04 |
+
+**Execution order:** 15-01 → (15-02, 15-03 parallel) → (15-04, 15-05 parallel)
 
 ## Pending Todos
 
