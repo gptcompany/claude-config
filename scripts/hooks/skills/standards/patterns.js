@@ -12,20 +12,36 @@ const path = require("path");
 
 /**
  * Simple glob-like pattern matching for exclude paths
- * Supports: *.ext, dir/*, and double-star patterns
+ * Supports: *.ext, prefix_*.ext, dir/*, and double-star patterns
  */
 function minimatch(filePath, pattern) {
   // Normalize path separators
   const normalizedPath = filePath.replace(/\\/g, "/");
   const normalizedPattern = pattern.replace(/\\/g, "/");
+  const fileName = path.basename(normalizedPath);
 
-  // Simple patterns
-  if (normalizedPattern.startsWith("*.")) {
-    // *.test.js matches any file ending in .test.js
-    const ext = normalizedPattern.slice(1);
-    return normalizedPath.endsWith(ext);
+  // Handle **/ patterns (matches any directory path)
+  if (normalizedPattern.includes("**/")) {
+    // **/__tests__/* matches anything in any __tests__ directory
+    const parts = normalizedPattern.split("**/");
+    if (parts.length === 2) {
+      const suffix = parts[1];
+      if (suffix.endsWith("/*")) {
+        // **/__tests__/* - check if path contains the directory
+        const dirName = suffix.slice(0, -2);
+        return (
+          normalizedPath.includes(`/${dirName}/`) ||
+          normalizedPath.includes(`${dirName}/`)
+        );
+      }
+      // **/file.ext - matches file anywhere
+      return (
+        normalizedPath.endsWith(suffix) || normalizedPath.includes(`/${suffix}`)
+      );
+    }
   }
 
+  // dir/* patterns - check before prefix_* patterns
   if (normalizedPattern.endsWith("/*")) {
     // debug/* matches anything in debug/ directory
     const dir = normalizedPattern.slice(0, -2);
@@ -35,12 +51,21 @@ function minimatch(filePath, pattern) {
     );
   }
 
-  if (normalizedPattern.startsWith("**/")) {
-    // **/test.js matches test.js in any directory
-    const suffix = normalizedPattern.slice(3);
-    return (
-      normalizedPath.endsWith(suffix) || normalizedPath.includes(`/${suffix}`)
-    );
+  // Handle prefix_*.ext patterns (like test_*.py or *_test.py)
+  if (normalizedPattern.includes("*") && !normalizedPattern.startsWith("*")) {
+    // Convert glob to regex: test_*.py -> ^test_.*\.py$
+    const regexPattern = normalizedPattern
+      .replace(/[.+^${}()|[\]\\]/g, "\\$&") // Escape regex chars except *
+      .replace(/\*/g, ".*"); // Replace * with .*
+    const regex = new RegExp(`^${regexPattern}$`);
+    return regex.test(fileName);
+  }
+
+  // Simple patterns starting with *.
+  if (normalizedPattern.startsWith("*.")) {
+    // *.test.js matches any file ending in .test.js
+    const ext = normalizedPattern.slice(1);
+    return normalizedPath.endsWith(ext) || fileName.endsWith(ext);
   }
 
   // Direct contains match
