@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-24)
 
 ## Current Position
 
-Phase: 15 of 15 (Skills Port) — PLANNED
-Plan: 0/5 complete
-Status: Ready for execution
-Last activity: 2026-01-25 — Phase 15 plans created
+Phase: 15 of 15 (Skills Port) — IN PROGRESS
+Plan: 1/5 complete (15-01)
+Status: Executing Wave 2
+Last activity: 2026-01-25 — 15-01 complete (tdd-guard + status line port)
 
-Progress: ██████████ 100% v1.0-v3.0 | ████████░░ 80% v4.0 (4/5 phases complete, 1 planned)
+Progress: ██████████ 100% v1.0-v3.0 | █████████░ 90% v4.0 (4/5 phases complete, 1 in progress)
 
 ## Phase 14.6 Summary
 
@@ -45,7 +45,7 @@ Progress: ██████████ 100% v1.0-v3.0 | ███████�
 | 14 | Hooks Node.js Port (ECC) | 5 | ✅ Complete |
 | 14.5 | claude-hooks-shared Port | 8 | ✅ Complete |
 | 14.6 | Hooks Integration & Validation | 4 | ✅ Complete |
-| 15 | Skills Port | 5 | Planned (0/5) |
+| 15 | Skills Port | 5 | In Progress (1/5) |
 
 **Reference:** `/media/sam/1TB/everything-claude-code/`
 
@@ -60,21 +60,30 @@ Progress: ██████████ 100% v1.0-v3.0 | ███████�
 ## Session Continuity
 
 Last session: 2026-01-25
-Stopped at: Phase 15 plans created
+Stopped at: 15-01 complete, ready for Wave 2
 Resume file: None
-Next: `/gsd:execute-phase 15` to implement skills
+Next: Execute 15-02 and 15-03 in parallel (Wave 2)
 
 ## Phase 15 Plan Summary
 
-| Plan | Description | Wave | Dependencies |
-|------|-------------|------|--------------|
-| 15-01 | TDD-Workflow Skill (state machine + enforcer) | 1 | 14.6-04 |
-| 15-02 | Verification-Loop Skill (6-phase sequential) | 2 | 15-01 |
-| 15-03 | Coding-Standards Skill (pattern enforcement) | 2 | 15-01 |
-| 15-04 | Eval-Harness Skill (pass@k metrics) | 3 | 15-02 |
-| 15-05 | GSD Integration (workflow triggers) | 3 | 15-01,02,03,04 |
+| Plan | Description | Wave | Status |
+|------|-------------|------|--------|
+| 15-01 | tdd-guard + Status Line Port | 1 | ✅ Complete |
+| 15-02 | Verification-Loop Skill (6-phase) | 2 | Pending |
+| 15-03 | Coding-Standards Skill (patterns) | 2 | Pending |
+| 15-04 | Eval-Harness Skill (pass@k) | 3 | Pending |
+| 15-05 | GSD Integration (triggers) | 3 | Pending |
 
-**Execution order:** 15-01 → (15-02, 15-03 parallel) → (15-04, 15-05 parallel)
+**Execution order:** ✅ 15-01 → (15-02, 15-03 parallel) → (15-04, 15-05 parallel)
+
+## 15-01 Summary (Complete)
+
+- **tdd-guard:** v1.1.0 installed, AI-powered TDD validation
+- **Status line:** Node.js port with hybrid approach
+  - UI from ccstatusline (powerline, colors)
+  - Persistence from context-monitor.py (JSONL + QuestDB)
+- **Files:** ui-components.js (300 LOC), context-monitor.js (400 LOC)
+- **Tests:** 33 tests, 100% pass rate
 
 ## Pending Todos
 
