@@ -93,6 +93,16 @@
         "description": "[14.5] File coordination - claim files for multi-agent editing"
       },
       {
+        "matcher": "tool == \"Edit\" || tool == \"Write\" || tool == \"MultiEdit\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/skills/standards/coding-standards.js\""
+          }
+        ],
+        "description": "[15-03] Coding standards - enforce patterns before writes"
+      },
+      {
         "matcher": "tool == \"Task\"",
         "hooks": [
           {
@@ -409,9 +419,9 @@
     }
   },
   "_meta": {
-    "version": "14.5-08",
-    "lastUpdated": "2026-01-24",
-    "hookCount": 37,
+    "version": "15-03",
+    "lastUpdated": "2026-01-25",
+    "hookCount": 38,
     "categories": ["safety", "intelligence", "quality", "productivity", "metrics", "coordination", "ux", "control"],
     "testSuite": {
       "command": "node ~/.claude/scripts/test-all-hooks.js",
