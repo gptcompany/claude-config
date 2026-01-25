@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-24)
 
 ## Current Position
 
-Phase: 15 of 15 (Skills Port) — IN PROGRESS
-Plan: 4/5 complete (15-01, 15-02, 15-03, 15-04)
-Status: Wave 3 in progress, 15-05 remaining
-Last activity: 2026-01-25 — 15-04 complete (eval-harness skill)
+Phase: 15 of 15 (Skills Port) — COMPLETE
+Plan: 5/5 complete (15-01, 15-02, 15-03, 15-04, 15-05)
+Status: Phase 15 complete, v4.0 milestone complete
+Last activity: 2026-01-25 — 15-05 complete (GSD integration)
 
-Progress: ██████████ 100% v1.0-v3.0 | █████████░ 96% v4.0 (4/5 phases complete, 1 in progress)
+Progress: ██████████ 100% v1.0-v3.0 | ██████████ 100% v4.0 (5/5 phases complete)
 
 ## Phase 14.6 Summary
 
@@ -45,7 +45,7 @@ Progress: ██████████ 100% v1.0-v3.0 | ███████�
 | 14 | Hooks Node.js Port (ECC) | 5 | ✅ Complete |
 | 14.5 | claude-hooks-shared Port | 8 | ✅ Complete |
 | 14.6 | Hooks Integration & Validation | 4 | ✅ Complete |
-| 15 | Skills Port | 5 | In Progress (3/5) |
+| 15 | Skills Port | 5 | ✅ Complete |
 
 **Reference:** `/media/sam/1TB/everything-claude-code/`
 
@@ -60,9 +60,9 @@ Progress: ██████████ 100% v1.0-v3.0 | ███████�
 ## Session Continuity
 
 Last session: 2026-01-25
-Stopped at: 15-04 complete, Wave 3 in progress
+Stopped at: Phase 15 complete (v4.0 milestone complete)
 Resume file: None
-Next: Execute 15-05 (GSD integration) to complete Phase 15
+Next: /gsd:complete-milestone to archive and prepare for next milestone
 
 ## Phase 15 Plan Summary
 
@@ -72,9 +72,9 @@ Next: Execute 15-05 (GSD integration) to complete Phase 15
 | 15-02 | Verification-Loop Skill (6-phase) | 2 | ✅ Complete |
 | 15-03 | Coding-Standards Skill (patterns) | 2 | ✅ Complete |
 | 15-04 | Eval-Harness Skill (pass@k) | 3 | ✅ Complete |
-| 15-05 | GSD Integration (triggers) | 3 | Pending |
+| 15-05 | GSD Integration (triggers) | 3 | ✅ Complete |
 
-**Execution order:** ✅ 15-01 → ✅ (15-02, 15-03 parallel) → (15-04, 15-05 parallel)
+**Execution order:** ✅ 15-01 → ✅ (15-02, 15-03 parallel) → ✅ (15-04, 15-05 parallel)
 
 ## 15-01 Summary (Complete)
 
@@ -112,6 +112,15 @@ Next: Execute 15-05 (GSD integration) to complete Phase 15
 - **Commands:** /eval:run, /eval:report
 - **Files:** eval-storage.js (267 LOC), eval-harness.js (421 LOC)
 - **Tests:** 28 tests, 100% pass rate
+
+## 15-05 Summary (Complete)
+
+- **GSD Triggers:** PostToolUse hook for GSD workflow events
+- **Triggers:** plan-created, test-written, impl-written, plan-complete
+- **TDD State:** Phase manager (IDLE/RED/GREEN/REFACTOR) with JSON persistence
+- **Integration:** execute-plan.md and verify-work.md updated
+- **Files:** gsd-triggers.js (280 LOC), tdd-state.js (180 LOC)
+- **Tests:** 24 tests, 100% pass rate
 
 ## Pending Todos
 
