@@ -13,7 +13,7 @@ Build a reusable validation pipeline framework starting with core templates, the
 - ✅ [**v1.0 Core Framework**](milestones/v1.0-ROADMAP.md) (Phases 1-5) — SHIPPED 2026-01-19
 - ✅ [**v2.0 Hybrid UAT**](milestones/v2.0-ROADMAP.md) (Phase 6) — SHIPPED 2026-01-20
 - ✅ [**v3.0 14-Dimension Orchestrator**](milestones/v3.0-ROADMAP.md) (Phases 7-12) — SHIPPED 2026-01-24
-- 🚧 **v4.0 ECC Integration & Hooks Modernization** (Phases 13-15) — In Progress
+- ✅ [**v4.0 ECC Integration & Hooks Modernization**](milestones/v4.0-ROADMAP.md) (Phases 13-15) — SHIPPED 2026-01-25
 
 ## Completed Milestones
 
@@ -53,7 +53,7 @@ Build a reusable validation pipeline framework starting with core templates, the
 
 ---
 
-## 🚧 v4.0 ECC Integration & Hooks Modernization (In Progress)
+## ✅ v4.0 ECC Integration & Hooks Modernization (SHIPPED 2026-01-25)
 
 **Milestone Goal:** Port ECC best practices (Node.js hooks, skills, verification loop) and integrate with existing GSD/claude-flow infrastructure.
 
@@ -136,15 +136,15 @@ Plans:
 
 **Goal**: Port ECC skills we don't have (tdd-workflow, verification-loop, coding-standards)
 **Depends on**: Phase 14.6 (hooks fully validated)
-**Research**: Unlikely (port existing code)
+**Status**: ✅ Complete
 **Plans**: 5 plans
 
 Plans:
-- [ ] 15-01: Port tdd-workflow skill (enforced TDD, not just docs)
-- [ ] 15-02: Port verification-loop skill (6-phase sequential)
-- [ ] 15-03: Port coding-standards skill
-- [ ] 15-04: Port eval-harness skill (pass@k metrics)
-- [ ] 15-05: Integrate skills with GSD workflow triggers
+- [x] 15-01: Port tdd-workflow skill (enforced TDD, not just docs)
+- [x] 15-02: Port verification-loop skill (6-phase sequential)
+- [x] 15-03: Port coding-standards skill
+- [x] 15-04: Port eval-harness skill (pass@k metrics)
+- [x] 15-05: Integrate skills with GSD workflow triggers
 
 ---
 
@@ -159,8 +159,11 @@ Plans:
 | 14. Hooks Node.js Port (ECC) | v4.0 | 5/5 | ✅ Complete | 2026-01-24 |
 | 14.5. claude-hooks-shared Port | v4.0 | 8/8 | ✅ Complete | 2026-01-24 |
 | 14.6. Hooks Integration & Validation | v4.0 | 4/4 | ✅ Complete | 2026-01-24 |
-| 15. Skills Port | v4.0 | 0/5 | Not started | - |
+| 15. Skills Port | v4.0 | 5/5 | ✅ Complete | 2026-01-25 |
 
-**Total:** 45 plans shipped, 5 remaining for v4.0
+**Total:** 50 plans shipped, v4.0 milestone complete
 
-**Test Coverage Achieved:** 224 tests in Phase 14.6 + 273 from Phase 14.5 = **497 tests** (target was 392)
+**Test Coverage Achieved:**
+- Phase 14.5-14.6: 497 tests
+- Phase 15 Skills: 148 tests (33 + 29 + 34 + 28 + 24)
+- **Total:** 645+ tests
