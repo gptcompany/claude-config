@@ -43,25 +43,46 @@ const COLORS = {
   bgGray: "\x1b[100m",
 };
 
-// Powerline symbols (Nerd Fonts compatible)
-const SYMBOLS = {
-  // Powerline arrows
-  separator: "\uE0B0", //
-  separatorThin: "\uE0B1", //
-  separatorLeft: "\uE0B2", //
-  separatorLeftThin: "\uE0B3", //
-  // Icons
-  branch: "\uE0A0", //  Git branch
-  folder: "\uF07B", //  Folder
-  tokens: "\uF49E", // 󰒞 Brain (context)
-  cost: "\uF155", //  Dollar
-  clock: "\uF017", //  Clock
-  lines: "\uF15C", //  Document
-  error: "\uF057", //  Error circle
-  warning: "\uF071", //  Warning triangle
-  success: "\uF058", //  Check circle
-  fire: "\uF490", // 󰒐 Fire (hot context)
+// Symbol mode: "nerd" | "emoji" | "ascii"
+// Set via STATUSLINE_SYMBOLS env var, default to "emoji"
+// Use "nerd" if you have Nerd Fonts installed, "ascii" for maximum compatibility
+const SYMBOL_MODE = process.env.STATUSLINE_SYMBOLS || "emoji";
+
+// Symbol sets for different modes
+const SYMBOL_SETS = {
+  nerd: {
+    separator: "\uE0B0",
+    separatorThin: "\uE0B1",
+    branch: "\uE0A0",
+    folder: "\uF07B",
+    cost: "\uF155",
+    clock: "\uF017",
+    lines: "\uF15C",
+    context: "\uF49E",
+  },
+  emoji: {
+    separator: "▶",
+    separatorThin: "›",
+    branch: "⎇",
+    folder: "📁",
+    cost: "💰",
+    clock: "⏱",
+    lines: "📝",
+    context: "🧠",
+  },
+  ascii: {
+    separator: ">",
+    separatorThin: "|",
+    branch: "@",
+    folder: "",
+    cost: "$",
+    clock: "t:",
+    lines: "L:",
+    context: "Ctx",
+  },
 };
+
+const SYMBOLS = SYMBOL_SETS[SYMBOL_MODE] || SYMBOL_SETS.ascii;
 
 // Progress bar characters
 const BAR_CHARS = {
