@@ -33,7 +33,44 @@ Phase: $ARGUMENTS (optional)
 @.planning/ROADMAP.md
 </context>
 
+<automated_verification>
+## Automated Verification
+
+Before UAT, run the 6-phase verification loop:
+
+```bash
+node ~/.claude/scripts/hooks/skills/verification/verification-runner.js
+```
+
+### Phases Checked
+1. Build - Compiles without errors
+2. Type Check - No type errors
+3. Lint - No lint violations
+4. Tests - All tests pass
+5. Security - No high vulnerabilities
+6. Diff - Review changes
+
+### Pass Requirements
+- Tier 1 (fail-fast): Build, Type Check, Tests
+- Tier 2 (warnings): Lint, Security
+
+### Quick Verification (skip security)
+```bash
+node ~/.claude/scripts/hooks/skills/verification/verification-runner.js --skip=security
+```
+
+### Eval Metrics
+Check test success rates:
+```bash
+node ~/.claude/scripts/hooks/skills/eval/eval-harness.js --summary
+```
+
+This shows pass@k metrics for the current session.
+</automated_verification>
+
 <process>
+## Manual UAT
+
 1. Check for active UAT sessions (resume or start new)
 2. Find SUMMARY.md files for the phase
 3. Extract testable deliverables (user-observable outcomes)
