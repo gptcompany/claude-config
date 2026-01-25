@@ -319,6 +319,16 @@
           }
         ],
         "description": "[14.5] Architecture validator - check file placement and imports"
+      },
+      {
+        "matcher": "tool == \"Edit\" || tool == \"Write\" || tool == \"MultiEdit\"",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/skills/gsd-triggers.js\""
+          }
+        ],
+        "description": "[15-05] GSD triggers - trigger skills based on GSD workflow events"
       }
     ],
     "Stop": [
@@ -419,9 +429,9 @@
     }
   },
   "_meta": {
-    "version": "15-03",
+    "version": "15-05",
     "lastUpdated": "2026-01-25",
-    "hookCount": 38,
+    "hookCount": 39,
     "categories": ["safety", "intelligence", "quality", "productivity", "metrics", "coordination", "ux", "control"],
     "testSuite": {
       "command": "node ~/.claude/scripts/test-all-hooks.js",
