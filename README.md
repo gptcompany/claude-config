@@ -219,3 +219,10 @@ Configured in `canonical.yaml`:
 ## License
 
 Private repository. Internal use only.
+
+## Documentation
+
+- [GitHub Sync](docs/GITHUB-SYNC.md) - Automatic GSD/Speckit ↔ GitHub Issues sync
+- [Architecture Integration](docs/ARCHITECTURE-INTEGRATION.md)
+- [Enterprise Workflow](docs/ENTERPRISE-WORKFLOW.md)
+- [Monitoring](docs/MONITORING.md)
