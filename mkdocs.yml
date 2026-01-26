@@ -1,0 +1,12 @@
+site_name: Claude Config
+site_description: Central configuration for Claude Code workflows
+
+nav:
+  - Home: index.md
+  - GitHub Sync: GITHUB-SYNC.md
+  - Architecture: ARCHITECTURE-INTEGRATION.md
+  - Enterprise Workflow: ENTERPRISE-WORKFLOW.md
+  - Monitoring: MONITORING.md
+
+plugins:
+  - techdocs-core
