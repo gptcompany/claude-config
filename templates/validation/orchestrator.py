@@ -237,21 +237,42 @@ class CodeQualityValidator(BaseValidator):
     async def validate(self) -> ValidationResult:
         start = datetime.now()
         try:
+            # Use JSON output format for accurate error counting
             result = subprocess.run(
-                ["ruff", "check", "."],
+                ["ruff", "check", ".", "--output-format=json"],
                 capture_output=True,
                 text=True,
                 timeout=60,
             )
             passed = result.returncode == 0
-            errors = len(result.stdout.strip().split("\n")) if result.stdout.strip() else 0
+
+            # Parse JSON output to get actual error count
+            errors = 0
+            output_preview = ""
+            if result.stdout.strip():
+                try:
+                    error_list = json.loads(result.stdout)
+                    errors = len(error_list)
+                    # Create readable preview from first few errors
+                    if error_list:
+                        preview_items = [
+                            f"{e.get('filename', '?')}:{e.get('location', {}).get('row', '?')}: {e.get('code', '?')} {e.get('message', '')}"
+                            for e in error_list[:5]
+                        ]
+                        output_preview = "\n".join(preview_items)
+                        if len(error_list) > 5:
+                            output_preview += f"\n... and {len(error_list) - 5} more"
+                except json.JSONDecodeError:
+                    # Fallback: count non-empty lines if JSON parsing fails
+                    errors = len([line for line in result.stdout.strip().split("\n") if line.strip()])
+                    output_preview = result.stdout[:500]
 
             return ValidationResult(
                 dimension=self.dimension,
                 tier=self.tier,
                 passed=passed,
                 message="Code quality OK" if passed else f"Ruff: {errors} errors",
-                details={"error_count": errors, "output": result.stdout[:500]},
+                details={"error_count": errors, "output": output_preview},
                 duration_ms=_elapsed_ms(start),
             )
         except FileNotFoundError:
