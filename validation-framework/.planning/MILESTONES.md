@@ -1,5 +1,41 @@
 # Project Milestones: Universal Validation Framework
 
+## v4.0 ECC Integration & Hooks Modernization (Shipped: 2026-01-25)
+
+**Delivered:** Complete Node.js hooks system with 40+ hooks, QuestDB metrics, comprehensive test suite (645+ tests), and skill commands for TDD, verification, coding standards, and eval harness.
+
+**Phases completed:** 13-15 (25 plans total, including decimal phases 14.5, 14.6)
+
+**Key accomplishments:**
+
+1. **Node.js Hooks System** - 40+ hooks ported from Python to Node.js with declarative hooks.json config
+2. **QuestDB Integration** - Dual-write architecture (local JSON offline-first + async QuestDB export) for full metrics observability
+3. **Debug System** - hook-debugger, hook-tracer, hook-health CLI with full observability
+4. **Verification Loop Skill** - 6-phase sequential pipeline (build → typecheck → lint → test → security → diff)
+5. **Coding Standards Skill** - 13 anti-pattern detectors with configurable enforcement modes
+6. **Eval Harness Skill** - Pass@k metrics tracking with multi-language test output parsing
+
+**Stats:**
+
+- 5 phases (13, 14, 14.5, 14.6, 15), 25 plans
+- 645+ tests (497 hooks + 148 skills), 99%+ pass rate
+- ~3,000 LOC Node.js (hooks + skills)
+- 2 days from start to ship (2026-01-24 → 2026-01-25)
+- 53 commits
+
+**Git range:** `feat(13-01)` → `test(15)`
+
+**Key Decisions:**
+- Node.js for all hooks (cross-platform, no Python dependency)
+- QuestDB dual-write: local JSON (offline-first) + async export
+- 95% confidence via comprehensive test suite
+- Debug system with full observability (tracer, health, CLI)
+- hooks.json declarative config with schema validation
+
+**What's next:** v5.0 planning (TBD)
+
+---
+
 ## v3.0 Universal 14-Dimension Orchestrator (Shipped: 2026-01-24)
 
 **Delivered:** Complete validation orchestrator with 14-dimension tiered execution, confidence-based progressive refinement loop, and visual/behavioral validators for screenshot-driven development.
