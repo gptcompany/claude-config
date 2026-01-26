@@ -45,19 +45,27 @@ The user should be able to:
 - Respect `.gitignore` / `node_modules` / `__pycache__` exclusions
 - Each discovered config = separate validation target
 
-### 3. Plugin Distribution: PyPI + Local Paths
+### 3. Plugin Distribution: uv + Local Paths
+
+**Cos'è:** Come condividere validatori custom tra progetti (non il package manager del progetto).
+
+I validatori sono Python (orchestrator.py), quindi usiamo **uv** (il pip moderno già in uso):
+
 ```json
 {
   "plugins": [
-    "validation-plugin-security",
-    "/path/to/local/validator",
-    "git+https://github.com/org/private-validator.git"
+    "security-headers-validator",           // uv pip install <name>
+    "/home/sam/validators/custom-lint",     // path locale (sviluppo)
+    "git+ssh://github.com/org/private.git"  // repo privato
   ]
 }
 ```
-- pip install for published validators
-- Local paths for development/private
-- Optional git URLs for private repos
+
+**Strategia:**
+- `uv pip install` per validatori pubblicati su PyPI
+- Path locali per sviluppo/testing
+- Git URLs per validatori privati non pubblicati
+- **NON serve npm/bun** - i validatori sono Python, non JS
 
 ### 4. Cross-Project Metrics: Single Table + Views
 - Existing `push_validation_metrics(data, project_name)` already tracks project
