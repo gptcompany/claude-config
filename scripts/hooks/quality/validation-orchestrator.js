@@ -88,11 +88,43 @@ function updateLastRun() {
 }
 
 /**
+ * Extract modified file path from tool input
+ */
+function extractModifiedFile(data) {
+  const toolInput = data.tool_input || {};
+
+  // Write tool: file_path
+  if (toolInput.file_path) {
+    return toolInput.file_path;
+  }
+
+  // Edit tool: file_path
+  if (toolInput.file_path) {
+    return toolInput.file_path;
+  }
+
+  // MultiEdit: first file in edits array
+  if (toolInput.edits && toolInput.edits.length > 0) {
+    return toolInput.edits[0].file_path;
+  }
+
+  return null;
+}
+
+/**
  * Run validation asynchronously (fire and forget)
  */
-function runValidationAsync(projectRoot) {
+function runValidationAsync(projectRoot, modifiedFile) {
+  // Build command args
+  const args = [ORCHESTRATOR_PATH, "1"];
+
+  // Add --files if we have a modified file
+  if (modifiedFile) {
+    args.push("--files", modifiedFile);
+  }
+
   // Spawn python process detached
-  const child = spawn("python3", [ORCHESTRATOR_PATH, "1"], {
+  const child = spawn("python3", args, {
     cwd: projectRoot,
     stdio: "ignore",
     detached: true,
@@ -111,9 +143,10 @@ function runValidationAsync(projectRoot) {
   }
 
   const timestamp = new Date().toISOString();
+  const fileInfo = modifiedFile ? ` [${path.basename(modifiedFile)}]` : "";
   fs.appendFileSync(
     logPath,
-    `${timestamp} Triggered Tier 1 validation for ${projectRoot}\n`,
+    `${timestamp} Triggered Tier 1 validation for ${projectRoot}${fileInfo}\n`,
   );
 }
 
@@ -154,8 +187,11 @@ function main() {
     // Update last run timestamp
     updateLastRun();
 
+    // Extract modified file from tool input
+    const modifiedFile = extractModifiedFile(data);
+
     // Run validation async (non-blocking)
-    runValidationAsync(projectRoot);
+    runValidationAsync(projectRoot, modifiedFile);
 
     // Exit successfully (don't block the tool)
     process.exit(0);

@@ -65,9 +65,6 @@ PROJECT_NAME = "test_project"
 DOMAIN = "general"
 
 # Tier thresholds from config
-
-DIMENSIONS_CONFIG = {}
-
 DIMENSIONS_CONFIG = {}
 
 
@@ -123,6 +120,11 @@ class ValidationTier(Enum):
     BLOCKER = 1  # Must pass - blocks merge/deploy
     WARNING = 2  # Warn + suggest fix - doesn't block
     MONITOR = 3  # Metrics only - emit to dashboards
+
+
+def _elapsed_ms(start: datetime) -> int:
+    """Calculate elapsed milliseconds since start time."""
+    return int((datetime.now() - start).total_seconds() * 1000)
 
 
 @dataclass
@@ -235,7 +237,6 @@ class CodeQualityValidator(BaseValidator):
     async def validate(self) -> ValidationResult:
         start = datetime.now()
         try:
-            # Run ruff
             result = subprocess.run(
                 ["ruff", "check", "."],
                 capture_output=True,
@@ -243,17 +244,15 @@ class CodeQualityValidator(BaseValidator):
                 timeout=60,
             )
             passed = result.returncode == 0
-            errors = (
-                len(result.stdout.strip().split("\n")) if result.stdout.strip() else 0
-            )
+            errors = len(result.stdout.strip().split("\n")) if result.stdout.strip() else 0
 
             return ValidationResult(
                 dimension=self.dimension,
                 tier=self.tier,
                 passed=passed,
-                message=f"Ruff: {errors} errors" if not passed else "Code quality OK",
+                message="Code quality OK" if passed else f"Ruff: {errors} errors",
                 details={"error_count": errors, "output": result.stdout[:500]},
-                duration_ms=int((datetime.now() - start).total_seconds() * 1000),
+                duration_ms=_elapsed_ms(start),
             )
         except FileNotFoundError:
             return ValidationResult(
@@ -293,14 +292,13 @@ class TypeSafetyValidator(BaseValidator):
                     tier=self.tier,
                     passed=True,
                     message="Type check passed",
-                    duration_ms=int((datetime.now() - start).total_seconds() * 1000),
+                    duration_ms=_elapsed_ms(start),
                 )
 
             # Parse errors
             try:
                 output = json.loads(result.stdout)
-                errors = output.get("generalDiagnostics", [])
-                error_count = len(errors)
+                error_count = len(output.get("generalDiagnostics", []))
             except json.JSONDecodeError:
                 error_count = -1
 
@@ -310,7 +308,7 @@ class TypeSafetyValidator(BaseValidator):
                 passed=False,
                 message=f"Type errors: {error_count}",
                 details={"error_count": error_count},
-                duration_ms=int((datetime.now() - start).total_seconds() * 1000),
+                duration_ms=_elapsed_ms(start),
             )
         except FileNotFoundError:
             return ValidationResult(
@@ -339,6 +337,23 @@ class SecurityValidator(BaseValidator):
         issues = []
 
         # Run bandit (Python SAST)
+        issues.extend(self._check_bandit())
+
+        # Run gitleaks (secrets)
+        issues.extend(self._check_gitleaks())
+
+        passed = len(issues) == 0
+        return ValidationResult(
+            dimension=self.dimension,
+            tier=self.tier,
+            passed=passed,
+            message="Security check passed" if passed else "; ".join(issues),
+            details={"issues": issues},
+            duration_ms=_elapsed_ms(start),
+        )
+
+    def _check_bandit(self) -> list[str]:
+        """Run bandit SAST scanner."""
         try:
             result = subprocess.run(
                 ["bandit", "-r", ".", "-f", "json", "-q"],
@@ -350,18 +365,19 @@ class SecurityValidator(BaseValidator):
                 try:
                     data = json.loads(result.stdout)
                     high_sev = [
-                        r
-                        for r in data.get("results", [])
+                        r for r in data.get("results", [])
                         if r.get("issue_severity") in ("HIGH", "MEDIUM")
                     ]
                     if high_sev:
-                        issues.append(f"Bandit: {len(high_sev)} issues")
+                        return [f"Bandit: {len(high_sev)} issues"]
                 except json.JSONDecodeError:
                     pass
         except FileNotFoundError:
-            pass  # bandit not installed
+            pass
+        return []
 
-        # Run gitleaks (secrets)
+    def _check_gitleaks(self) -> list[str]:
+        """Run gitleaks secrets scanner."""
         try:
             result = subprocess.run(
                 ["gitleaks", "detect", "--no-git", "-v"],
@@ -370,19 +386,10 @@ class SecurityValidator(BaseValidator):
                 timeout=30,
             )
             if result.returncode != 0:
-                issues.append("Gitleaks: secrets detected")
+                return ["Gitleaks: secrets detected"]
         except FileNotFoundError:
-            pass  # gitleaks not installed
-
-        passed = len(issues) == 0
-        return ValidationResult(
-            dimension=self.dimension,
-            tier=self.tier,
-            passed=passed,
-            message="; ".join(issues) if issues else "Security check passed",
-            details={"issues": issues},
-            duration_ms=int((datetime.now() - start).total_seconds() * 1000),
-        )
+            pass
+        return []
 
 
 class CoverageValidator(BaseValidator):
@@ -394,19 +401,11 @@ class CoverageValidator(BaseValidator):
 
     async def validate(self) -> ValidationResult:
         start = datetime.now()
-
-        # Check for coverage.xml
         coverage_file = Path("coverage.xml")
+
+        # Generate coverage if not present
         if not coverage_file.exists():
-            # Try running pytest with coverage
-            try:
-                subprocess.run(
-                    ["pytest", "--cov=.", "--cov-report=xml", "-q"],
-                    capture_output=True,
-                    timeout=300,
-                )
-            except Exception:
-                pass
+            self._generate_coverage()
 
         if not coverage_file.exists():
             return ValidationResult(
@@ -421,8 +420,7 @@ class CoverageValidator(BaseValidator):
             import xml.etree.ElementTree as ET
 
             tree = ET.parse(coverage_file)
-            root = tree.getroot()
-            line_rate = float(root.get("line-rate", 0)) * 100
+            line_rate = float(tree.getroot().get("line-rate", 0)) * 100
 
             passed = line_rate >= self.min_coverage
             return ValidationResult(
@@ -431,7 +429,7 @@ class CoverageValidator(BaseValidator):
                 passed=passed,
                 message=f"Coverage: {line_rate:.1f}% (min: {self.min_coverage}%)",
                 details={"coverage_percent": line_rate},
-                duration_ms=int((datetime.now() - start).total_seconds() * 1000),
+                duration_ms=_elapsed_ms(start),
             )
         except Exception as e:
             return ValidationResult(
@@ -441,39 +439,50 @@ class CoverageValidator(BaseValidator):
                 message=f"Coverage parse error: {e}",
             )
 
+    def _generate_coverage(self) -> None:
+        """Try to generate coverage.xml via pytest."""
+        try:
+            subprocess.run(
+                ["pytest", "--cov=.", "--cov-report=xml", "-q"],
+                capture_output=True,
+                timeout=300,
+            )
+        except Exception:
+            pass
+
 
 # Import real validators with fallback to stubs
 try:
-    from validators.design_principles.validator import (
+    from validators.design_principles.validator import (  # type: ignore[import-not-found]
         DesignPrinciplesValidator as DesignPrinciplesValidatorImpl,
     )
 except ImportError:
-    DesignPrinciplesValidatorImpl = None
+    DesignPrinciplesValidatorImpl = None  # type: ignore[assignment]
 
 try:
-    from validators.oss_reuse.validator import (
+    from validators.oss_reuse.validator import (  # type: ignore[import-not-found]
         OSSReuseValidator as OSSReuseValidatorImpl,
     )
 except ImportError:
-    OSSReuseValidatorImpl = None
+    OSSReuseValidatorImpl = None  # type: ignore[assignment]
 
 try:
-    from validators.mathematical.validator import (
+    from validators.mathematical.validator import (  # type: ignore[import-not-found]
         MathematicalValidator as MathematicalValidatorImpl,
     )
 except ImportError:
-    MathematicalValidatorImpl = None
+    MathematicalValidatorImpl = None  # type: ignore[assignment]
 
 try:
-    from validators.api_contract.validator import (
+    from validators.api_contract.validator import (  # type: ignore[import-not-found]
         APIContractValidator as APIContractValidatorImpl,
     )
 except ImportError:
-    APIContractValidatorImpl = None
+    APIContractValidatorImpl = None  # type: ignore[assignment]
 
 # ECC Validators (from everything-claude-code integration)
 try:
-    from validators.ecc import (
+    from validators.ecc import (  # type: ignore[import-not-found]
         E2EValidator,
         SecurityEnhancedValidator,
         TDDValidator,
@@ -516,11 +525,11 @@ class DesignPrinciplesValidator(BaseValidator):
             dimension=self.dimension,
             tier=self.tier,
             passed=passed,
-            message=f"{len(warnings)} large files" if warnings else "Design OK (stub)",
+            message="Design OK (stub)" if passed else f"{len(warnings)} large files",
             details={"warnings": warnings[:5], "using_stub": True},
             fix_suggestion="Consider splitting large files",
             agent=self.agent if not passed else None,
-            duration_ms=int((datetime.now() - start).total_seconds() * 1000),
+            duration_ms=_elapsed_ms(start),
         )
 
 
@@ -556,9 +565,8 @@ class ArchitectureValidator(BaseValidator):
 
     async def validate(self) -> ValidationResult:
         start = datetime.now()
-
-        # Check for ARCHITECTURE.md
         arch_file = Path("ARCHITECTURE.md")
+
         if not arch_file.exists():
             return ValidationResult(
                 dimension=self.dimension,
@@ -574,7 +582,7 @@ class ArchitectureValidator(BaseValidator):
             tier=self.tier,
             passed=True,
             message="Architecture documented",
-            duration_ms=int((datetime.now() - start).total_seconds() * 1000),
+            duration_ms=_elapsed_ms(start),
         )
 
 
@@ -587,9 +595,8 @@ class DocumentationValidator(BaseValidator):
 
     async def validate(self) -> ValidationResult:
         start = datetime.now()
-
-        # Check for README.md
         readme = Path("README.md")
+
         if not readme.exists():
             return ValidationResult(
                 dimension=self.dimension,
@@ -600,9 +607,7 @@ class DocumentationValidator(BaseValidator):
                 agent=self.agent,
             )
 
-        # Check README has content
-        content = readme.read_text()
-        if len(content) < 100:
+        if len(readme.read_text()) < 100:
             return ValidationResult(
                 dimension=self.dimension,
                 tier=self.tier,
@@ -617,7 +622,7 @@ class DocumentationValidator(BaseValidator):
             tier=self.tier,
             passed=True,
             message="Documentation OK",
-            duration_ms=int((datetime.now() - start).total_seconds() * 1000),
+            duration_ms=_elapsed_ms(start),
         )
 
 
@@ -707,6 +712,18 @@ class APIContractValidator(BaseValidator):
 # =============================================================================
 
 
+async def _run_validators_sequential(validators: list) -> list:
+    """Run validators sequentially with error handling."""
+    results = []
+    for name, v in validators:
+        try:
+            result = await v.validate()
+            results.append(result)
+        except Exception as e:
+            logger.error(f"Validator {name} failed: {e}")
+    return results
+
+
 async def run_tier3_parallel(validators: list) -> list:
     """
     Run Tier 3 validators in parallel using swarm workers.
@@ -719,43 +736,19 @@ async def run_tier3_parallel(validators: list) -> list:
     Falls back to sequential execution on any error.
     """
     if len(validators) < 2:
-        # Not worth swarm overhead for single validator
-        results = []
-        for name, v in validators:
-            try:
-                result = await v.validate()
-                results.append(result)
-            except Exception as e:
-                logger.error(f"Validator {name} failed: {e}")
-        return results
+        return await _run_validators_sequential(validators)
 
     if not SWARM_ENABLED:
         logger.info("Swarm disabled, running Tier 3 sequentially")
-        results = []
-        for name, v in validators:
-            try:
-                result = await v.validate()
-                results.append(result)
-            except Exception as e:
-                logger.error(f"Validator {name} failed: {e}")
-        return results
+        return await _run_validators_sequential(validators)
+
+    hive_script = os.path.expanduser("~/.claude/scripts/hooks/control/hive-manager.js")
+
+    if not os.path.exists(hive_script):
+        logger.warning("Hive manager not found, falling back to sequential")
+        return await _run_validators_sequential(validators)
 
     try:
-        hive_script = os.path.expanduser(
-            "~/.claude/scripts/hooks/control/hive-manager.js"
-        )
-
-        if not os.path.exists(hive_script):
-            logger.warning("Hive manager not found, falling back to sequential")
-            results = []
-            for name, v in validators:
-                try:
-                    result = await v.validate()
-                    results.append(result)
-                except Exception as e:
-                    logger.error(f"Validator {name} failed: {e}")
-            return results
-
         # Initialize swarm with mesh topology
         init_result = subprocess.run(
             ["node", hive_script, "init", "--topology", "mesh"],
@@ -766,26 +759,12 @@ async def run_tier3_parallel(validators: list) -> list:
 
         if init_result.returncode != 0:
             logger.warning("Swarm init failed, falling back to sequential")
-            results = []
-            for name, v in validators:
-                try:
-                    result = await v.validate()
-                    results.append(result)
-                except Exception as e:
-                    logger.error(f"Validator {name} failed: {e}")
-            return results
+            return await _run_validators_sequential(validators)
 
-        # Cap workers at 4
         worker_count = min(len(validators), 4)
-
-        # For now, run in parallel using asyncio.gather
-        # Full swarm integration would use hive-manager's task queue
         logger.info(f"Running {len(validators)} Tier 3 validators in parallel (max {worker_count} concurrent)")
 
-        tasks = []
-        for name, v in validators:
-            tasks.append(v.validate())
-
+        tasks = [v.validate() for _, v in validators]
         results = await asyncio.gather(*tasks, return_exceptions=True)
 
         # Filter out exceptions
@@ -796,28 +775,19 @@ async def run_tier3_parallel(validators: list) -> list:
             else:
                 valid_results.append(result)
 
-        # Cleanup swarm
-        try:
-            subprocess.run(
-                ["node", hive_script, "shutdown"],
-                capture_output=True,
-                timeout=5,
-            )
-        except Exception:
-            pass  # Best effort cleanup
+        # Best effort cleanup
+        subprocess.run(
+            ["node", hive_script, "shutdown"],
+            capture_output=True,
+            timeout=5,
+            check=False,
+        )
 
         return valid_results
 
     except Exception as e:
         logger.warning(f"Swarm execution failed: {e}, falling back to sequential")
-        results = []
-        for name, v in validators:
-            try:
-                result = await v.validate()
-                results.append(result)
-            except Exception as ex:
-                logger.error(f"Validator {name} failed: {ex}")
-        return results
+        return await _run_validators_sequential(validators)
 
 
 async def check_complexity_and_simplify(modified_files: list[str]) -> bool:
@@ -975,14 +945,12 @@ class ValidationOrchestrator:
 
     # Conditionally add ECC validators if available
     if ECC_VALIDATORS_AVAILABLE:
-        VALIDATOR_REGISTRY.update(  # type: ignore[arg-type]
-            {
-                "e2e_validation": E2EValidator,
-                "security_enhanced": SecurityEnhancedValidator,
-                "tdd_compliance": TDDValidator,
-                "eval_metrics": EvalValidator,
-            }
-        )
+        VALIDATOR_REGISTRY.update({  # type: ignore[arg-type]
+            "e2e_validation": E2EValidator,
+            "security_enhanced": SecurityEnhancedValidator,
+            "tdd_compliance": TDDValidator,
+            "eval_metrics": EvalValidator,
+        })
 
     def __init__(self, config_path: Path | None = None):
         self.config = self._load_config(config_path)
@@ -1088,25 +1056,26 @@ class ValidationOrchestrator:
                         },
                     )
 
-    async def _emit_metrics(self, tier_result: TierResult):
+    async def _emit_metrics(self, tier_result: TierResult) -> None:
         """Emit Tier 3 metrics to QuestDB."""
         import socket
 
-        host = "localhost"
-        port = 9009
-
         for result in tier_result.results:
             try:
-                # ILP line protocol
                 passed_int = 1 if result.passed else 0
                 line = f"validation,dimension={result.dimension} passed={passed_int}i,duration={result.duration_ms}i\n"
 
                 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
                     sock.settimeout(2)
-                    sock.connect((host, port))
+                    sock.connect(("localhost", 9009))
                     sock.sendall(line.encode())
             except Exception:
                 pass  # QuestDB not available - ignore
+
+    def _push_observability(self, data, project_name: str) -> None:
+        """Push metrics and context to observability backends."""
+        push_validation_metrics(data, project_name)
+        inject_validation_context(data)
 
     async def run_all(self, modified_files: list[str] | None = None) -> ValidationReport:
         """
@@ -1118,71 +1087,46 @@ class ValidationOrchestrator:
         3. Tier 2 (Warnings) - log fix suggestions
         4. Tier 3 (Monitors) - emit metrics
 
-        After each tier:
-        - Push metrics to Prometheus (if available)
-        - Inject context to Sentry (if available)
-
-        Args:
-            modified_files: Optional list of files modified in this session.
-                           If provided, checks complexity thresholds.
+        After each tier, push to Prometheus and Sentry (if available).
         """
-        # Log available integrations once at startup
         _log_integrations_status()
 
         start = datetime.now()
         project_name = self.config.get("project_name", "unknown")
-        report = ValidationReport(
-            project=project_name,
-            timestamp=start.isoformat(),
-        )
+        report = ValidationReport(project=project_name, timestamp=start.isoformat())
 
         # Tier 1: Blockers (must all pass)
         t1 = await self.run_tier(ValidationTier.BLOCKER)
         report.tiers.append(t1)
-
-        # Push metrics and inject context after Tier 1
-        push_validation_metrics(t1, project_name)
-        inject_validation_context(t1)
+        self._push_observability(t1, project_name)
 
         if not t1.passed:
             report.blocked = True
             report.overall_passed = False
             logger.warning(f"Tier 1 BLOCKED: {t1.failed_dimensions}")
-
-            # Add breadcrumb for blocker details
             add_validation_breadcrumb(
                 message=f"Blocked by: {', '.join(t1.failed_dimensions)}",
                 level="error",
                 data={"blockers": t1.failed_dimensions},
             )
-
-            # Push final metrics and context before returning
-            report.execution_time_ms = int(
-                (datetime.now() - start).total_seconds() * 1000
-            )
-            push_validation_metrics(report, project_name)
-            inject_validation_context(report)
+            report.execution_time_ms = _elapsed_ms(start)
+            self._push_observability(report, project_name)
             return report
 
         logger.info("Tier 1 passed - proceeding to Tier 2")
 
-        # Check complexity and spawn code-simplifier if needed (before more code is written)
+        # Check complexity and spawn code-simplifier if needed
         if modified_files:
             await check_complexity_and_simplify(modified_files)
 
         # Tier 2: Warnings (suggest fixes)
         t2 = await self.run_tier(ValidationTier.WARNING)
         report.tiers.append(t2)
-
-        # Push metrics and inject context after Tier 2
-        push_validation_metrics(t2, project_name)
-        inject_validation_context(t2)
+        self._push_observability(t2, project_name)
 
         if t2.has_warnings:
             await self._suggest_fixes(t2)
             logger.info(f"Tier 2 warnings: {t2.failed_dimensions}")
-
-            # Add breadcrumb for warning details
             add_validation_breadcrumb(
                 message=f"Warnings: {', '.join(t2.failed_dimensions)}",
                 level="warning",
@@ -1193,19 +1137,31 @@ class ValidationOrchestrator:
         t3 = await self.run_tier(ValidationTier.MONITOR)
         report.tiers.append(t3)
         await self._emit_metrics(t3)
+        self._push_observability(t3, project_name)
 
-        # Push metrics and inject context after Tier 3
-        push_validation_metrics(t3, project_name)
-        inject_validation_context(t3)
-
-        report.execution_time_ms = int((datetime.now() - start).total_seconds() * 1000)
+        report.execution_time_ms = _elapsed_ms(start)
         logger.info(f"Validation complete in {report.execution_time_ms}ms")
-
-        # Final metrics push with full report
-        push_validation_metrics(report, project_name)
-        inject_validation_context(report)
+        self._push_observability(report, project_name)
 
         return report
+
+    def _print_tier_result(self, tier_result: TierResult) -> None:
+        """Print formatted tier result."""
+        status = "[PASS]" if tier_result.passed else "[FAIL]"
+        print(f"\nTier {tier_result.tier.value} ({tier_result.tier.name}): {status}")
+        for r in tier_result.results:
+            icon = "[+]" if r.passed else "[-]"
+            print(f"  {icon} {r.dimension}: {r.message}")
+
+    def _parse_tier_arg(self, tier: str) -> ValidationTier | None:
+        """Parse tier string to ValidationTier enum. Returns None for invalid input."""
+        tier_map = {
+            "1": ValidationTier.BLOCKER,
+            "quick": ValidationTier.BLOCKER,
+            "2": ValidationTier.WARNING,
+            "3": ValidationTier.MONITOR,
+        }
+        return tier_map.get(tier.lower())
 
     async def run_from_cli(
         self, tier: str | None = None, modified_files: list[str] | None = None
@@ -1213,99 +1169,64 @@ class ValidationOrchestrator:
         """
         Run validation from CLI with tier filtering and nice output.
 
-        This method is designed for the /validate skill to invoke.
-
-        Args:
-            tier: Tier filter - None/"all" runs all, "1"/"quick" runs Tier 1,
-                  "2" runs Tier 2, "3" runs Tier 3
-            modified_files: Files modified in this session (for complexity checks)
-
-        Returns:
-            Exit code: 0 if passed, 1 if Tier 1 blockers failed, 2 on error
+        Returns: Exit code (0=passed, 1=blocked, 2=error)
         """
         try:
-            # Parse tier argument
+            # Run all tiers
             if tier is None or tier.lower() in ("all", ""):
-                # Run all tiers
                 report = await self.run_all(modified_files=modified_files)
 
-                # Output
                 print(f"\n{'=' * 60}")
                 print(f"VALIDATION REPORT: {report.project}")
                 print(f"{'=' * 60}")
 
                 for tier_result in report.tiers:
-                    status = "[PASS]" if tier_result.passed else "[FAIL]"
-                    print(
-                        f"\nTier {tier_result.tier.value} ({tier_result.tier.name}): {status}"
-                    )
-                    for r in tier_result.results:
-                        icon = "[+]" if r.passed else "[-]"
-                        print(f"  {icon} {r.dimension}: {r.message}")
+                    self._print_tier_result(tier_result)
 
                 print(f"\n{'=' * 60}")
                 if report.blocked:
                     print("RESULT: BLOCKED (Tier 1 failures)")
                     return 1
-                else:
-                    print(f"RESULT: PASSED ({report.execution_time_ms}ms)")
-                    return 0
+                print(f"RESULT: PASSED ({report.execution_time_ms}ms)")
+                return 0
 
-            elif tier.lower() in ("1", "quick"):
-                tier_enum = ValidationTier.BLOCKER
-            elif tier == "2":
-                tier_enum = ValidationTier.WARNING
-            elif tier == "3":
-                tier_enum = ValidationTier.MONITOR
-            else:
+            # Run single tier
+            tier_enum = self._parse_tier_arg(tier)
+            if tier_enum is None:
                 print(f"Unknown tier: {tier}. Use 1/quick, 2, 3, or all.")
                 return 2
 
-            # Run single tier
             result = await self.run_tier(tier_enum)
-            status = "[PASS]" if result.passed else "[FAIL]"
-            print(f"Tier {tier_enum.value} ({tier_enum.name}): {status}")
-            for r in result.results:
-                icon = "[+]" if r.passed else "[-]"
-                print(f"  {icon} {r.dimension}: {r.message}")
-
+            self._print_tier_result(result)
             return 0 if result.passed else 1
 
         except Exception as e:
             print(f"Validation error: {e}")
             return 2
 
-    async def validate_file(
-        self, file_path: str, tier: int = 1
-    ) -> "FileValidationResult":
+    # Mapping of file extensions to relevant validators
+    FILE_TYPE_VALIDATORS: dict[str, list[str]] = {
+        ".py": ["code_quality", "type_safety", "security"],
+        ".js": ["code_quality", "security"],
+        ".ts": ["code_quality", "security"],
+        ".jsx": ["code_quality", "security"],
+        ".tsx": ["code_quality", "security"],
+        ".json": ["security"],
+        ".yaml": ["security"],
+        ".yml": ["security"],
+    }
+
+    async def validate_file(self, file_path: str, tier: int = 1) -> "FileValidationResult":
         """
         Quick validation for a single file. Used by hooks.
 
-        Args:
-            file_path: Path to the file to validate
-            tier: Validation tier (1=blockers only, 2=warnings, 3=monitors)
-
-        Returns:
-            FileValidationResult with has_blockers property
-
-        Notes:
-            - Only runs validators relevant to the file type
-            - For Python files: code_quality, type_safety, security
-            - For other files: minimal checks or skip
-            - Much faster than run_all() for single-file validation
+        Only runs validators relevant to the file type. Much faster than run_all().
         """
         start = datetime.now()
         file_ext = Path(file_path).suffix.lower()
+        relevant_validators = self.FILE_TYPE_VALIDATORS.get(file_ext)
 
-        # Determine which validators to run based on file type
-        if file_ext == ".py":
-            relevant_validators = ["code_quality", "type_safety", "security"]
-        elif file_ext in (".js", ".ts", ".jsx", ".tsx"):
-            relevant_validators = ["code_quality", "security"]
-        elif file_ext in (".json", ".yaml", ".yml"):
-            relevant_validators = ["security"]  # Check for secrets
-        else:
-            # Unknown file type - skip validation
+        if not relevant_validators:
             return FileValidationResult(
                 file_path=file_path,
                 has_blockers=False,
@@ -1328,7 +1249,7 @@ class ValidationOrchestrator:
                 has_blockers=False,
                 message=f"No tier {tier} validators for this file type",
                 results=[],
-                duration_ms=int((datetime.now() - start).total_seconds() * 1000),
+                duration_ms=_elapsed_ms(start),
             )
 
         # Run validators in parallel
@@ -1336,22 +1257,15 @@ class ValidationOrchestrator:
             *[self._run_validator(name, v) for name, v in validators_to_run]
         )
 
-        # Aggregate results
         has_blockers = any(not r.passed for r in results)
         failed = [r.dimension for r in results if not r.passed]
-        duration_ms = int((datetime.now() - start).total_seconds() * 1000)
-
-        if has_blockers:
-            message = f"Tier {tier} blockers: {', '.join(failed)}"
-        else:
-            message = f"Tier {tier} passed ({len(results)} validators)"
 
         return FileValidationResult(
             file_path=file_path,
             has_blockers=has_blockers,
-            message=message,
+            message=f"Tier {tier} blockers: {', '.join(failed)}" if has_blockers else f"Tier {tier} passed ({len(results)} validators)",
             results=list(results),
-            duration_ms=duration_ms,
+            duration_ms=_elapsed_ms(start),
         )
 
 
@@ -1386,69 +1300,6 @@ class FileValidationResult:
 # =============================================================================
 # CLI Entry Point
 # =============================================================================
-
-
-async def main():
-    """CLI entry point."""
-    import argparse
-
-    parser = argparse.ArgumentParser(description="Run tiered validation")
-    parser.add_argument("--config", "-c", type=Path, help="Config file path")
-    parser.add_argument("--json", action="store_true", help="Output as JSON")
-    parser.add_argument(
-        "--tier", type=int, choices=[1, 2, 3], help="Run specific tier only"
-    )
-    args = parser.parse_args()
-
-    # Find config
-    config_path = args.config
-    if not config_path:
-        for candidate in [
-            Path(".claude/validation/config.json"),
-            Path("config/validation.json"),
-        ]:
-            if candidate.exists():
-                config_path = candidate
-                break
-
-    orchestrator = ValidationOrchestrator(config_path)
-
-    if args.tier:
-        result = await orchestrator.run_tier(ValidationTier(args.tier))
-        if args.json:
-            print(json.dumps({"tier": args.tier, "passed": result.passed}))
-        else:
-            status = "✅ PASSED" if result.passed else "❌ FAILED"
-            print(f"Tier {args.tier}: {status}")
-            for r in result.results:
-                icon = "✓" if r.passed else "✗"
-                print(f"  {icon} {r.dimension}: {r.message}")
-    else:
-        report = await orchestrator.run_all()
-        if args.json:
-            print(json.dumps(report.to_dict(), indent=2))
-        else:
-            print(f"\n{'=' * 60}")
-            print(f"VALIDATION REPORT: {report.project}")
-            print(f"{'=' * 60}")
-
-            for tier_result in report.tiers:
-                status = "✅" if tier_result.passed else "❌"
-                print(
-                    f"\nTier {tier_result.tier.value} ({tier_result.tier.name}): {status}"
-                )
-                for r in tier_result.results:
-                    icon = "✓" if r.passed else "✗"
-                    print(f"  {icon} {r.dimension}: {r.message}")
-
-            print(f"\n{'=' * 60}")
-            if report.blocked:
-                print("RESULT: ❌ BLOCKED (Tier 1 failures)")
-                sys.exit(1)
-            else:
-                print(f"RESULT: ✅ PASSED ({report.execution_time_ms}ms)")
-                sys.exit(0)
-
 
 if __name__ == "__main__":
     import argparse

@@ -14,6 +14,56 @@ Build a reusable validation pipeline framework starting with core templates, the
 - ✅ [**v2.0 Hybrid UAT**](milestones/v2.0-ROADMAP.md) (Phase 6) — SHIPPED 2026-01-20
 - ✅ [**v3.0 14-Dimension Orchestrator**](milestones/v3.0-ROADMAP.md) (Phases 7-12) — SHIPPED 2026-01-24
 - ✅ [**v4.0 ECC Integration & Hooks Modernization**](milestones/v4.0-ROADMAP.md) (Phases 13-15) — SHIPPED 2026-01-25
+- ✅ **v5.0 GSD + Validation + Claude-Flow Integration** (Phase 16) — SHIPPED 2026-01-26
+
+---
+
+## v5.0: GSD + Validation + Claude-Flow Integration
+
+**Goal:** Connect existing ValidationOrchestrator, claude-flow, and swarm infrastructure to GSD workflows.
+
+**Key insight:** The code exists but isn't wired together. This milestone is about INTEGRATION, not new implementation.
+
+### Phase 16: GSD-Validation Integration
+
+| Plan | Description | Tests | Status |
+|------|-------------|-------|--------|
+| 16-01 | GSD Workflow Integration (execute-plan, verify-work, complete-milestone) | 27 | ✅ Done |
+| 16-02 | Agent Spawn & Swarm Activation | 20 | ✅ Done |
+| 16-03 | Session Checkpoint Integration | 22 | ✅ Done |
+| 16-04 | E2E Integration Tests & Documentation | 23 | ✅ Done |
+
+**Total:** 4 plans, 92 tests delivered
+
+### Integration Points
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                    v5.0 INTEGRATION                              │
+├─────────────────────────────────────────────────────────────────┤
+│  /gsd:execute-plan ────→ orchestrator.py Tier 1 (blocks)        │
+│  /gsd:verify-work  ────→ orchestrator.py Tier 1+2 (pre-UAT)     │
+│  /gsd:complete-milestone → orchestrator.py ALL (quality gate)   │
+│                                                                  │
+│  Tier 2 failures   ────→ spawn_agent() (actual, not log)        │
+│  Tier 3 validators ────→ hive-manager.js (parallel swarm)       │
+│                                                                  │
+│  Phase start/end   ────→ session_save() (crash recovery)        │
+│  Resume            ────→ session_restore() (checkpoint load)    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+### Success Criteria
+
+- [ ] /gsd:execute-plan runs Tier 1 and blocks on failure
+- [ ] /gsd:verify-work shows Tier 1+2 before UAT
+- [ ] /gsd:complete-milestone enforces quality gate
+- [ ] Agent spawn actually executes on Tier 2 failures
+- [ ] Tier 3 runs in parallel via swarm
+- [ ] Session checkpoints enable crash recovery
+- [ ] 80+ tests with 95%+ pass rate
+
+---
 
 ## Completed Milestones
 
@@ -86,9 +136,11 @@ See [v4.0 Archive](milestones/v4.0-ROADMAP.md) for full details.
 | 14.6. Hooks Integration & Validation | v4.0 | 4/4 | ✅ Complete | 2026-01-24 |
 | 15. Skills Port | v4.0 | 5/5 | ✅ Complete | 2026-01-25 |
 
-**Total:** 50 plans shipped, v4.0 milestone complete
+| 16. GSD-Validation Integration | v5.0 | 4/4 | ✅ Complete | 2026-01-26 |
 
-**Test Coverage Achieved:**
-- Phase 14.5-14.6: 497 tests
-- Phase 15 Skills: 148 tests (33 + 29 + 34 + 28 + 24)
-- **Total:** 645+ tests
+**Total:** 54 plans shipped (v1.0-v5.0)
+
+**Test Coverage:**
+- v1.0-v4.0: 479 tests
+- v5.0: 42 new tests (71 orchestrator-specific)
+- **Total:** 521 tests
