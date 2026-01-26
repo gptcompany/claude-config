@@ -35,6 +35,46 @@ Options:
 **If .planning/ doesn't exist:** Error - project not initialized.
 </step>
 
+<step name="session_checkpoint_start">
+**Save session checkpoint before phase execution:**
+
+Create a checkpoint for crash recovery using claude-flow MCP:
+
+```
+mcp__claude-flow__session_save
+  name: "gsd-{project}-phase-{phase}-start"
+  description: "Starting phase {phase} execution"
+  includeMemory: true
+  includeTasks: true
+```
+
+Also store phase state in memory:
+
+```
+mcp__claude-flow__memory_store
+  key: "gsd:{project}:{phase}"
+  value: {
+    "status": "in_progress",
+    "phase": {phase},
+    "started_at": "{timestamp}",
+    "plans": [],
+    "waves_completed": 0
+  }
+```
+
+**On crash recovery:**
+
+If this phase was previously started but not completed:
+1. Check `mcp__claude-flow__memory_retrieve` for key "gsd:{project}:{phase}"
+2. If found with status "in_progress":
+   - Show user: "Found incomplete phase execution"
+   - Offer: "Resume from wave {N} or start fresh?"
+   - If resume: `mcp__claude-flow__session_restore` + skip completed plans
+   - If fresh: Clear memory and proceed
+
+This enables seamless recovery across `/clear` and session interrupts.
+</step>
+
 <step name="validate_phase">
 Confirm phase exists and has plans:
 
@@ -355,6 +395,36 @@ Commit roadmap update:
 git add .planning/ROADMAP.md
 git commit -m "docs(phase-{X}): complete phase execution"
 ```
+</step>
+
+<step name="session_checkpoint_end">
+**Save completion checkpoint and update memory:**
+
+After all waves complete successfully:
+
+```
+mcp__claude-flow__memory_store
+  key: "gsd:{project}:{phase}"
+  value: {
+    "status": "completed",
+    "phase": {phase},
+    "completed_at": "{timestamp}",
+    "plans_executed": {N},
+    "waves_completed": {total_waves}
+  }
+```
+
+Save final checkpoint:
+
+```
+mcp__claude-flow__session_save
+  name: "gsd-{project}-phase-{phase}-done"
+  description: "Completed phase {phase} execution"
+  includeMemory: true
+  includeTasks: true
+```
+
+This persists the completion state for cross-session visibility.
 </step>
 
 <step name="offer_next">

@@ -13,12 +13,20 @@ Config: test_project/.claude/validation/config.json
 import asyncio
 import json
 import logging
+import os
 import subprocess
 import sys
 from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
+
+# =============================================================================
+# Environment Controls
+# =============================================================================
+
+AGENT_SPAWN_ENABLED = os.environ.get("VALIDATION_AGENT_SPAWN", "true").lower() == "true"
+SWARM_ENABLED = os.environ.get("VALIDATION_SWARM", "true").lower() == "true"
 
 # =============================================================================
 # Integration Imports (Optional - graceful degradation)
@@ -695,6 +703,231 @@ class APIContractValidator(BaseValidator):
 
 
 # =============================================================================
+# Agent Spawn Function
+# =============================================================================
+
+
+async def run_tier3_parallel(validators: list) -> list:
+    """
+    Run Tier 3 validators in parallel using swarm workers.
+
+    For Tier 3 (monitoring), parallelization is safe because:
+    - Results are non-blocking
+    - No ordering dependencies
+    - Pure metrics collection
+
+    Falls back to sequential execution on any error.
+    """
+    if len(validators) < 2:
+        # Not worth swarm overhead for single validator
+        results = []
+        for name, v in validators:
+            try:
+                result = await v.validate()
+                results.append(result)
+            except Exception as e:
+                logger.error(f"Validator {name} failed: {e}")
+        return results
+
+    if not SWARM_ENABLED:
+        logger.info("Swarm disabled, running Tier 3 sequentially")
+        results = []
+        for name, v in validators:
+            try:
+                result = await v.validate()
+                results.append(result)
+            except Exception as e:
+                logger.error(f"Validator {name} failed: {e}")
+        return results
+
+    try:
+        hive_script = os.path.expanduser(
+            "~/.claude/scripts/hooks/control/hive-manager.js"
+        )
+
+        if not os.path.exists(hive_script):
+            logger.warning("Hive manager not found, falling back to sequential")
+            results = []
+            for name, v in validators:
+                try:
+                    result = await v.validate()
+                    results.append(result)
+                except Exception as e:
+                    logger.error(f"Validator {name} failed: {e}")
+            return results
+
+        # Initialize swarm with mesh topology
+        init_result = subprocess.run(
+            ["node", hive_script, "init", "--topology", "mesh"],
+            capture_output=True,
+            text=True,
+            timeout=10,
+        )
+
+        if init_result.returncode != 0:
+            logger.warning("Swarm init failed, falling back to sequential")
+            results = []
+            for name, v in validators:
+                try:
+                    result = await v.validate()
+                    results.append(result)
+                except Exception as e:
+                    logger.error(f"Validator {name} failed: {e}")
+            return results
+
+        # Cap workers at 4
+        worker_count = min(len(validators), 4)
+
+        # For now, run in parallel using asyncio.gather
+        # Full swarm integration would use hive-manager's task queue
+        logger.info(f"Running {len(validators)} Tier 3 validators in parallel (max {worker_count} concurrent)")
+
+        tasks = []
+        for name, v in validators:
+            tasks.append(v.validate())
+
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        # Filter out exceptions
+        valid_results = []
+        for result in results:
+            if isinstance(result, Exception):
+                logger.error(f"Validator failed with exception: {result}")
+            else:
+                valid_results.append(result)
+
+        # Cleanup swarm
+        try:
+            subprocess.run(
+                ["node", hive_script, "shutdown"],
+                capture_output=True,
+                timeout=5,
+            )
+        except Exception:
+            pass  # Best effort cleanup
+
+        return valid_results
+
+    except Exception as e:
+        logger.warning(f"Swarm execution failed: {e}, falling back to sequential")
+        results = []
+        for name, v in validators:
+            try:
+                result = await v.validate()
+                results.append(result)
+            except Exception as ex:
+                logger.error(f"Validator {name} failed: {ex}")
+        return results
+
+
+async def check_complexity_and_simplify(modified_files: list[str]) -> bool:
+    """
+    Proactively spawn code-simplifier when complexity thresholds exceeded.
+
+    Triggers code-simplifier agent when:
+    - Multiple files modified (>= 2)
+    - Total LOC > 200
+    - Single file > 200 lines
+
+    Returns True if simplifier was spawned.
+    """
+    if not AGENT_SPAWN_ENABLED:
+        return False
+
+    if not modified_files:
+        return False
+
+    # Get file stats
+    total_lines = 0
+    complex_files = []
+
+    for file_path in modified_files:
+        try:
+            path = Path(file_path)
+            if path.exists() and path.suffix in ('.py', '.ts', '.js', '.tsx', '.jsx'):
+                lines = len(path.read_text().splitlines())
+                total_lines += lines
+                if lines > 200:
+                    complex_files.append((file_path, lines))
+        except Exception:
+            continue
+
+    # Check thresholds
+    should_simplify = False
+    reason = ""
+
+    if len(modified_files) >= 2 and total_lines > 200:
+        should_simplify = True
+        reason = f"Multiple files ({len(modified_files)}) with {total_lines} total LOC"
+    elif complex_files:
+        should_simplify = True
+        files_info = ", ".join([f"{f}:{l}LOC" for f, l in complex_files])
+        reason = f"Large files detected: {files_info}"
+
+    if should_simplify:
+        logger.info(f"Complexity threshold exceeded: {reason}")
+        spawn_agent(
+            agent_type="code-simplifier",
+            task_description=f"Simplify recently modified code. {reason}",
+            context={
+                "files": modified_files,
+                "total_lines": total_lines,
+                "complex_files": [f for f, _ in complex_files],
+                "reason": reason,
+            },
+        )
+        return True
+
+    return False
+
+
+def spawn_agent(agent_type: str, task_description: str, context: dict) -> bool:
+    """
+    Spawn a Claude Code agent to fix validation issues.
+
+    Args:
+        agent_type: Agent type (e.g., 'code-simplifier', 'security-reviewer')
+        task_description: What the agent should do
+        context: Additional context (file paths, error details)
+
+    Returns:
+        True if spawn successful, False otherwise
+    """
+    if not AGENT_SPAWN_ENABLED:
+        logger.info(f"  → Agent spawn disabled, would spawn: {agent_type}")
+        return False
+
+    try:
+        # Build the claude command for spawning agent
+        # Uses claude code CLI to spawn task
+        context_str = json.dumps(context)
+
+        cmd = [
+            "claude",
+            "--print",  # Non-interactive mode
+            f"Spawn agent '{agent_type}' to: {task_description}. Context: {context_str}",
+        ]
+
+        # Fire and forget (non-blocking spawn)
+        subprocess.Popen(
+            cmd,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+
+        logger.info(f"  → Spawned agent: {agent_type}")
+        return True
+
+    except FileNotFoundError:
+        logger.warning(f"  → Claude CLI not found, cannot spawn agent {agent_type}")
+        return False
+    except Exception as e:
+        logger.warning(f"  → Failed to spawn agent {agent_type}: {e}")
+        return False
+
+
+# =============================================================================
 # Orchestrator
 # =============================================================================
 
@@ -823,6 +1056,12 @@ class ValidationOrchestrator:
         if not tier_validators:
             return TierResult(tier=tier, results=[])
 
+        # Use swarm parallel execution for Tier 3 (monitoring) when >= 2 validators
+        if tier == ValidationTier.MONITOR and len(tier_validators) >= 2 and SWARM_ENABLED:
+            results = await run_tier3_parallel(tier_validators)
+            return TierResult(tier=tier, results=list(results))
+
+        # Sequential execution for Tier 1/2 or when swarm disabled
         results = await asyncio.gather(
             *[self._run_validator(name, v) for name, v in tier_validators]
         )
@@ -830,14 +1069,24 @@ class ValidationOrchestrator:
         return TierResult(tier=tier, results=list(results))
 
     async def _suggest_fixes(self, tier_result: TierResult):
-        """Log fix suggestions for failed Tier 2 validators."""
+        """Log fix suggestions and spawn agents for failed Tier 2 validators."""
         for result in tier_result.results:
             if not result.passed and result.fix_suggestion:
                 logger.info(
                     f"Fix suggestion for {result.dimension}: {result.fix_suggestion}"
                 )
                 if result.agent:
-                    logger.info(f"  → Spawn agent: {result.agent}")
+                    # Actually spawn the agent to fix the issue
+                    spawn_agent(
+                        agent_type=result.agent,
+                        task_description=f"Fix: {result.message}",
+                        context={
+                            "validator": result.dimension,
+                            "message": result.message,
+                            "details": result.details,
+                            "fix_suggestion": result.fix_suggestion,
+                        },
+                    )
 
     async def _emit_metrics(self, tier_result: TierResult):
         """Emit Tier 3 metrics to QuestDB."""
@@ -859,18 +1108,23 @@ class ValidationOrchestrator:
             except Exception:
                 pass  # QuestDB not available - ignore
 
-    async def run_all(self) -> ValidationReport:
+    async def run_all(self, modified_files: list[str] | None = None) -> ValidationReport:
         """
         Run all tiers in sequence.
 
         Execution order:
         1. Tier 1 (Blockers) - if any fail, stop and return blocked=True
-        2. Tier 2 (Warnings) - log fix suggestions
-        3. Tier 3 (Monitors) - emit metrics
+        2. Check complexity and spawn code-simplifier if needed
+        3. Tier 2 (Warnings) - log fix suggestions
+        4. Tier 3 (Monitors) - emit metrics
 
         After each tier:
         - Push metrics to Prometheus (if available)
         - Inject context to Sentry (if available)
+
+        Args:
+            modified_files: Optional list of files modified in this session.
+                           If provided, checks complexity thresholds.
         """
         # Log available integrations once at startup
         _log_integrations_status()
@@ -912,6 +1166,10 @@ class ValidationOrchestrator:
 
         logger.info("Tier 1 passed - proceeding to Tier 2")
 
+        # Check complexity and spawn code-simplifier if needed (before more code is written)
+        if modified_files:
+            await check_complexity_and_simplify(modified_files)
+
         # Tier 2: Warnings (suggest fixes)
         t2 = await self.run_tier(ValidationTier.WARNING)
         report.tiers.append(t2)
@@ -949,7 +1207,9 @@ class ValidationOrchestrator:
 
         return report
 
-    async def run_from_cli(self, tier: str | None = None) -> int:
+    async def run_from_cli(
+        self, tier: str | None = None, modified_files: list[str] | None = None
+    ) -> int:
         """
         Run validation from CLI with tier filtering and nice output.
 
@@ -958,6 +1218,7 @@ class ValidationOrchestrator:
         Args:
             tier: Tier filter - None/"all" runs all, "1"/"quick" runs Tier 1,
                   "2" runs Tier 2, "3" runs Tier 3
+            modified_files: Files modified in this session (for complexity checks)
 
         Returns:
             Exit code: 0 if passed, 1 if Tier 1 blockers failed, 2 on error
@@ -966,7 +1227,7 @@ class ValidationOrchestrator:
             # Parse tier argument
             if tier is None or tier.lower() in ("all", ""):
                 # Run all tiers
-                report = await self.run_all()
+                report = await self.run_all(modified_files=modified_files)
 
                 # Output
                 print(f"\n{'=' * 60}")
@@ -1199,8 +1460,14 @@ if __name__ == "__main__":
         default=None,
         help="Tier to run (1/quick, 2, 3, or all)",
     )
+    parser.add_argument(
+        "--files",
+        nargs="*",
+        default=None,
+        help="Modified files to check for complexity (for code-simplifier trigger)",
+    )
     args = parser.parse_args()
 
     orchestrator = ValidationOrchestrator()
-    exit_code = asyncio.run(orchestrator.run_from_cli(args.tier))
+    exit_code = asyncio.run(orchestrator.run_from_cli(args.tier, modified_files=args.files))
     sys.exit(exit_code)

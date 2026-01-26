@@ -20,6 +20,82 @@ No Pass/Fail buttons. No severity questions. Just: "Here's what should happen. D
 
 <process>
 
+<step name="automated_validation">
+**Run automated validation before conversational UAT:**
+
+Before proceeding to manual testing, run automated validation to catch issues early.
+
+### Tier 1 (Blockers) - MUST PASS
+
+```bash
+python3 ~/.claude/templates/validation/orchestrator.py 1
+```
+
+**If Tier 1 fails (exit code 1):**
+
+```
+════════════════════════════════════════
+VALIDATION BLOCKED: Cannot Proceed to UAT
+════════════════════════════════════════
+
+Tier 1 (blocker) validation failed:
+[List failing validators with messages]
+
+UAT skipped - no point testing broken code.
+
+Options:
+1. Fix issues and re-run `/gsd:verify-work`
+2. Run `/gsd:plan-fix` to create fix plan
+════════════════════════════════════════
+```
+
+Do NOT proceed to UAT. Route user to fix issues first.
+
+**If Tier 1 passes (exit code 0):**
+
+Continue to Tier 2 validation.
+
+### Tier 2 (Warnings) - Show to User
+
+```bash
+python3 ~/.claude/templates/validation/orchestrator.py 2
+```
+
+**Present Tier 2 results to user:**
+
+```
+## Automated Validation Results
+
+### Tier 1 (Blockers): PASSED
+All critical checks passed.
+
+### Tier 2 (Warnings): [N] items
+[List any warnings with suggestions]
+
+Note: These are suggestions, not blockers. You can proceed with UAT.
+```
+
+User can acknowledge warnings and proceed to manual testing.
+
+### Environment Control
+
+```bash
+if [ "${VALIDATION_ENABLED:-true}" = "false" ]; then
+  echo "⚠️ Validation disabled - proceeding directly to UAT"
+fi
+```
+
+### Quick Mode
+
+If user runs with `--quick` flag, skip Tier 2:
+```bash
+# Only run Tier 1 for quick verification
+python3 ~/.claude/templates/validation/orchestrator.py 1
+```
+
+Proceed to UAT after Tier 1 passes.
+</step>
+
 <step name="check_active_session">
 **First: Check for active UAT sessions**
 

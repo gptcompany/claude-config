@@ -142,6 +142,22 @@ Metrics emitted to:
 
 ---
 
+## Environment Variables
+
+| Variable | Default | Purpose |
+|----------|---------|---------|
+| `VALIDATION_ENABLED` | `true` | Master switch - set to `false` to disable all validation |
+| `VALIDATION_AGENT_SPAWN` | `true` | Enable automatic agent spawning for fixes |
+| `VALIDATION_SWARM` | `true` | Enable parallel execution for Tier 3 |
+
+**Disable validation example:**
+
+```bash
+VALIDATION_ENABLED=false /gsd:execute-plan
+```
+
+---
+
 ## Exit Codes
 
 | Code | Meaning |

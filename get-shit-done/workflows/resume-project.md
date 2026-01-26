@@ -57,8 +57,50 @@ cat .planning/PROJECT.md
 
 </step>
 
+<step name="check_session_state">
+**Check claude-flow for session state (primary source):**
+
+```
+mcp__claude-flow__memory_retrieve
+  key: "gsd:{project}:*"
+```
+
+This returns any incomplete phase/plan executions stored in claude-flow memory.
+
+**If found incomplete state:**
+
+Parse the memory entries to find:
+- Phases in "in_progress" status
+- Plans that were started but not completed
+- Wave progress within phases
+
+```
+Found session state:
+- Phase 16: in_progress (2/4 waves complete)
+- Last activity: 2026-01-26T12:30:00Z
+```
+
+**Offer session restore:**
+
+```
+mcp__claude-flow__session_restore
+  name: "gsd-{project}-phase-{phase}-start"
+```
+
+This restores the full session context including:
+- Memory state
+- Task list
+- Agent IDs
+
+**Advantage over file-based:**
+
+- Works across `/clear` commands
+- Survives terminal crashes
+- No file parsing needed
+</step>
+
 <step name="check_incomplete_work">
-Look for incomplete work that needs attention:
+**Check file-based incomplete work (fallback):**
 
 ```bash
 # Check for continue-here files (mid-plan resumption)
@@ -93,7 +135,9 @@ fi
 - Subagent was spawned but session ended before completion
 - Read agent-history.json for task details
 - Flag: "Found interrupted agent"
-  </step>
+
+**Note:** claude-flow session state (previous step) takes priority over file-based state when both exist.
+</step>
 
 <step name="present_status">
 Present complete project status to user:

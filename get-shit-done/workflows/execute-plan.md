@@ -1493,6 +1493,79 @@ ROADMAP_FILE=".planning/ROADMAP.md"
 - Add completion date
 </step>
 
+<step name="post_implementation_validation">
+**Run Tier 1 (blockers) validation after implementation completes:**
+
+Before creating SUMMARY and committing, run validation to ensure code quality:
+
+```bash
+python3 ~/.claude/templates/validation/orchestrator.py 1
+```
+
+**Exit code handling:**
+- `0`: All Tier 1 passed → proceed to create SUMMARY and commit
+- `1`: Tier 1 failure → DO NOT proceed, show failures
+- `2`: Orchestrator error → warn and proceed (fail-open)
+
+**If Tier 1 fails (exit code 1):**
+
+```
+════════════════════════════════════════
+VALIDATION BLOCKED: Tier 1 Failures
+════════════════════════════════════════
+
+The following blockers must be resolved before completion:
+
+[List each failing validator with message from output]
+
+Options:
+1. Fix the issues and re-run `/gsd:execute-plan`
+2. Run `/gsd:plan-fix` to create a fix plan
+3. Override with `VALIDATION_ENABLED=false` (not recommended)
+
+Plan execution paused.
+════════════════════════════════════════
+```
+
+Do NOT update SUMMARY.md as complete. Do NOT commit.
+
+**If Tier 1 passes (exit code 0):**
+
+Log validation success in SUMMARY.md under "## Verification":
+```markdown
+## Verification
+
+- [x] Tier 1 validation passed (code_quality, type_safety, security)
+- [x] All task verifications complete
+```
+
+Proceed to create_summary step.
+
+**If orchestrator error (exit code 2):**
+
+Log warning but continue:
+```
+⚠️ Validation orchestrator error (fail-open mode)
+Proceeding without validation - consider running /validate manually
+```
+
+Proceed to create_summary step.
+
+**Environment control:**
+
+Check `VALIDATION_ENABLED` environment variable:
+```bash
+if [ "${VALIDATION_ENABLED:-true}" = "false" ]; then
+  echo "⚠️ Validation disabled by VALIDATION_ENABLED=false"
+  # Skip validation, proceed directly
+fi
+```
+
+**Debounce:**
+
+If validation was already run in this session (check for validation markers in recent output), skip duplicate runs.
+</step>
+
 <step name="git_commit_metadata">
 Commit execution metadata (SUMMARY + STATE + ROADMAP):
 

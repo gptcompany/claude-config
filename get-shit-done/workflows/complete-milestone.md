@@ -44,6 +44,90 @@ Uses `templates/milestone-archive.md` template with:
 
 <process>
 
+<step name="milestone_quality_gate">
+**Run full validation before archiving milestone:**
+
+Before completing the milestone, run comprehensive validation across all tiers.
+
+```bash
+python3 ~/.claude/templates/validation/orchestrator.py all
+```
+
+### Quality Gate Requirements
+
+| Tier | Requirement | Blocking |
+|------|-------------|----------|
+| 1 | 100% pass | YES |
+| 2 | Documented exceptions | NO |
+| 3 | Metrics recorded | NO |
+
+### If Tier 1 < 100%
+
+**BLOCK milestone completion:**
+
+```
+════════════════════════════════════════
+MILESTONE BLOCKED: Quality Gate Failed
+════════════════════════════════════════
+
+Tier 1 validation failures:
+[List failing validators with details]
+
+Failure count: [N] blockers
+
+Cannot complete milestone with unresolved blockers.
+
+Options:
+1. Fix the issues and re-run `/gsd:complete-milestone`
+2. Override with documented reason (see below)
+════════════════════════════════════════
+```
+
+**Override syntax (use sparingly):**
+
+```bash
+/gsd:complete-milestone --force --reason="[documented reason for override]"
+```
+
+Overrides are logged in the milestone archive for audit purposes:
+```markdown
+## Quality Gate Override
+
+**Date:** [ISO timestamp]
+**Reason:** [user-provided reason]
+**Bypassed blockers:**
+- [List of bypassed validators]
+
+⚠️ This milestone was completed with validation overrides.
+```
+
+### If Tier 1 = 100%
+
+Proceed with milestone archiving.
+
+Record validation results in milestone archive:
+```markdown
+## Validation Results
+
+### Tier 1 (Blockers): PASSED
+All [N] critical validators passed.
+
+### Tier 2 (Warnings): [N] items
+[List any warnings - documented exceptions]
+
+### Tier 3 (Metrics):
+[Summary of monitoring metrics]
+```
+
+### Environment Control
+
+```bash
+if [ "${VALIDATION_ENABLED:-true}" = "false" ]; then
+  echo "⚠️ Validation disabled - proceeding without quality gate"
+fi
+```
+</step>
+
 <step name="verify_readiness">
 
 Check if milestone is truly complete:
