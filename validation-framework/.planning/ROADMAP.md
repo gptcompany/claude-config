@@ -14,54 +14,64 @@ Build a reusable validation pipeline framework starting with core templates, the
 - ✅ [**v2.0 Hybrid UAT**](milestones/v2.0-ROADMAP.md) (Phase 6) — SHIPPED 2026-01-20
 - ✅ [**v3.0 14-Dimension Orchestrator**](milestones/v3.0-ROADMAP.md) (Phases 7-12) — SHIPPED 2026-01-24
 - ✅ [**v4.0 ECC Integration & Hooks Modernization**](milestones/v4.0-ROADMAP.md) (Phases 13-15) — SHIPPED 2026-01-25
-- ✅ **v5.0 GSD + Validation + Claude-Flow Integration** (Phase 16) — SHIPPED 2026-01-26
+- ✅ [**v5.0 GSD + Validation + Claude-Flow Integration**](milestones/v5.0-ROADMAP.md) (Phase 16) — SHIPPED 2026-01-26
+- 🚧 **v6.0 Full-Stack Validation Platform** (Phases 17-20) — IN PROGRESS
 
 ---
 
-## v5.0: GSD + Validation + Claude-Flow Integration
+## v6.0: Full-Stack Validation Platform
 
-**Goal:** Connect existing ValidationOrchestrator, claude-flow, and swarm infrastructure to GSD workflows.
+**Goal:** Transform the framework from MVP to production-grade platform with full observability, deep validators, hardened runtime, and multi-project support.
 
-**Key insight:** The code exists but isn't wired together. This milestone is about INTEGRATION, not new implementation.
-
-### Phase 16: GSD-Validation Integration
+### Phase 17: Observability & Dashboards
 
 | Plan | Description | Tests | Status |
 |------|-------------|-------|--------|
-| 16-01 | GSD Workflow Integration (execute-plan, verify-work, complete-milestone) | 27 | ✅ Done |
-| 16-02 | Agent Spawn & Swarm Activation | 20 | ✅ Done |
-| 16-03 | Session Checkpoint Integration | 22 | ✅ Done |
-| 16-04 | E2E Integration Tests & Documentation | 23 | ✅ Done |
+| 17-01 | Grafana Dashboard Pack (4 dashboards) | 10 | ⏳ Pending |
+| 17-02 | QuestDB query library + views | 8 | ⏳ Pending |
+| 17-03 | Alert rules (Discord/Slack webhooks) | 6 | ⏳ Pending |
+| 17-04 | Trend analysis + reporting CLI | 8 | ⏳ Pending |
 
-**Total:** 4 plans, 92 tests delivered
+### Phase 18: Validator Depth
 
-### Integration Points
+| Plan | Description | Tests | Status |
+|------|-------------|-------|--------|
+| 18-01 | Visual validator (ODiff + SSIM) | 15 | ⏳ Pending |
+| 18-02 | Behavioral validator (DOM diff) | 12 | ⏳ Pending |
+| 18-03 | Performance validator (Lighthouse) | 10 | ⏳ Pending |
+| 18-04 | Mathematical validator (CAS) | 12 | ⏳ Pending |
+
+### Phase 19: Production Hardening
+
+| Plan | Description | Tests | Status |
+|------|-------------|-------|--------|
+| 19-01 | Live spawn_agent() + E2E tests | 10 | ⏳ Pending |
+| 19-02 | Incremental validation (caching) | 12 | ⏳ Pending |
+| 19-03 | Timeout/retry + circuit breaker | 8 | ⏳ Pending |
+| 19-04 | Error recovery + graceful degradation | 10 | ⏳ Pending |
+
+### Phase 20: Multi-Project Support
+
+| Plan | Description | Tests | Status |
+|------|-------------|-------|--------|
+| 20-01 | Global config inheritance | 8 | ⏳ Pending |
+| 20-02 | Monorepo per-package configs | 10 | ⏳ Pending |
+| 20-03 | Shared validator plugins | 12 | ⏳ Pending |
+| 20-04 | Cross-project metrics aggregation | 8 | ⏳ Pending |
+
+**Total:** 4 phases, 16 plans, ~149 tests planned
+
+### Execution Priority
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                    v5.0 INTEGRATION                              │
-├─────────────────────────────────────────────────────────────────┤
-│  /gsd:execute-plan ────→ orchestrator.py Tier 1 (blocks)        │
-│  /gsd:verify-work  ────→ orchestrator.py Tier 1+2 (pre-UAT)     │
-│  /gsd:complete-milestone → orchestrator.py ALL (quality gate)   │
-│                                                                  │
-│  Tier 2 failures   ────→ spawn_agent() (actual, not log)        │
-│  Tier 3 validators ────→ hive-manager.js (parallel swarm)       │
-│                                                                  │
-│  Phase start/end   ────→ session_save() (crash recovery)        │
-│  Resume            ────→ session_restore() (checkpoint load)    │
-└─────────────────────────────────────────────────────────────────┘
+Phase 17 (Observability) → Quick wins, immediate visibility
+     ↓
+Phase 19 (Hardening) → Stability before expanding
+     ↓
+Phase 18 (Validators) → Functional depth
+     ↓
+Phase 20 (Multi-Project) → Scalability
 ```
-
-### Success Criteria
-
-- [ ] /gsd:execute-plan runs Tier 1 and blocks on failure
-- [ ] /gsd:verify-work shows Tier 1+2 before UAT
-- [ ] /gsd:complete-milestone enforces quality gate
-- [ ] Agent spawn actually executes on Tier 2 failures
-- [ ] Tier 3 runs in parallel via swarm
-- [ ] Session checkpoints enable crash recovery
-- [ ] 80+ tests with 95%+ pass rate
 
 ---
 
@@ -137,10 +147,14 @@ See [v4.0 Archive](milestones/v4.0-ROADMAP.md) for full details.
 | 15. Skills Port | v4.0 | 5/5 | ✅ Complete | 2026-01-25 |
 
 | 16. GSD-Validation Integration | v5.0 | 4/4 | ✅ Complete | 2026-01-26 |
+| 17. Observability & Dashboards | v6.0 | 0/4 | ⏳ Pending | - |
+| 18. Validator Depth | v6.0 | 0/4 | ⏳ Pending | - |
+| 19. Production Hardening | v6.0 | 0/4 | ⏳ Pending | - |
+| 20. Multi-Project Support | v6.0 | 0/4 | ⏳ Pending | - |
 
-**Total:** 54 plans shipped (v1.0-v5.0)
+**Total:** 54 plans shipped (v1.0-v5.0), 16 plans planned (v6.0)
 
 **Test Coverage:**
-- v1.0-v4.0: 479 tests
-- v5.0: 42 new tests (71 orchestrator-specific)
-- **Total:** 521 tests
+- v1.0-v5.0: 521 tests
+- v6.0 planned: ~149 tests
+- **Target:** 670+ tests
