@@ -15,69 +15,21 @@ Build a reusable validation pipeline framework starting with core templates, the
 - ✅ [**v3.0 14-Dimension Orchestrator**](milestones/v3.0-ROADMAP.md) (Phases 7-12) — SHIPPED 2026-01-24
 - ✅ [**v4.0 ECC Integration & Hooks Modernization**](milestones/v4.0-ROADMAP.md) (Phases 13-15) — SHIPPED 2026-01-25
 - ✅ [**v5.0 GSD + Validation + Claude-Flow Integration**](milestones/v5.0-ROADMAP.md) (Phase 16) — SHIPPED 2026-01-26
-- 🚧 **v6.0 Full-Stack Validation Platform** (Phases 17-20) — IN PROGRESS
+- ✅ [**v6.0 Full-Stack Validation Platform**](milestones/v6.0-ROADMAP.md) (Phases 17-20) — SHIPPED 2026-01-26
 
 ---
 
-## v6.0: Full-Stack Validation Platform
+<details>
+<summary>✅ v6.0 Full-Stack Validation Platform (Phases 17-20) — SHIPPED 2026-01-26</summary>
 
-**Goal:** Transform the framework from MVP to production-grade platform with full observability, deep validators, hardened runtime, and multi-project support.
+- [x] Phase 17: Observability & Dashboards (4/4 plans) — Discord alerts, Grafana dashboards, CLI
+- [x] Phase 18: Validator Depth (1/1 plans) — Visual + Behavioral integration
+- [x] Phase 19: Production Hardening (3/3 plans) — E2E tests, caching, resilience
+- [x] Phase 20: Multi-Project Support (4/4 plans) — Config inheritance, monorepo, plugins
 
-### Phase 17: Observability & Dashboards (COMPLETE)
+**Total:** 12 plans, 203 tests
 
-| Plan | Description | Tests | Status |
-|------|-------------|-------|--------|
-| 17-01 | Discord alerts via Grafana | 3 YAMLs | ✅ Complete |
-| 17-02 | QuestDB query library + views | 26 | ✅ Complete |
-| 17-03 | Grafana Dashboard Pack (3 dashboards) | JSON | ✅ Complete |
-| 17-04 | CLI reporting tool | 29 | ✅ Complete |
-
-**Deliverables:**
-- Alert rules: `~/.claude/grafana/alerting/` (contact points, rules, policies)
-- Dashboards: `/var/lib/grafana/dashboards/validation/` (overview, drilldown, comparison)
-- Query lib: `~/.claude/scripts/lib/validation-queries.js` (5 functions, 26 tests)
-- CLI: `~/.claude/scripts/bin/validation-report` (5 commands, 29 tests)
-
-### Phase 18: Validator Depth
-
-| Plan | Description | Tests | Status |
-|------|-------------|-------|--------|
-| 18-01 | Visual validator (ODiff + SSIM) | 15 | ⏳ Pending |
-| 18-02 | Behavioral validator (DOM diff) | 12 | ⏳ Pending |
-| 18-03 | Performance validator (Lighthouse) | 10 | ⏳ Pending |
-| 18-04 | Mathematical validator (CAS) | 12 | ⏳ Pending |
-
-### Phase 19: Production Hardening
-
-| Plan | Description | Tests | Status |
-|------|-------------|-------|--------|
-| 19-01 | Live spawn_agent() + E2E tests | 10 | ⏳ Pending |
-| 19-02 | Incremental validation (caching) | 12 | ⏳ Pending |
-| 19-03 | Timeout/retry + circuit breaker | 8 | ⏳ Pending |
-| 19-04 | Error recovery + graceful degradation | 10 | ⏳ Pending |
-
-### Phase 20: Multi-Project Support
-
-| Plan | Description | Tests | Status |
-|------|-------------|-------|--------|
-| 20-01 | Global config inheritance | 8 | ⏳ Pending |
-| 20-02 | Monorepo per-package configs | 10 | ⏳ Pending |
-| 20-03 | Shared validator plugins | 12 | ⏳ Pending |
-| 20-04 | Cross-project metrics aggregation | 8 | ⏳ Pending |
-
-**Total:** 4 phases, 16 plans, ~149 tests planned
-
-### Execution Priority
-
-```
-Phase 17 (Observability) → Quick wins, immediate visibility
-     ↓
-Phase 19 (Hardening) → Stability before expanding
-     ↓
-Phase 18 (Validators) → Functional depth
-     ↓
-Phase 20 (Multi-Project) → Scalability
-```
+</details>
 
 ---
 
@@ -154,14 +106,13 @@ See [v4.0 Archive](milestones/v4.0-ROADMAP.md) for full details.
 
 | 16. GSD-Validation Integration | v5.0 | 4/4 | ✅ Complete | 2026-01-26 |
 | 17. Observability & Dashboards | v6.0 | 4/4 | ✅ Complete | 2026-01-26 |
-| 18. Validator Depth | v6.0 | 0/4 | ⏳ Pending | - |
-| 19. Production Hardening | v6.0 | 0/4 | ⏳ Pending | - |
-| 20. Multi-Project Support | v6.0 | 0/4 | ⏳ Pending | - |
+| 18. Validator Depth | v6.0 | 1/1 | ✅ Complete | 2026-01-26 |
+| 19. Production Hardening | v6.0 | 3/3 | ✅ Complete | 2026-01-26 |
+| 20. Multi-Project Support | v6.0 | 4/4 | ✅ Complete | 2026-01-26 |
 
-**Total:** 58 plans shipped (v1.0-v5.0 + Phase 17), 12 plans planned (v6.0 remaining)
+**Total:** 66 plans shipped (v1.0-v6.0)
 
 **Test Coverage:**
 - v1.0-v5.0: 521 tests
-- Phase 17: 55 tests (26 query + 29 CLI)
-- v6.0 remaining: ~94 tests
-- **Target:** 670+ tests
+- v6.0: 203 tests (56 config + 20 monorepo + 19 plugins + 32 queries + 61 orchestrator + 15 E2E)
+- **Total:** 724+ tests

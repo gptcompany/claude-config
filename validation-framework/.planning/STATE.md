@@ -5,97 +5,72 @@
 See: .planning/PROJECT.md (updated 2026-01-26)
 
 **Core value:** Every project gets production-grade validation with zero friction
-**Current focus:** v6.0 Full-Stack Validation Platform
+**Current focus:** v6.0 SHIPPED - All milestones complete
 
 ## Current Position
 
-Phase: 18 (Validator Depth)
-Plan: 18-01 COMPLETED
-Status: Phase 18 complete - Visual and Behavioral validators integrated
-Last activity: 2026-01-26 — Phase 18 executed via /gsd:execute-phase-sync
+Phase: All complete (20/20)
+Plan: All complete (66/66)
+Status: Framework complete - ready for production use
+Last activity: 2026-01-26 — v6.0 milestone archived
 
-Progress: ██████████ 100% v1.0-v5.0 | ██████████ 100% Phase 17-18
+Progress: ██████████ 100% (v1.0-v6.0 all shipped)
 
-## v5.0 Milestone (COMPLETED 2026-01-26)
+## Shipped Milestones
 
-**Goal:** Connect existing ValidationOrchestrator, claude-flow, and swarm to GSD workflows.
-**Status:** SHIPPED - All 4 plans completed
+| Version | Phases | Plans | Shipped |
+|---------|--------|-------|---------|
+| v1.0 | 1-5 | 7 | 2026-01-19 |
+| v2.0 | 6 | 4 | 2026-01-20 |
+| v3.0 | 7-12 | 14 | 2026-01-24 |
+| v4.0 | 13-15 | 25 | 2026-01-25 |
+| v5.0 | 16 | 4 | 2026-01-26 |
+| v6.0 | 17-20 | 12 | 2026-01-26 |
+| **Total** | **20** | **66** | |
 
-## v6.0 Milestone Overview (IN PROGRESS)
+## v6.0 Deliverables Summary
 
-**Goal:** Full-Stack Validation Platform with observability, deep validators, and production hardening.
+### Phase 17: Observability & Dashboards
+- Discord alerts: `~/.claude/grafana/alerting/`
+- Grafana dashboards: validation-overview, validator-drilldown, project-comparison
+- CLI: `validation-report` (alias: `vr`) with 5 commands
+- Query lib: `~/.claude/scripts/lib/validation-queries.js`
 
-### Phase 17: Observability & Dashboards (COMPLETE)
-
-| Plan | Description | Tests | Status |
-|------|-------------|-------|--------|
-| 17-01 | Discord alerts via Grafana | 3 YAMLs | ✅ Complete |
-| 17-02 | QuestDB query library + views | 8 tests | ✅ Complete |
-| 17-03 | Grafana Dashboard Pack | 3 dashboards | ✅ Complete |
-| 17-04 | CLI reporting tool | 29 tests | ✅ Complete |
-
-### Phase 17 Deliverables
-
-**17-01: Alert Rules**
-- `~/.claude/grafana/alerting/contact-points.yaml` - Discord webhook
-- `~/.claude/grafana/alerting/alert-rules.yaml` - Tier 1/2/3 alerts
-- `~/.claude/grafana/alerting/notification-policies.yaml` - Routing
-
-**17-02: Query Library**
-- `~/.claude/scripts/lib/validation-queries.js` - 5 query functions
-- QuestDB materialized views for aggregations (hourly/daily)
-- 8 tests passing
-
-**17-03: Grafana Dashboards**
-- `validation-overview` - Main dashboard with key metrics
-- `validator-drilldown` - Per-validator deep dive
-- `project-comparison` - Cross-project quality scores
-- Location: `/var/lib/grafana/dashboards/validation/`
-
-**17-04: CLI Reporting Tool**
-- `~/.claude/scripts/bin/validation-report` - 5 commands
-- `~/.claude/scripts/lib/validation-report.js` - Formatting library
-- 29 tests passing
-- Alias: `vr` (validation-report)
-
-### Access URLs
-- Overview: http://localhost:3000/d/validation-overview/validation-overview
-- Drilldown: http://localhost:3000/d/validator-drilldown/validator-drilldown
-- Comparison: http://localhost:3000/d/project-comparison/project-comparison
-
-### CLI Usage
-```bash
-vr summary              # Quick status check
-vr failures --days 14   # Find problem areas
-vr trend lint --days 7  # Track dimension over time
-vr recent --limit 5     # Debug recent issues
-vr projects             # Compare project health
-```
-
-## Phase 18: Validator Depth (COMPLETE)
-
-| Plan | Description | Tests | Status |
-|------|-------------|-------|--------|
-| 18-01 | Visual + Behavioral integration | 6 new + 148 existing | COMPLETE |
-
-**Deliverables:**
+### Phase 18: Validator Depth
 - VisualTargetValidator wired to VALIDATOR_REGISTRY
 - BehavioralValidator wired to VALIDATOR_REGISTRY
-- Both at Tier 3 (Monitor) by default
-- Graceful fallback to BaseValidator if imports fail
-- 6 new integration tests in TestVisualBehavioralIntegration
+- Both at Tier 3 (Monitor) with graceful fallback
 
-**Files Modified:**
-- `~/.claude/templates/validation/orchestrator.py`
-- `~/.claude/templates/validation/orchestrator.py.j2`
-- `~/.claude/templates/validation/tests/test_orchestrator.py`
+### Phase 19: Production Hardening
+- E2E test suite: `tests/e2e/` (15 tests)
+- Resilience patterns with tenacity
+- pytest.ini with asyncio config
+
+### Phase 20: Multi-Project Support
+- Config inheritance (RFC 7396): `config_loader.py`
+- Monorepo discovery: `monorepo.py`
+- Plugin system: `plugins.py`
+- Cross-project metrics: `getProjectComparison`, `getCrossProjectHealth`
+
+## Test Summary
+
+| Component | Tests |
+|-----------|-------|
+| v1.0-v5.0 | 521 |
+| Config Loader | 56 |
+| Monorepo | 20 |
+| Plugins | 19 |
+| Queries (JS) | 32 |
+| Orchestrator | 61 |
+| E2E | 15 |
+| **Total** | **724+** |
 
 ## Session Continuity
 
 Last session: 2026-01-26
-Stopped at: Phase 18 COMPLETED (UAT 8/8 passed)
+Status: v6.0 milestone complete and archived
 Resume file: None
-Next: Phase 19 (Production Hardening) or Phase 20 (Multi-Project Support)
+Next: Framework complete - use in projects or plan v7.0
 
 ## Pending Todos
 

