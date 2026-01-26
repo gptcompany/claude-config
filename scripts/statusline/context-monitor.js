@@ -384,9 +384,8 @@ function buildStatusLine(modelName, workspace, contextInfo, costData) {
   // Context usage with visual bar
   const ctxLabel = SYMBOLS.context ? `${SYMBOLS.context} ` : "Ctx ";
   if (contextInfo) {
-    parts.push(
-      `${ctxLabel}${contextUsage(contextInfo.percent, contextInfo.tokens)}`,
-    );
+    // Note: tokens shown in sessionMetrics, not here (avoid duplicate)
+    parts.push(`${ctxLabel}${contextUsage(contextInfo.percent)}`);
   } else {
     parts.push(`${ctxLabel}${COLORS.blue}???${COLORS.reset}`);
   }

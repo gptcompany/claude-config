@@ -1,5 +1,6 @@
 {
   "env": {
+    "STATUSLINE_SYMBOLS": "emoji",
     "ENABLE_TOOL_SEARCH": "auto:5",
     "USE_BUILTIN_RIPGREP": "1",
     "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1",
@@ -165,6 +166,11 @@
             "type": "command",
             "command": "node \"$HOME/.claude/scripts/hooks/productivity/auto-format.js\"",
             "timeout": 10
+          },
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/quality/validation-orchestrator.js\"",
+            "timeout": 15
           }
         ]
       },
