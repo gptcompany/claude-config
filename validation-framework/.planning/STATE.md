@@ -5,122 +5,79 @@
 See: .planning/PROJECT.md (updated 2026-01-26)
 
 **Core value:** Every project gets production-grade validation with zero friction
-**Current focus:** Planning next milestone (v5.0)
+**Current focus:** v6.0 Full-Stack Validation Platform
 
 ## Current Position
 
-Phase: v4.0 complete, awaiting v5.0 planning
-Plan: Not started
-Status: Between milestones
-Last activity: 2026-01-26 — v4.0 milestone archived
+Phase: 17 (Observability & Dashboards)
+Plan: ALL 4 PLANS COMPLETED
+Status: Phase 17 complete - alerts, queries, dashboards, CLI deployed
+Last activity: 2026-01-26 — Phase 17 executed via /gsd:execute-phase-sync
 
-Progress: ██████████ 100% v1.0-v4.0 (50 plans shipped)
+Progress: ██████████ 100% v1.0-v5.0 | ██████████ 100% Phase 17
 
-## Phase 14.6 Summary
+## v5.0 Milestone (COMPLETED 2026-01-26)
 
-**Shipped:** Comprehensive integration tests and documentation for hooks system
+**Goal:** Connect existing ValidationOrchestrator, claude-flow, and swarm to GSD workflows.
+**Status:** SHIPPED - All 4 plans completed
 
-| Category | Tests | Pass Rate |
-|----------|-------|-----------|
-| E2E Integration | 106 | 97.2% |
-| Regression | 72 | 100% |
-| Performance | 46 | 100% |
-| **Total** | **224** | **99.6%** |
+## v6.0 Milestone Overview (IN PROGRESS)
 
-**Documentation Created:**
-- HOOKS-CATALOG.md (979 lines, 40+ hooks documented)
-- HOOKS-TROUBLESHOOTING.md (538 lines)
-- HOOKS-PERFORMANCE.md (470 lines)
-- generate-docs.js + final-validation.js scripts
+**Goal:** Full-Stack Validation Platform with observability, deep validators, and production hardening.
 
-**UAT Result:** 9/10 tests passed (1 minor: confidence score calibration)
+### Phase 17: Observability & Dashboards (COMPLETE)
 
-## Completed Milestone: v4.0 ECC Integration & Hooks Modernization
+| Plan | Description | Tests | Status |
+|------|-------------|-------|--------|
+| 17-01 | Discord alerts via Grafana | 3 YAMLs | ✅ Complete |
+| 17-02 | QuestDB query library + views | 8 tests | ✅ Complete |
+| 17-03 | Grafana Dashboard Pack | 3 dashboards | ✅ Complete |
+| 17-04 | CLI reporting tool | 29 tests | ✅ Complete |
 
-**Status:** SHIPPED 2026-01-25 | **Archive:** [milestones/v4.0-ROADMAP.md](milestones/v4.0-ROADMAP.md)
+### Phase 17 Deliverables
 
-| Phase | Goal | Plans | Status |
-|-------|------|-------|--------|
-| 13 | ECC Full Integration | 3 | ✅ Complete |
-| 14 | Hooks Node.js Port (ECC) | 5 | ✅ Complete |
-| 14.5 | claude-hooks-shared Port | 8 | ✅ Complete |
-| 14.6 | Hooks Integration & Validation | 4 | ✅ Complete |
-| 15 | Skills Port | 5 | ✅ Complete |
+**17-01: Alert Rules**
+- `~/.claude/grafana/alerting/contact-points.yaml` - Discord webhook
+- `~/.claude/grafana/alerting/alert-rules.yaml` - Tier 1/2/3 alerts
+- `~/.claude/grafana/alerting/notification-policies.yaml` - Routing
 
-**Total:** 5 phases, 25 plans, 645+ tests
+**17-02: Query Library**
+- `~/.claude/scripts/lib/validation-queries.js` - 5 query functions
+- QuestDB materialized views for aggregations (hourly/daily)
+- 8 tests passing
 
-## Key Decisions (v4.0)
+**17-03: Grafana Dashboards**
+- `validation-overview` - Main dashboard with key metrics
+- `validator-drilldown` - Per-validator deep dive
+- `project-comparison` - Cross-project quality scores
+- Location: `/var/lib/grafana/dashboards/validation/`
 
-1. Node.js for all hooks (cross-platform, no Python dependency)
-2. QuestDB dual-write: local JSON (offline-first) + async export
-3. 95% confidence via comprehensive test suite
-4. Debug system with full observability (tracer, health, CLI)
-5. hooks.json declarative config with schema validation
+**17-04: CLI Reporting Tool**
+- `~/.claude/scripts/bin/validation-report` - 5 commands
+- `~/.claude/scripts/lib/validation-report.js` - Formatting library
+- 29 tests passing
+- Alias: `vr` (validation-report)
+
+### Access URLs
+- Overview: http://localhost:3000/d/validation-overview/validation-overview
+- Drilldown: http://localhost:3000/d/validator-drilldown/validator-drilldown
+- Comparison: http://localhost:3000/d/project-comparison/project-comparison
+
+### CLI Usage
+```bash
+vr summary              # Quick status check
+vr failures --days 14   # Find problem areas
+vr trend lint --days 7  # Track dimension over time
+vr recent --limit 5     # Debug recent issues
+vr projects             # Compare project health
+```
 
 ## Session Continuity
 
 Last session: 2026-01-26
-Stopped at: v4.0 milestone archived
+Stopped at: Phase 17 COMPLETED
 Resume file: None
-Next: /gsd:discuss-milestone or /gsd:new-milestone to plan v5.0
-
-## Phase 15 Plan Summary
-
-| Plan | Description | Wave | Status |
-|------|-------------|------|--------|
-| 15-01 | tdd-guard + Status Line Port | 1 | ✅ Complete |
-| 15-02 | Verification-Loop Skill (6-phase) | 2 | ✅ Complete |
-| 15-03 | Coding-Standards Skill (patterns) | 2 | ✅ Complete |
-| 15-04 | Eval-Harness Skill (pass@k) | 3 | ✅ Complete |
-| 15-05 | GSD Integration (triggers) | 3 | ✅ Complete |
-
-**Execution order:** ✅ 15-01 → ✅ (15-02, 15-03 parallel) → ✅ (15-04, 15-05 parallel)
-
-## 15-01 Summary (Complete)
-
-- **tdd-guard:** v1.1.0 installed, AI-powered TDD validation
-- **Status line:** Node.js port with hybrid approach
-  - UI from ccstatusline (powerline, colors)
-  - Persistence from context-monitor.py (JSONL + QuestDB)
-- **Files:** ui-components.js (300 LOC), context-monitor.js (400 LOC)
-- **Tests:** 33 tests, 100% pass rate
-
-## 15-02 Summary (Complete)
-
-- **Verification Loop:** 6-phase sequential pipeline (build > typecheck > lint > test > security > diff)
-- **Multi-language:** npm, python, go, rust, java, ruby project detection
-- **Fail-fast:** Critical phases (build/typecheck/test) stop on failure
-- **Commands:** /verify:loop (full), /verify:quick (skip security)
-- **Files:** phases.js (370 LOC), verification-runner.js (473 LOC)
-- **Tests:** 29 tests, 100% pass rate
-
-## 15-03 Summary (Complete)
-
-- **Coding Standards:** Pattern-based anti-pattern detection with configurable enforcement
-- **Patterns:** 13 total (7 JS/TS, 6 Python) covering secrets, console.log, bare except, etc.
-- **Modes:** warn (default), block (strict), off
-- **Commands:** /standards:check, /standards:config
-- **Files:** patterns.js (287 LOC), coding-standards.js (252 LOC), check-file.js (190 LOC)
-- **Tests:** 34 tests, 100% pass rate
-
-## 15-04 Summary (Complete)
-
-- **Eval Harness:** Pass@k metrics tracking for test runs
-- **Auto-detection:** npm, pytest, go, rust, ruby, java test commands
-- **Parsing:** Jest, pytest, Go, Rust, RSpec, Maven output formats
-- **Storage:** Local JSON + async QuestDB export
-- **Commands:** /eval:run, /eval:report
-- **Files:** eval-storage.js (267 LOC), eval-harness.js (421 LOC)
-- **Tests:** 28 tests, 100% pass rate
-
-## 15-05 Summary (Complete)
-
-- **GSD Triggers:** PostToolUse hook for GSD workflow events
-- **Triggers:** plan-created, test-written, impl-written, plan-complete
-- **TDD State:** Phase manager (IDLE/RED/GREEN/REFACTOR) with JSON persistence
-- **Integration:** execute-plan.md and verify-work.md updated
-- **Files:** gsd-triggers.js (280 LOC), tdd-state.js (180 LOC)
-- **Tests:** 24 tests, 100% pass rate
+Next: Phase 18 (Validator Depth) or milestone completion
 
 ## Pending Todos
 
