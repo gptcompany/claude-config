@@ -26,10 +26,20 @@ const LAST_RUN_FILE = "/tmp/validation-orchestrator-lastrun";
 
 /**
  * Check if validation config exists in project
+ * Returns true if config exists OR if we should use global defaults
  */
 function hasValidationConfig(projectRoot) {
   const configPath = path.join(projectRoot, ".claude/validation/config.json");
-  return fs.existsSync(configPath);
+  if (fs.existsSync(configPath)) {
+    return true;
+  }
+
+  // Check for global config (enables validation for ALL projects)
+  const globalConfig = path.join(
+    process.env.HOME,
+    ".claude/validation/global-config.json",
+  );
+  return fs.existsSync(globalConfig);
 }
 
 /**

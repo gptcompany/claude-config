@@ -1,0 +1,17 @@
+{
+  "enabled": true,
+  "description": "Global validation config - applies to ALL projects without their own config",
+  "default_domain": "general",
+  "dimensions": {
+    "code_quality": { "tier": 1, "enabled": true },
+    "type_safety": { "tier": 1, "enabled": true },
+    "security": { "tier": 1, "enabled": true },
+    "coverage": { "tier": 1, "enabled": false, "note": "Disabled globally - enable per-project" }
+  },
+  "tier_1_only_global": true,
+  "notes": [
+    "This config enables validation for projects without .claude/validation/config.json",
+    "Only Tier 1 (blockers) run globally for performance",
+    "Create per-project config for full 14-dimension validation"
+  ]
+}

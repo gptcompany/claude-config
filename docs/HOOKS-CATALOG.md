@@ -381,6 +381,44 @@ Complete reference for all 40+ hooks in the Claude Code hooks system.
 
 ---
 
+### validation-orchestrator.js
+
+**Event:** PostToolUse
+**Path:** `~/.claude/scripts/hooks/quality/validation-orchestrator.js`
+**Purpose:** Run 14-dimension ValidationOrchestrator on code changes (Tier 1 only, async)
+
+**Input JSON:**
+```json
+{
+  "tool_name": "Write",
+  "tool_input": {
+    "file_path": "/project/src/feature.py"
+  }
+}
+```
+
+**Output JSON:**
+```json
+{
+  "triggered": true,
+  "tier": 1,
+  "async": true
+}
+```
+
+**Configuration:**
+- Triggers on: Write, Edit, MultiEdit
+- Runs: Tier 1 (blockers) only for speed
+- Debounce: 5 seconds between runs
+- Requires: `.claude/validation/config.json` OR `~/.claude/validation/global-config.json`
+- Logs: `~/.claude/logs/validation-hook.log`
+
+**Related:**
+- `/validate` skill for manual invocation
+- See [VALIDATION.md](VALIDATION.md) for full documentation
+
+---
+
 ### auto-simplify.js
 
 **Event:** PostToolUse
