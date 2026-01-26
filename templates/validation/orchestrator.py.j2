@@ -393,6 +393,24 @@ try:
 except ImportError:
     APIContractValidatorImpl = None
 
+# Visual Validator (Phase 18 integration)
+try:
+    from validators.visual import VisualTargetValidator
+
+    VISUAL_VALIDATOR_AVAILABLE = True
+except ImportError:
+    VISUAL_VALIDATOR_AVAILABLE = False
+    VisualTargetValidator = None
+
+# Behavioral Validator (Phase 18 integration)
+try:
+    from validators.behavioral import BehavioralValidator
+
+    BEHAVIORAL_VALIDATOR_AVAILABLE = True
+except ImportError:
+    BEHAVIORAL_VALIDATOR_AVAILABLE = False
+    BehavioralValidator = None
+
 
 class DesignPrinciplesValidator(BaseValidator):
     """Tier 2: Design principles (KISS, YAGNI, DRY) - stub fallback."""
@@ -637,10 +655,21 @@ class ValidationOrchestrator:
         "oss_reuse": OSSReuseValidator,
         "mathematical": MathematicalValidator,
         "api_contract": APIContractValidator,
-        # Remaining stubs (Phase 12)
-        "visual": BaseValidator,
+        # Remaining stubs (data_integrity still stub)
         "data_integrity": BaseValidator,
     }
+
+    # Conditionally add visual validator if available (Phase 18)
+    if VISUAL_VALIDATOR_AVAILABLE:
+        VALIDATOR_REGISTRY["visual"] = VisualTargetValidator
+    else:
+        VALIDATOR_REGISTRY["visual"] = BaseValidator
+
+    # Conditionally add behavioral validator if available (Phase 18)
+    if BEHAVIORAL_VALIDATOR_AVAILABLE:
+        VALIDATOR_REGISTRY["behavioral"] = BehavioralValidator
+    else:
+        VALIDATOR_REGISTRY["behavioral"] = BaseValidator
     
     def __init__(self, config_path: Path | None = None):
         self.config = self._load_config(config_path)
@@ -674,6 +703,9 @@ class ValidationOrchestrator:
                 "documentation": {"enabled": True, "tier": 2},
                 "performance": {"enabled": True, "tier": 3},
                 "accessibility": {"enabled": True, "tier": 3},
+                # Phase 18: visual and behavioral validators
+                "visual": {"enabled": True, "tier": 3},
+                "behavioral": {"enabled": True, "tier": 3},
             }
         
         for name, dim_config in dimensions.items():

@@ -264,7 +264,13 @@ class CodeQualityValidator(BaseValidator):
                             output_preview += f"\n... and {len(error_list) - 5} more"
                 except json.JSONDecodeError:
                     # Fallback: count non-empty lines if JSON parsing fails
-                    errors = len([line for line in result.stdout.strip().split("\n") if line.strip()])
+                    errors = len(
+                        [
+                            line
+                            for line in result.stdout.strip().split("\n")
+                            if line.strip()
+                        ]
+                    )
                     output_preview = result.stdout[:500]
 
             return ValidationResult(
@@ -386,7 +392,8 @@ class SecurityValidator(BaseValidator):
                 try:
                     data = json.loads(result.stdout)
                     high_sev = [
-                        r for r in data.get("results", [])
+                        r
+                        for r in data.get("results", [])
                         if r.get("issue_severity") in ("HIGH", "MEDIUM")
                     ]
                     if high_sev:
@@ -517,6 +524,28 @@ except ImportError:
     SecurityEnhancedValidator = None  # type: ignore[misc, assignment]
     TDDValidator = None  # type: ignore[misc, assignment]
     EvalValidator = None  # type: ignore[misc, assignment]
+
+# Visual Validator (Phase 18 integration)
+try:
+    from validators.visual import (  # type: ignore[import-not-found]
+        VisualTargetValidator,
+    )
+
+    VISUAL_VALIDATOR_AVAILABLE = True
+except ImportError:
+    VISUAL_VALIDATOR_AVAILABLE = False
+    VisualTargetValidator = None  # type: ignore[misc, assignment]
+
+# Behavioral Validator (Phase 18 integration)
+try:
+    from validators.behavioral import (  # type: ignore[import-not-found]
+        BehavioralValidator,
+    )
+
+    BEHAVIORAL_VALIDATOR_AVAILABLE = True
+except ImportError:
+    BEHAVIORAL_VALIDATOR_AVAILABLE = False
+    BehavioralValidator = None  # type: ignore[misc, assignment]
 
 
 class DesignPrinciplesValidator(BaseValidator):
@@ -783,7 +812,9 @@ async def run_tier3_parallel(validators: list) -> list:
             return await _run_validators_sequential(validators)
 
         worker_count = min(len(validators), 4)
-        logger.info(f"Running {len(validators)} Tier 3 validators in parallel (max {worker_count} concurrent)")
+        logger.info(
+            f"Running {len(validators)} Tier 3 validators in parallel (max {worker_count} concurrent)"
+        )
 
         tasks = [v.validate() for _, v in validators]
         results = await asyncio.gather(*tasks, return_exceptions=True)
@@ -835,7 +866,7 @@ async def check_complexity_and_simplify(modified_files: list[str]) -> bool:
     for file_path in modified_files:
         try:
             path = Path(file_path)
-            if path.exists() and path.suffix in ('.py', '.ts', '.js', '.tsx', '.jsx'):
+            if path.exists() and path.suffix in (".py", ".ts", ".js", ".tsx", ".jsx"):
                 lines = len(path.read_text().splitlines())
                 total_lines += lines
                 if lines > 200:
@@ -959,19 +990,32 @@ class ValidationOrchestrator:
         "oss_reuse": OSSReuseValidator,
         "mathematical": MathematicalValidator,
         "api_contract": APIContractValidator,
-        # Remaining stubs (Phase 12)
-        "visual": BaseValidator,
+        # Remaining stubs (data_integrity still stub)
         "data_integrity": BaseValidator,
     }
 
     # Conditionally add ECC validators if available
     if ECC_VALIDATORS_AVAILABLE:
-        VALIDATOR_REGISTRY.update({  # type: ignore[arg-type]
-            "e2e_validation": E2EValidator,
-            "security_enhanced": SecurityEnhancedValidator,
-            "tdd_compliance": TDDValidator,
-            "eval_metrics": EvalValidator,
-        })
+        VALIDATOR_REGISTRY.update(
+            {  # type: ignore[arg-type]
+                "e2e_validation": E2EValidator,
+                "security_enhanced": SecurityEnhancedValidator,
+                "tdd_compliance": TDDValidator,
+                "eval_metrics": EvalValidator,
+            }
+        )
+
+    # Conditionally add visual validator if available (Phase 18)
+    if VISUAL_VALIDATOR_AVAILABLE:
+        VALIDATOR_REGISTRY["visual"] = VisualTargetValidator  # type: ignore[assignment]
+    else:
+        VALIDATOR_REGISTRY["visual"] = BaseValidator
+
+    # Conditionally add behavioral validator if available (Phase 18)
+    if BEHAVIORAL_VALIDATOR_AVAILABLE:
+        VALIDATOR_REGISTRY["behavioral"] = BehavioralValidator  # type: ignore[assignment]
+    else:
+        VALIDATOR_REGISTRY["behavioral"] = BaseValidator
 
     def __init__(self, config_path: Path | None = None):
         self.config = self._load_config(config_path)
@@ -1005,6 +1049,9 @@ class ValidationOrchestrator:
                 "documentation": {"enabled": True, "tier": 2},
                 "performance": {"enabled": True, "tier": 3},
                 "accessibility": {"enabled": True, "tier": 3},
+                # Phase 18: visual and behavioral validators
+                "visual": {"enabled": True, "tier": 3},
+                "behavioral": {"enabled": True, "tier": 3},
             }
 
         for name, dim_config in dimensions.items():
@@ -1046,7 +1093,11 @@ class ValidationOrchestrator:
             return TierResult(tier=tier, results=[])
 
         # Use swarm parallel execution for Tier 3 (monitoring) when >= 2 validators
-        if tier == ValidationTier.MONITOR and len(tier_validators) >= 2 and SWARM_ENABLED:
+        if (
+            tier == ValidationTier.MONITOR
+            and len(tier_validators) >= 2
+            and SWARM_ENABLED
+        ):
             results = await run_tier3_parallel(tier_validators)
             return TierResult(tier=tier, results=list(results))
 
@@ -1098,7 +1149,9 @@ class ValidationOrchestrator:
         push_validation_metrics(data, project_name)
         inject_validation_context(data)
 
-    async def run_all(self, modified_files: list[str] | None = None) -> ValidationReport:
+    async def run_all(
+        self, modified_files: list[str] | None = None
+    ) -> ValidationReport:
         """
         Run all tiers in sequence.
 
@@ -1237,7 +1290,9 @@ class ValidationOrchestrator:
         ".yml": ["security"],
     }
 
-    async def validate_file(self, file_path: str, tier: int = 1) -> "FileValidationResult":
+    async def validate_file(
+        self, file_path: str, tier: int = 1
+    ) -> "FileValidationResult":
         """
         Quick validation for a single file. Used by hooks.
 
@@ -1284,7 +1339,9 @@ class ValidationOrchestrator:
         return FileValidationResult(
             file_path=file_path,
             has_blockers=has_blockers,
-            message=f"Tier {tier} blockers: {', '.join(failed)}" if has_blockers else f"Tier {tier} passed ({len(results)} validators)",
+            message=f"Tier {tier} blockers: {', '.join(failed)}"
+            if has_blockers
+            else f"Tier {tier} passed ({len(results)} validators)",
             results=list(results),
             duration_ms=_elapsed_ms(start),
         )
@@ -1341,5 +1398,7 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     orchestrator = ValidationOrchestrator()
-    exit_code = asyncio.run(orchestrator.run_from_cli(args.tier, modified_files=args.files))
+    exit_code = asyncio.run(
+        orchestrator.run_from_cli(args.tier, modified_files=args.files)
+    )
     sys.exit(exit_code)
