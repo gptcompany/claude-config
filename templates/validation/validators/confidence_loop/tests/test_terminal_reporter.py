@@ -374,7 +374,7 @@ class TestRichIntegration:
     def test_rich_available_returns_false_when_import_fails(self):
         """Test _rich_available returns False when rich not installed."""
         # Create a reporter with rich disabled to not trigger import
-        reporter = TerminalReporter(use_rich=False)
+        _reporter = TerminalReporter(use_rich=False)  # noqa: F841
 
         # Now test the static method directly with import failure
         with patch.dict("sys.modules", {"rich": None}):

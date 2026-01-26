@@ -831,7 +831,7 @@ async def check_complexity_and_simplify(modified_files: list[str]) -> bool:
         reason = f"Multiple files ({len(modified_files)}) with {total_lines} total LOC"
     elif complex_files:
         should_simplify = True
-        files_info = ", ".join([f"{f}:{l}LOC" for f, l in complex_files])
+        files_info = ", ".join([f"{f}:{loc}LOC" for f, loc in complex_files])
         reason = f"Large files detected: {files_info}"
 
     if should_simplify:

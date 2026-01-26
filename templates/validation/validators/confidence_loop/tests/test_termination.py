@@ -352,7 +352,7 @@ class TestEdgeCases:
         )
         evaluator.evaluate(0.50)
         # Tiny improvement > 0, not stalled
-        result = evaluator.evaluate(0.500001)
+        evaluator.evaluate(0.500001)  # Result unused, testing side effect
         assert evaluator.stall_count == 0
 
     def test_boundary_epsilon(self):
