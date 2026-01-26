@@ -5,8 +5,6 @@ These tests import the actual orchestrator module to enable pytest-cov
 to measure coverage properly.
 """
 
-import asyncio
-import os
 import sys
 from pathlib import Path
 from unittest.mock import MagicMock, patch, AsyncMock
@@ -27,7 +25,6 @@ from orchestrator import (
     check_complexity_and_simplify,
     run_tier3_parallel,
     _run_validators_sequential,
-    _elapsed_ms,
     AGENT_SPAWN_ENABLED,
     SWARM_ENABLED,
 )
