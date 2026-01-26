@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-26)
 
 ## Current Position
 
-Phase: 17 (Observability & Dashboards)
-Plan: ALL 4 PLANS COMPLETED
-Status: Phase 17 complete - alerts, queries, dashboards, CLI deployed
-Last activity: 2026-01-26 — Phase 17 executed via /gsd:execute-phase-sync
+Phase: 18 (Validator Depth)
+Plan: 18-01 COMPLETED
+Status: Phase 18 complete - Visual and Behavioral validators integrated
+Last activity: 2026-01-26 — Phase 18 executed via /gsd:execute-phase-sync
 
-Progress: ██████████ 100% v1.0-v5.0 | ██████████ 100% Phase 17
+Progress: ██████████ 100% v1.0-v5.0 | ██████████ 100% Phase 17-18
 
 ## v5.0 Milestone (COMPLETED 2026-01-26)
 
@@ -72,12 +72,30 @@ vr recent --limit 5     # Debug recent issues
 vr projects             # Compare project health
 ```
 
+## Phase 18: Validator Depth (COMPLETE)
+
+| Plan | Description | Tests | Status |
+|------|-------------|-------|--------|
+| 18-01 | Visual + Behavioral integration | 6 new + 148 existing | COMPLETE |
+
+**Deliverables:**
+- VisualTargetValidator wired to VALIDATOR_REGISTRY
+- BehavioralValidator wired to VALIDATOR_REGISTRY
+- Both at Tier 3 (Monitor) by default
+- Graceful fallback to BaseValidator if imports fail
+- 6 new integration tests in TestVisualBehavioralIntegration
+
+**Files Modified:**
+- `~/.claude/templates/validation/orchestrator.py`
+- `~/.claude/templates/validation/orchestrator.py.j2`
+- `~/.claude/templates/validation/tests/test_orchestrator.py`
+
 ## Session Continuity
 
 Last session: 2026-01-26
-Stopped at: Phase 17 COMPLETED
+Stopped at: Phase 18 COMPLETED (UAT 8/8 passed)
 Resume file: None
-Next: Phase 18 (Validator Depth) or milestone completion
+Next: Phase 19 (Production Hardening) or Phase 20 (Multi-Project Support)
 
 ## Pending Todos
 
