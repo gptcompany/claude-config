@@ -2,77 +2,120 @@
 
 **Gathered:** 2026-01-26
 **Status:** Ready for planning
-**Decision:** E2E Integration (via SWOT + PMW analysis)
+**Decision:** Connect existing validators (via consistency check)
 
 <vision>
 ## How This Should Work
 
-I validator visual, behavioral e performance esistono già (v3.0) ma sono "dormant" - non vengono chiamati automaticamente dai workflow GSD.
+I validator visual e behavioral **esistono già e funzionano** (148 tests passing).
+Il problema è che NON sono collegati all'orchestrator.
 
-Phase 18 collega questi pezzi esistenti:
-- **v3.0**: VisualTargetValidator, BehavioralValidator, PerformanceValidator
-- **v5.0**: GSD workflows (execute-plan, verify-work, complete-milestone)
-- **Phase 17**: Infrastruttura osservabilità (Grafana, QuestDB, CLI)
+Quando l'utente modifica codice (Write/Edit), il hook `validation-orchestrator.js` già chiama `orchestrator.py`. Ma l'orchestrator usa STUB invece delle implementazioni reali.
 
-Quando un utente esegue `/gsd:verify-work`, i validator dovrebbero:
-1. Eseguire automaticamente (se configurati per il progetto)
-2. Catturare screenshot e confrontarli con baseline
-3. Verificare DOM structure se behavioral test abilitato
-4. Eseguire Lighthouse se performance test abilitato
-5. Inviare risultati a QuestDB per visualizzazione in Grafana
+**Gap identificato:**
+```python
+# orchestrator.py OGGI:
+VALIDATOR_REGISTRY = {
+    "visual": BaseValidator,        # ← STUB!
+    # "behavioral": ???             # ← MANCANTE!
+}
+```
 
-Deve essere **opt-in** per progetto via `.claude/validation/config.json`.
+**Dopo Phase 18:**
+```python
+VALIDATOR_REGISTRY = {
+    "visual": VisualTargetValidator,    # ← REALE
+    "behavioral": BehavioralValidator,  # ← AGGIUNTO
+}
+```
 
 </vision>
 
 <essential>
 ## What Must Be Nailed
 
-- **Hook nei workflow GSD** - verify-work chiama i validator automaticamente
-- **Configurabilità** - ogni progetto decide quali validator abilitare
-- **Fallback graceful** - se un validator fallisce (es. no browser), non blocca tutto
-- **Metriche in Grafana** - risultati visual/behavioral visibili nei dashboard Phase 17
+- **Collegare** VisualTargetValidator e BehavioralValidator all'orchestrator
+- **Aggiungere** visual e behavioral ai default dimensions (Tier 3)
+- **Non rompere** il sistema esistente (148 tests devono continuare a passare)
+- **Graceful fallback** se ODiff/SSIM/ZSS non disponibili
 
 </essential>
 
 <specifics>
 ## Specific Ideas
 
-- Visual validator usa ODiff (pixel) + SSIM (perceptual) già implementati
-- Behavioral validator usa Zhang-Shasha DOM diff già implementato
-- Performance validator integra Lighthouse CI (già in v2.0)
-- **Skip Mathematical validator** - troppo specializzato, pochi progetti lo usano
-- Config esempio:
-  ```json
-  {
-    "validators": {
-      "visual": { "enabled": true, "baseline_dir": ".claude/baselines" },
-      "behavioral": { "enabled": false },
-      "performance": { "enabled": true, "thresholds": { "lcp": 2500 } }
+### Verifica di Consistenza (completata)
+
+| Componente | Stato | Test |
+|------------|-------|------|
+| VisualTargetValidator | ✅ OK | 74 passing |
+| BehavioralValidator | ✅ OK | 74 passing |
+| ODiff (pixel diff) | ✅ Disponibile | - |
+| SSIM (perceptual) | ✅ Disponibile | - |
+| ZSS (tree edit) | ✅ Disponibile | - |
+| Hook PostToolUse | ✅ Configurato | - |
+| Orchestrator Registry | ❌ STUB | da fixare |
+
+### Scope Ridotto
+
+Non servono 4 plans separati. Serve:
+
+1. **Un singolo plan** che:
+   - Importa i validator nell'orchestrator
+   - Aggiorna VALIDATOR_REGISTRY
+   - Aggiunge ai default dimensions
+   - Testa l'integrazione
+
+**Effort:** ~2h invece di ~8h originali
+
+### Config per Progetto
+
+I validator saranno opt-in via `.claude/validation/config.json`:
+```json
+{
+  "dimensions": {
+    "visual": {
+      "enabled": true,
+      "tier": 3,
+      "baseline_dir": ".claude/baselines",
+      "threshold": 0.85
+    },
+    "behavioral": {
+      "enabled": true,
+      "tier": 3,
+      "similarity_threshold": 0.90
     }
   }
-  ```
+}
+```
 
 </specifics>
 
 <notes>
 ## Additional Context
 
-**Decisione presa via SWOT + PMW analysis:**
+### Vincolo Importante
 
-| Opzione | Verdetto |
-|---------|----------|
-| A. Potenziamento | Scartata - ROI basso, validator già funzionano |
-| B. E2E Integration | **SCELTA** - collega pezzi esistenti, valore immediato |
-| C. Skip → Phase 19 | Scartata - validator rimarrebbero dormant |
+**NON modificare GSD/Speckit** - sono tool esterni terze parti.
 
-**Rischi identificati:**
-- Rallentamento pipeline se validator lenti → mitigation: timeout + parallel execution
-- Browser non disponibile in CI → mitigation: skip graceful con warning
+La soluzione usa il sistema hooks esistente:
+- `validation-orchestrator.js` già esiste e funziona
+- Chiama `orchestrator.py` su ogni Write/Edit
+- Basta collegare i validator, il resto è automatico
 
-**Dipendenze:**
-- Phase 17 complete (Grafana dashboards per visualizzare risultati)
-- v5.0 GSD workflows (dove hookare i validator)
+### Integrazione con Phase Successive
+
+| Phase | Integrazione |
+|-------|-------------|
+| **19 - Hardening** | Può aggiungere timeout/retry ai validator ora funzionanti |
+| **20 - Multi-Project** | Config inheritance già supportata |
+| **17 - Observability** | Risultati già vanno a QuestDB/Grafana |
+
+### Test Esistenti
+
+- 74 tests visual validator
+- 74 tests behavioral validator
+- Copertura completa, solo da integrare
 
 </notes>
 
@@ -80,4 +123,4 @@ Deve essere **opt-in** per progetto via `.claude/validation/config.json`.
 
 *Phase: 18-validator-depth*
 *Context gathered: 2026-01-26*
-*Decision method: Council of Experts (SWOT + PMW)*
+*Decision method: Consistency check + gap analysis*
