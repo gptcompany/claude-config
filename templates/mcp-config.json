@@ -1,0 +1,75 @@
+{
+  "mcpServers": {
+    "linear": {
+      "command": "/home/sam/.claude/scripts/linear-mcp-wrapper.sh",
+      "args": []
+    },
+    "context7": {
+      "command": "bash",
+      "args": [
+        "-c",
+        "eval \"$(sops --input-type dotenv --output-type dotenv -d /media/sam/1TB/.env.enc 2>/dev/null | grep CONTEXT7 | sed 's/^/export /')\" && npx -y @upstash/context7-mcp"
+      ]
+    },
+    "serena": {
+      "command": "serena",
+      "args": ["start-mcp-server", "--context", "ide-assistant"]
+    },
+    "wolframalpha": {
+      "command": "node",
+      "args": ["/media/sam/1TB/mcpservers/wolframalpha-llm-mcp/build/index.js"],
+      "env": {
+        "WOLFRAM_LLM_APP_ID": "VYR43J-GW3TWJ9G3K"
+      }
+    },
+    "download-mcp": {
+      "command": "python3",
+      "args": ["/media/sam/1TB/mcpservers/mcp-download/bridging_download_mcp.py"]
+    },
+    "claude-flow": {
+      "command": "npx",
+      "args": ["-y", "claude-flow@latest", "mcp", "start"]
+    },
+    "grafana": {
+      "command": "bash",
+      "args": [
+        "-c",
+        "eval \"$(sops --input-type dotenv --output-type dotenv -d /media/sam/1TB/.env.enc 2>/dev/null | grep GRAFANA | sed 's/^/export /')\" && /home/sam/go/bin/mcp-grafana"
+      ]
+    },
+    "n8n-mcp": {
+      "command": "bash",
+      "args": [
+        "-c",
+        "eval \"$(sops --input-type dotenv --output-type dotenv -d /media/sam/1TB/.env.enc 2>/dev/null | grep N8N_API | sed 's/^/export /')\" && npx -y n8n-mcp"
+      ],
+      "env": {
+        "N8N_API_URL": "https://n8nubuntu.princyx.xyz/",
+        "MCP_MODE": "stdio",
+        "LOG_LEVEL": "warning"
+      }
+    },
+    "firecrawl-mcp": {
+      "command": "bash",
+      "args": [
+        "-c",
+        "eval \"$(sops --input-type dotenv --output-type dotenv -d /media/sam/1TB/.env.enc 2>/dev/null | grep FIRECRAWL | sed 's/^/export /')\" && npx -y firecrawl-mcp"
+      ]
+    },
+    "sentry": {
+      "command": "bash",
+      "args": [
+        "-c",
+        "eval \"$(sops --input-type dotenv --output-type dotenv -d /media/sam/1TB/.env.enc 2>/dev/null | grep SENTRY | sed 's/^/export /')\" && npx -y @sentry/mcp-server --access-token=$SENTRY_AUTH_TOKEN"
+      ]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"]
+    },
+    "bytebot": {
+      "url": "http://192.168.1.100:9990/mcp",
+      "transport": "sse"
+    }
+  }
+}
