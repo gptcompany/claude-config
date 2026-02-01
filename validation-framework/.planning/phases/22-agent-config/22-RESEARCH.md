@@ -45,12 +45,16 @@ Key findings: (1) **System prompts are NOT a config field** — they're assemble
 | n8n | `/home/node/clawd-n8n` | **NO** (empty) | NO | inherit |
 
 ### Agent → Repo Mapping (Workstation /media/sam/1TB/)
-| Agent | Repos | Domain |
-|-------|-------|--------|
+**Active repos (currently worked on):**
+| Agent | Repo | Domain |
+|-------|------|--------|
 | main | validation-framework, moltbot-infra, claude-config | Infra, tooling |
-| nautilus | nautilus_dev, nautilus_scraper | Discord scraper, data pipeline |
-| utxoracle | UTXOracle, liquidations-chart, py-liquidation-map, openbb_liquidity | Crypto analytics, liquidation heatmaps |
+| nautilus | nautilus_dev | Discord scraper, data pipeline |
+| utxoracle | LiquidationHeatmap, openBB_liquidity | Crypto liquidation heatmaps, OpenBB liquidity |
 | n8n | N8N_dev | Workflow automation |
+
+**Inactive repos (legacy, not assigned to agents):**
+- UTXOracle, liquidations-chart, py-liquidation-map, nautilus_scraper
 
 ### Alternatives Considered
 | Instead of | Could Use | Tradeoff |
