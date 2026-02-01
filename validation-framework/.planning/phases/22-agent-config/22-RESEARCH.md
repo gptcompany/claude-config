@@ -46,13 +46,13 @@ Key findings: (1) **System prompts are NOT a config field** — they're assemble
 
 ### Agent → Repo Mapping (Workstation /media/sam/1TB/)
 **All 5 active repos:**
-| Repo | Domain |
-|------|--------|
-| nautilus_dev | Discord scraper, data pipeline |
-| LiquidationHeatmap | Crypto liquidation heatmaps |
-| openBB_liquidity | Market-wide liquidity analytics (OpenBB) |
-| N8N_dev | Workflow automation |
-| UTXOracle | Crypto oracle/analytics |
+| Repo | Domain | Tech |
+|------|--------|------|
+| nautilus_dev | Algorithmic trading with NautilusTrader | Python, NautilusTrader, TDD |
+| LiquidationHeatmap | Crypto liquidation levels from Binance futures, DuckDB analytics, FastAPI | Python, DuckDB, FastAPI, uv |
+| openBB_liquidity | Market-wide liquidity analytics (not crypto-specific) | Python, OpenBB |
+| N8N_dev | Workflow automation + ML price prediction | N8N, Python, Docker, uv |
+| UTXOracle | Bitcoin-native exchange-free price oracle from on-chain data | Pure Python, statistical clustering |
 
 **Agent assignment (TBD in planning):**
 | Agent | Candidate repos |
