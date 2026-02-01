@@ -45,16 +45,25 @@ Key findings: (1) **System prompts are NOT a config field** — they're assemble
 | n8n | `/home/node/clawd-n8n` | **NO** (empty) | NO | inherit |
 
 ### Agent → Repo Mapping (Workstation /media/sam/1TB/)
-**Active repos (currently worked on):**
-| Agent | Repo | Domain |
-|-------|------|--------|
-| main | validation-framework, moltbot-infra, claude-config | Infra, tooling |
-| nautilus | nautilus_dev | Discord scraper, data pipeline |
-| utxoracle | LiquidationHeatmap, openBB_liquidity | Crypto liquidation heatmaps, OpenBB liquidity |
-| n8n | N8N_dev | Workflow automation |
+**All 5 active repos:**
+| Repo | Domain |
+|------|--------|
+| nautilus_dev | Discord scraper, data pipeline |
+| LiquidationHeatmap | Crypto liquidation heatmaps |
+| openBB_liquidity | OpenBB liquidity analytics |
+| N8N_dev | Workflow automation |
+| UTXOracle | Crypto oracle/analytics |
 
-**Inactive repos (legacy, not assigned to agents):**
-- UTXOracle, liquidations-chart, py-liquidation-map, nautilus_scraper
+**Agent assignment (TBD in planning):**
+| Agent | Candidate repos |
+|-------|----------------|
+| main | validation-framework, moltbot-infra, claude-config |
+| nautilus | nautilus_dev |
+| utxoracle | UTXOracle, LiquidationHeatmap, openBB_liquidity |
+| n8n | N8N_dev |
+
+**Inactive repos (legacy):**
+- liquidations-chart, py-liquidation-map, nautilus_scraper
 
 ### Alternatives Considered
 | Instead of | Could Use | Tradeoff |
