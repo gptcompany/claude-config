@@ -7,11 +7,11 @@
 <research_summary>
 ## Summary
 
-Researched OpenClaw's multi-model provider system for configuring Claude (primary), Gemini (cross-review/free tier), and OpenAI (fallback). OpenClaw supports 14+ providers with per-agent model selection and failover chains.
+Researched OpenClaw's multi-model provider system for configuring Claude (primary), Kimi K2.5 via OpenRouter (cross-review), Gemini (free tier fallback), and OpenAI (last resort). OpenClaw supports 14+ providers with per-agent model selection and failover chains.
 
-Key findings: (1) Gemini CLI OAuth has a **known bug** (#4585, open) — client_secret missing error. Workaround: use `GEMINI_API_KEY` instead of OAuth. (2) Cross-provider failover has a **known bug** (#4260, fix in progress via PR #4312) — system doesn't properly fall back across different providers. (3) LLM Task tool exists as a plugin for delegating tasks to different models — perfect for cross-model review. (4) Usage tracking exists but has no budget cap feature — we need to implement our own via hooks.
+Key findings: (1) **Kimi K2.5** is 25x cheaper than Opus with near-parity coding performance (83.1% LiveCodeBench) and **superior agent benchmarks** (50.2 HLE-Full vs GPT-5.2's 45.5). Available via OpenRouter. (2) Gemini CLI OAuth has a **known bug** (#4585) — use API key instead. (3) Cross-provider failover has a **known bug** (#4260, fix in PR #4312). (4) LLM Task plugin enables cross-model review natively. (5) No native budget cap — needs custom hook.
 
-**Primary recommendation:** Use API key auth for all providers (not OAuth), configure failover chain Claude→Gemini→OpenAI, enable LLM Task plugin for cross-model review, and implement budget cap via custom hook since OpenClaw doesn't have native budget limits.
+**Primary recommendation:** Use Claude Opus for implementation, Kimi K2.5 via OpenRouter for cross-review (25x cheaper, excellent agent/coding scores), Gemini as free-tier fallback. All via API keys. Enable LLM Task plugin for structured cross-model review. All API keys stored in SOPS (`/media/sam/1TB/.env.enc`).
 </research_summary>
 
 <standard_stack>
@@ -20,9 +20,20 @@ Key findings: (1) Gemini CLI OAuth has a **known bug** (#4585, open) — client_
 ### Core Providers
 | Provider | Model | Auth Method | Purpose | Cost |
 |----------|-------|-------------|---------|------|
-| anthropic | claude-opus-4-5 | API key (`ANTHROPIC_API_KEY`) | Primary implementation | Paid |
-| google | gemini-2.5-pro | API key (`GEMINI_API_KEY`) | Cross-review, secondary | Free tier (20-50 req/day via API key) |
-| openai | gpt-5.2 | API key (`OPENAI_API_KEY`) | Fallback | Paid |
+| anthropic | claude-opus-4-5 | API key (`ANTHROPIC_API_KEY`) | Primary implementation | $15/$75 per M tokens |
+| openrouter | moonshotai/kimi-k2.5 | API key (`OPENROUTER_API_KEY`) | Cross-review, agent tasks | $0.60/$3 per M tokens (25x cheaper) |
+| google | gemini-2.5-pro | API key (`GEMINI_API_KEY`) | Free tier fallback | Free (20-50 req/day) |
+| openai | gpt-5.2 | API key (`OPENAI_API_KEY`) | Last resort fallback | Paid |
+
+### Kimi K2.5 Benchmarks (vs competitors)
+| Benchmark | Kimi K2.5 | Claude Opus 4.5 | GPT-5.2 |
+|-----------|-----------|-----------------|---------|
+| LiveCodeBench v6 | 83.1% | ~85% | 89.6% |
+| HLE-Full (agents) | **50.2** | N/A | 45.5 |
+| BrowseComp | **74.9** | N/A | N/A |
+| Architecture | 1T params MoE, 32B active | Closed | Closed |
+| Agent Swarm | 100 sub-agents, 1500 tool calls | No | No |
+| License | MIT (open source) | Closed | Closed |
 
 ### Auth Methods Available
 | Method | Provider | Status | Notes |
@@ -36,8 +47,9 @@ Key findings: (1) Gemini CLI OAuth has a **known bug** (#4585, open) — client_
 ### Alternatives Considered
 | Instead of | Could Use | Tradeoff |
 |------------|-----------|----------|
+| Kimi K2.5 via OpenRouter | Direct Moonshot API | OpenRouter simpler (unified billing), Moonshot slightly cheaper |
 | Gemini API key (free) | Gemini CLI OAuth (1000 req/day) | OAuth gives 50x more requests but has bug #4585 |
-| google-antigravity | OpenRouter | OpenRouter aggregates providers, simpler config |
+| OpenRouter | Direct providers | Direct is cheaper per-token but more keys to manage |
 | Direct providers | Venice AI | Privacy-focused proxy, adds latency |
 
 **Configuration:**
@@ -48,18 +60,34 @@ Key findings: (1) Gemini CLI OAuth has a **known bug** (#4585, open) — client_
     "defaults": {
       "model": {
         "primary": "anthropic/claude-opus-4-5",
-        "fallbacks": ["google/gemini-2.5-pro", "openai/gpt-5.2"]
+        "fallbacks": ["openrouter/moonshotai/kimi-k2.5", "google/gemini-2.5-pro", "openai/gpt-5.2"]
+      },
+      "models": {
+        "anthropic/claude-opus-4-5": { "alias": "opus" },
+        "openrouter/moonshotai/kimi-k2.5": { "alias": "kimi" },
+        "google/gemini-2.5-pro": { "alias": "gemini" },
+        "openai/gpt-5.2": { "alias": "gpt" }
       }
     }
   }
 }
 ```
 
-**Environment variables (in Docker compose / .env):**
+**Environment variables (all in SOPS: `/media/sam/1TB/.env.enc`):**
 ```bash
-ANTHROPIC_API_KEY=sk-ant-...
-GEMINI_API_KEY=AI...
-OPENAI_API_KEY=sk-...
+ANTHROPIC_API_KEY=sk-ant-...     # Already in SOPS
+OPENROUTER_API_KEY=sk-or-...     # NEW — add to SOPS
+GEMINI_API_KEY=AI...             # Already in SOPS (as GEMINI_API_KEY)
+OPENAI_API_KEY=sk-...            # Already in SOPS
+```
+
+**Docker compose env injection:**
+```yaml
+environment:
+  - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY}
+  - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+  - GEMINI_API_KEY=${GEMINI_API_KEY}
+  - OPENAI_API_KEY=${OPENAI_API_KEY}
 ```
 </standard_stack>
 
@@ -205,10 +233,11 @@ Failover progression:
     "defaults": {
       "model": {
         "primary": "anthropic/claude-opus-4-5",
-        "fallbacks": ["google/gemini-2.5-pro", "openai/gpt-5.2"]
+        "fallbacks": ["openrouter/moonshotai/kimi-k2.5", "google/gemini-2.5-pro", "openai/gpt-5.2"]
       },
       "models": {
         "anthropic/claude-opus-4-5": { "alias": "opus" },
+        "openrouter/moonshotai/kimi-k2.5": { "alias": "kimi" },
         "google/gemini-2.5-pro": { "alias": "gemini" },
         "openai/gpt-5.2": { "alias": "gpt" }
       }
@@ -217,6 +246,7 @@ Failover progression:
   "auth": {
     "profiles": {
       "anthropic:default": { "provider": "anthropic", "mode": "token" },
+      "openrouter:default": { "provider": "openrouter", "mode": "token" },
       "google:default": { "provider": "google", "mode": "token" },
       "openai:default": { "provider": "openai", "mode": "token" }
     }
@@ -265,8 +295,9 @@ docker exec openclaw-gateway node /app/dist/entry.js agent --agent main status -
 | No cross-model review | LLM Task plugin | v2026.1.x | Structured JSON review via different model |
 
 **New tools/patterns:**
-- **LLM Task plugin**: Enables cross-model review without shell scripts
-- **Model aliases**: Users can switch models mid-chat with `/opus` or `/gemini`
+- **Kimi K2.5 via OpenRouter**: 25x cheaper than Opus, MIT open source, superior agent benchmarks, 1T MoE model
+- **LLM Task plugin**: Enables cross-model review without shell scripts — route review to Kimi K2.5
+- **Model aliases**: Users can switch models mid-chat with `/opus`, `/kimi`, or `/gemini`
 - **google-antigravity**: OAuth path for Google that works (unlike gemini-cli)
 
 **Bugs to track:**
