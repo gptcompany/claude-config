@@ -50,7 +50,7 @@ Key findings: (1) **System prompts are NOT a config field** — they're assemble
 |------|--------|
 | nautilus_dev | Discord scraper, data pipeline |
 | LiquidationHeatmap | Crypto liquidation heatmaps |
-| openBB_liquidity | OpenBB liquidity analytics |
+| openBB_liquidity | Market-wide liquidity analytics (OpenBB) |
 | N8N_dev | Workflow automation |
 | UTXOracle | Crypto oracle/analytics |
 
