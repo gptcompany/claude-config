@@ -46,7 +46,7 @@ Build a reusable validation pipeline framework starting with core templates, the
 **Plans**: TBD
 
 Plans:
-- [ ] 21-01: TBD (run /gsd:plan-phase 21 to break down)
+- [x] 21-01: Multi-model provider config (4 providers, fallback chain, LLM Task plugin)
 
 #### Phase 22: Agent Config & System Prompts
 **Goal**: System prompt per-agent con istruzioni TDD/quality, sandbox mode, thinking levels, sub-agent config
@@ -98,9 +98,9 @@ Plans:
 - [ ] 26-01: TBD
 
 #### Phase 27: Autonomous Loop (Piano C)
-**Goal**: Spec-first workflow completo, state persistence su disco, iteration loop con max rounds, escalation policy
+**Goal**: Spec-first workflow completo, state persistence su disco, iteration loop con max rounds, escalation policy, progressive-deploy integration come gate finale
 **Depends on**: Phase 25 (cross-review), Phase 26 (quality gates)
-**Research**: Unlikely (internal patterns, MEMORY.md design)
+**Research**: Unlikely (internal patterns, MEMORY.md design, progressive-deploy già esistente)
 **Plans**: TBD
 
 Plans:
@@ -204,7 +204,7 @@ See [v4.0 Archive](milestones/v4.0-ROADMAP.md) for full details.
 | 19. Production Hardening | v6.0 | 3/3 | ✅ Complete | 2026-01-26 |
 | 20. Multi-Project Support | v6.0 | 4/4 | ✅ Complete | 2026-01-26 |
 
-| 21. Models & Providers | v7.0 | 0/? | Not started | - |
+| 21. Models & Providers | v7.0 | 1/1 | ✅ Complete | 2026-02-01 |
 | 22. Agent Config & System Prompts | v7.0 | 0/? | Not started | - |
 | 23. Hooks & Webhooks | v7.0 | 0/? | Not started | - |
 | 24. Skills & LLM Task | v7.0 | 0/? | Not started | - |
