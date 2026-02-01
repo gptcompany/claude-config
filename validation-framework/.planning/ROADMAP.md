@@ -16,6 +16,7 @@ Build a reusable validation pipeline framework starting with core templates, the
 - ✅ [**v4.0 ECC Integration & Hooks Modernization**](milestones/v4.0-ROADMAP.md) (Phases 13-15) — SHIPPED 2026-01-25
 - ✅ [**v5.0 GSD + Validation + Claude-Flow Integration**](milestones/v5.0-ROADMAP.md) (Phase 16) — SHIPPED 2026-01-26
 - ✅ [**v6.0 Full-Stack Validation Platform**](milestones/v6.0-ROADMAP.md) (Phases 17-20) — SHIPPED 2026-01-26
+- 🚧 **v7.0 OpenClaw Full Autonomy** - Phases 21-29 (in progress)
 
 ---
 
@@ -30,6 +31,99 @@ Build a reusable validation pipeline framework starting with core templates, the
 **Total:** 12 plans, 203 tests
 
 </details>
+
+---
+
+### 🚧 v7.0 OpenClaw Full Autonomy (In Progress)
+
+**Milestone Goal:** Configure OpenClaw al 100% delle capacità e abilitare loop di coding autonomo 24/7 con quality gates, cross-model review (Gemini), validation framework integrato, e monitoring.
+
+#### Phase 21: Models & Providers
+**Goal**: Multi-model setup — Gemini 2.5 Pro via OAuth (gratis 1000 req/day), OpenAI fallback, failover chain
+**Depends on**: Previous milestone complete
+**Research**: Likely (Gemini CLI headless OAuth, OpenClaw provider config, model failover docs)
+**Research topics**: Gemini CLI token caching headless, OpenClaw models.providers config, failover chain syntax
+**Plans**: TBD
+
+Plans:
+- [ ] 21-01: TBD (run /gsd:plan-phase 21 to break down)
+
+#### Phase 22: Agent Config & System Prompts
+**Goal**: System prompt per-agent con istruzioni TDD/quality, sandbox mode, thinking levels, sub-agent config
+**Depends on**: Phase 21
+**Research**: Likely (OpenClaw agent runtime docs, system prompt config, sandbox modes, sub-agents)
+**Research topics**: agents.defaults.systemPrompt, sandbox scoped mode, thinking budget config
+**Plans**: TBD
+
+Plans:
+- [ ] 22-01: TBD
+
+#### Phase 23: Hooks & Webhooks
+**Goal**: Hook custom pre/post exec per validation, webhooks GitHub→agent action, escalation su Matrix
+**Depends on**: Phase 22
+**Research**: Likely (OpenClaw hooks API, webhook config, SOUL hook, custom hook format)
+**Research topics**: hooks.custom entries, webhook endpoint config, GitHub webhook→agent trigger
+**Plans**: TBD
+
+Plans:
+- [ ] 23-01: TBD
+
+#### Phase 24: Skills & LLM Task
+**Goal**: Skill nativa TDD cycle, LLM Task tool per cross-model review, Lobster typed workflows
+**Depends on**: Phase 23
+**Research**: Likely (OpenClaw skills format, LLM Task tool config, Lobster runtime docs)
+**Research topics**: skills gating config, llm_task provider routing, lobster workflow definition
+**Plans**: TBD
+
+Plans:
+- [ ] 24-01: TBD
+
+#### Phase 25: Gemini Cross-Review
+**Goal**: Setup Gemini OAuth headless nel gateway Docker, receipt system, cross-model validation pipeline
+**Depends on**: Phase 21 (provider config), Phase 24 (LLM Task)
+**Research**: Likely (Gemini CLI headless auth in Docker, token persistence, NO_BROWSER flow)
+**Research topics**: Gemini OAuth token caching path, Docker volume persistence, receipt JSON format
+**Plans**: TBD
+
+Plans:
+- [ ] 25-01: TBD
+
+#### Phase 26: Quality Gates Integration
+**Goal**: Git hooks pre-commit/pre-push con validation framework, branch strategy feature→main, exec-approvals audit
+**Depends on**: Phase 22 (agent config)
+**Research**: Unlikely (nostro codice esistente, pattern stabiliti)
+**Plans**: TBD
+
+Plans:
+- [ ] 26-01: TBD
+
+#### Phase 27: Autonomous Loop (Piano C)
+**Goal**: Spec-first workflow completo, state persistence su disco, iteration loop con max rounds, escalation policy
+**Depends on**: Phase 25 (cross-review), Phase 26 (quality gates)
+**Research**: Unlikely (internal patterns, MEMORY.md design)
+**Plans**: TBD
+
+Plans:
+- [ ] 27-01: TBD
+
+#### Phase 28: Usage Tracking & Budget
+**Goal**: Token tracking per-agent/per-task, cost monitoring, budget cap con hard stop, rate limiting
+**Depends on**: Phase 21 (providers configurati)
+**Research**: Likely (OpenClaw usage tracking docs, cost API, budget config)
+**Research topics**: usage.tracking config, per-task token accounting, budget.maxTokensPerTask
+**Plans**: TBD
+
+Plans:
+- [ ] 28-01: TBD
+
+#### Phase 29: Monitoring & Dashboards
+**Goal**: Grafana dashboard OpenClaw (task success rate, token usage, quality scores), alerting Discord/Matrix
+**Depends on**: Phase 28 (usage tracking), Phase 27 (autonomous loop)
+**Research**: Unlikely (infra Grafana esistente, pattern dashboard stabiliti)
+**Plans**: TBD
+
+Plans:
+- [ ] 29-01: TBD
 
 ---
 
@@ -110,7 +204,17 @@ See [v4.0 Archive](milestones/v4.0-ROADMAP.md) for full details.
 | 19. Production Hardening | v6.0 | 3/3 | ✅ Complete | 2026-01-26 |
 | 20. Multi-Project Support | v6.0 | 4/4 | ✅ Complete | 2026-01-26 |
 
-**Total:** 66 plans shipped (v1.0-v6.0)
+| 21. Models & Providers | v7.0 | 0/? | Not started | - |
+| 22. Agent Config & System Prompts | v7.0 | 0/? | Not started | - |
+| 23. Hooks & Webhooks | v7.0 | 0/? | Not started | - |
+| 24. Skills & LLM Task | v7.0 | 0/? | Not started | - |
+| 25. Gemini Cross-Review | v7.0 | 0/? | Not started | - |
+| 26. Quality Gates Integration | v7.0 | 0/? | Not started | - |
+| 27. Autonomous Loop (Piano C) | v7.0 | 0/? | Not started | - |
+| 28. Usage Tracking & Budget | v7.0 | 0/? | Not started | - |
+| 29. Monitoring & Dashboards | v7.0 | 0/? | Not started | - |
+
+**Total:** 66 plans shipped (v1.0-v6.0), 9 phases planned (v7.0)
 
 **Test Coverage:**
 - v1.0-v5.0: 521 tests

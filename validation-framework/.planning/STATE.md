@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-01-26)
 
 **Core value:** Every project gets production-grade validation with zero friction
-**Current focus:** v6.0 SHIPPED - All milestones complete
+**Current focus:** v7.0 OpenClaw Full Autonomy
 
 ## Current Position
 
-Phase: All complete (20/20)
-Plan: All complete (66/66)
-Status: Framework complete - ready for production use
-Last activity: 2026-01-26 — v6.0 milestone archived
+Phase: 21 of 29 (Models & Providers)
+Plan: Not started
+Status: Ready to plan
+Last activity: 2026-02-01 - Milestone v7.0 created
 
-Progress: ██████████ 100% (v1.0-v6.0 all shipped)
+Progress: ░░░░░░░░░░ 0%
 
 ## Shipped Milestones
 
@@ -28,49 +28,22 @@ Progress: ██████████ 100% (v1.0-v6.0 all shipped)
 | v6.0 | 17-20 | 12 | 2026-01-26 |
 | **Total** | **20** | **66** | |
 
-## v6.0 Deliverables Summary
+## Roadmap Evolution
 
-### Phase 17: Observability & Dashboards
-- Discord alerts: `~/.claude/grafana/alerting/`
-- Grafana dashboards: validation-overview, validator-drilldown, project-comparison
-- CLI: `validation-report` (alias: `vr`) with 5 commands
-- Query lib: `~/.claude/scripts/lib/validation-queries.js`
-
-### Phase 18: Validator Depth
-- VisualTargetValidator wired to VALIDATOR_REGISTRY
-- BehavioralValidator wired to VALIDATOR_REGISTRY
-- Both at Tier 3 (Monitor) with graceful fallback
-
-### Phase 19: Production Hardening
-- E2E test suite: `tests/e2e/` (15 tests)
-- Resilience patterns with tenacity
-- pytest.ini with asyncio config
-
-### Phase 20: Multi-Project Support
-- Config inheritance (RFC 7396): `config_loader.py`
-- Monorepo discovery: `monorepo.py`
-- Plugin system: `plugins.py`
-- Cross-project metrics: `getProjectComparison`, `getCrossProjectHealth`
-
-## Test Summary
-
-| Component | Tests |
-|-----------|-------|
-| v1.0-v5.0 | 521 |
-| Config Loader | 56 |
-| Monorepo | 20 |
-| Plugins | 19 |
-| Queries (JS) | 32 |
-| Orchestrator | 61 |
-| E2E | 15 |
-| **Total** | **724+** |
+- v7.0 created: OpenClaw Full Autonomy, 9 phases (Phase 21-29)
+  - Multi-model setup (Gemini free tier + Claude + OpenAI fallback)
+  - Agent config with system prompts and sandbox
+  - Custom hooks, webhooks, skills, LLM Task
+  - Gemini cross-model review pipeline
+  - Quality gates (validation framework) in OpenClaw loop
+  - Autonomous coding loop (Plan C: spec-first + auto-validate)
+  - Usage tracking, budget caps, monitoring dashboards
 
 ## Session Continuity
 
-Last session: 2026-01-26
-Status: v6.0 milestone complete and archived
+Last session: 2026-02-01
+Stopped at: Milestone v7.0 initialization
 Resume file: None
-Next: Framework complete - use in projects or plan v7.0
 
 ## Pending Todos
 
@@ -78,4 +51,6 @@ None
 
 ## Blockers/Concerns
 
-None
+- Gemini CLI headless OAuth in Docker container (needs token caching volume)
+- OpenClaw browser native CDP not supported (using Playwright via MCPorter)
+- .git/objects ownership conflict when openclaw user commits (ACL fix applied)
