@@ -66,7 +66,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 23-01: TBD
+- [x] 23-01: Hooks & webhooks config (validation-gate hook, command-logger, session-memory)
 
 #### Phase 24: Skills & LLM Task
 **Goal**: Skill nativa TDD cycle, LLM Task tool per cross-model review, Lobster typed workflows
@@ -76,7 +76,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 24-01: TBD
+- [x] 24-01: llm-task config, Lobster plugin, tdd-cycle + validate-review skills
 
 #### Phase 25: Gemini Cross-Review
 **Goal**: Setup Gemini OAuth headless nel gateway Docker, receipt system, cross-model validation pipeline
@@ -206,8 +206,8 @@ See [v4.0 Archive](milestones/v4.0-ROADMAP.md) for full details.
 
 | 21. Models & Providers | v7.0 | 1/1 | ✅ Complete | 2026-02-01 |
 | 22. Agent Config & System Prompts | v7.0 | 1/1 | ✅ Complete | 2026-02-02 |
-| 23. Hooks & Webhooks | v7.0 | 0/? | Not started | - |
-| 24. Skills & LLM Task | v7.0 | 0/? | Not started | - |
+| 23. Hooks & Webhooks | v7.0 | 1/1 | ✅ Complete | 2026-02-02 |
+| 24. Skills & LLM Task | v7.0 | 1/1 | ✅ Complete | 2026-02-02 |
 | 25. Gemini Cross-Review | v7.0 | 0/? | Not started | - |
 | 26. Quality Gates Integration | v7.0 | 0/? | Not started | - |
 | 27. Autonomous Loop (Piano C) | v7.0 | 0/? | Not started | - |

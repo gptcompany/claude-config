@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-26)
 
 ## Current Position
 
-Phase: 22 of 29 (Agent Config & System Prompts) — COMPLETE
-Plan: 22-01 complete (1/1)
-Status: Phase complete, ready for next
-Last activity: 2026-02-02 - Phase 22 complete
+Phase: 24 of 29 (Skills & LLM Task) — COMPLETE
+Plan: 24-01 complete (1/1)
+Status: Phase complete, UAT 8/8 passed, ready for next
+Last activity: 2026-02-02 - Phase 24 complete
 
-Progress: ██░░░░░░░░ 22%
+Progress: ████░░░░░░ 44%
 
 ## Shipped Milestones
 
@@ -34,8 +34,8 @@ Progress: ██░░░░░░░░ 22%
 |-------|--------|
 | 21. Models & Providers | Complete |
 | 22. Agent Config & System Prompts | Complete |
-| 23. Hooks & Webhooks | Not started |
-| 24. Skills & LLM Task | Not started |
+| 23. Hooks & Webhooks | Complete |
+| 24. Skills & LLM Task | Complete |
 | 25. Gemini Cross-Review | Not started |
 | 26. Quality Gates Integration | Not started |
 | 27. Autonomous Loop (Piano C) | Not started |
@@ -56,7 +56,7 @@ Progress: ██░░░░░░░░ 22%
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Phase 22 complete
+Stopped at: Phase 24 complete
 Resume file: None
 
 ## Pending Todos
