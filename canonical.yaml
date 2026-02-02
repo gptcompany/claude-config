@@ -521,8 +521,8 @@ mcp:
     UTXOracle:
     - brk
   secrets_sources:
-    sops:
-      file: /media/sam/1TB/secrets.enc
+    dotenvx:
+      file: /media/sam/1TB/.env
       keys:
       - FIRECRAWL_API_KEY
       - WOLFRAM_LLM_APP_ID

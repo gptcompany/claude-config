@@ -31,14 +31,14 @@
       "command": "bash",
       "args": [
         "-c",
-        "eval \"$(sops --input-type dotenv --output-type dotenv -d /media/sam/1TB/.env.enc 2>/dev/null | grep GRAFANA | sed 's/^/export /')\" && /home/sam/go/bin/mcp-grafana"
+        "/home/sam/.local/bin/dotenvx run -f /media/sam/1TB/.env -- /home/sam/go/bin/mcp-grafana"
       ]
     },
     "n8n-mcp": {
       "command": "bash",
       "args": [
         "-c",
-        "eval \"$(sops --input-type dotenv --output-type dotenv -d /media/sam/1TB/.env.enc 2>/dev/null | grep N8N_API | sed 's/^/export /')\" && npx -y n8n-mcp"
+        "/home/sam/.local/bin/dotenvx run -f /media/sam/1TB/.env -- npx -y n8n-mcp"
       ],
       "env": {
         "N8N_API_URL": "https://n8nubuntu.princyx.xyz/",
@@ -50,14 +50,14 @@
       "command": "bash",
       "args": [
         "-c",
-        "eval \"$(sops --input-type dotenv --output-type dotenv -d /media/sam/1TB/.env.enc 2>/dev/null | grep FIRECRAWL | sed 's/^/export /')\" && npx -y firecrawl-mcp"
+        "/home/sam/.local/bin/dotenvx run -f /media/sam/1TB/.env -- npx -y firecrawl-mcp"
       ]
     },
     "sentry": {
       "command": "bash",
       "args": [
         "-c",
-        "eval \"$(sops --input-type dotenv --output-type dotenv -d /media/sam/1TB/.env.enc 2>/dev/null | grep SENTRY | sed 's/^/export /')\" && npx -y @sentry/mcp-server --access-token=$SENTRY_AUTH_TOKEN"
+        "/home/sam/.local/bin/dotenvx run -f /media/sam/1TB/.env -- bash -c 'npx -y @sentry/mcp-server --access-token=$SENTRY_AUTH_TOKEN'"
       ]
     },
     "playwright": {

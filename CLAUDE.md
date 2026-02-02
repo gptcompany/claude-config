@@ -77,65 +77,35 @@ Quando analizzi codice, valuti progressi, o riporti status:
 
 **MAI esporre secrets nell'output della chat:**
 
-1. **Verifica silenziosa**: Usa `grep -q` per verificare esistenza senza mostrare il valore
-   ```bash
-   # CORRETTO
-   sops -d file.enc 2>/dev/null | grep -q "SECRET_NAME" && echo "Exists"
+1. **Verifica silenziosa**: `dotenvx get KEY -f /media/sam/1TB/.env 2>/dev/null | grep -q . && echo "Exists"`
+2. **MAI** `cut -d= -f2`, `awk '{print $2}'` per estrarre valori di secret.
 
-   # SBAGLIATO - espone il valore
-   sops -d file.enc | grep "SECRET_NAME"
-   ```
-
-2. **SOPS/age per tutti i secrets**:
-   - Credenziali Discord, API keys, tokens -> `.env.enc`
+3. **dotenvx per tutti i secrets** (ECIES encryption):
+   - Credenziali Discord, API keys, tokens -> `.env` (cifrato con dotenvx)
    - MAI credenziali inline in crontab
-   - Script devono caricare da SOPS: `eval "$(sops --input-type dotenv --output-type dotenv -d .env.enc)"`
+   - Script devono caricare con: `dotenvx run -f .env -- cmd`
 
-3. **Locations**:
-   - Secrets cifrati: `/media/sam/1TB/<repo>/.env.enc`
-   - Age keys: `~/.config/sops/age/keys.txt`
-   - SOPS config: `/media/sam/1TB/.sops.yaml`
+4. **Locations**:
+   - Secrets cifrati: `/media/sam/1TB/.env` (SSOT master)
+   - Private keys: `/media/sam/1TB/.env.keys` (chmod 600, MAI in git)
 
 ### Secrets SSOT (Single Source of Truth)
 
-**SSOT Location:** `/media/sam/1TB/.env.enc` (SOPS+age encrypted)
+**SSOT Location:** `/media/sam/1TB/.env` (dotenvx ECIES encrypted)
 
-| Key | Usage |
-|-----|-------|
-| `GITHUB_PAT` | GitHub API, CI/CD |
-| `GITHUB_TOKEN` | GitHub MCP |
-| `GH_PROJECT_PAT` | GitHub org secret for project boards (= GITHUB_TOKEN) |
-| `LINEAR_API_KEY` | Linear MCP |
-| `SENTRY_AUTH_TOKEN` | Sentry MCP |
-| `OPENAI_API_KEY` | OpenAI API |
-| `GEMINI_API_KEY` | Vertex AI |
-| `N8N_API_KEY` | N8N MCP |
-| `DISCORD_TOKEN` | Discord bot |
-| `DISCORD_WEBHOOK_URL` | Pipeline alerts |
-| `GRAFANA_URL/USERNAME/PASSWORD` | Grafana MCP |
-| `FIRECRAWL_API_KEY` | Firecrawl MCP |
-| `LANGSMITH_*` | LangSmith tracing |
-| `WOLFRAM_LLM_APP_ID` | WolframAlpha (in .mcp.json env) |
+| Operazione | Comando |
+|-----------|---------|
+| Aggiungere secret | `secret-add KEY_NAME` |
+| Editare tutti | `secret-add` (apre editor) |
+| Leggere singolo | `dotenvx get KEY -f /media/sam/1TB/.env` |
+| Iniettare in comando | `dotenvx run -f /media/sam/1TB/.env -- cmd` |
 
-**Total:** 35 keys in SSOT
-
-**Comandi SOPS:**
-```bash
-# Decrypt to view (keys only, no values!)
-sops -d /media/sam/1TB/.env.enc | cut -d= -f1
-
-# Add new secret
-sops /media/sam/1TB/.env.enc  # opens editor
-
-# Verify key exists
-sops -d /media/sam/1TB/.env.enc 2>/dev/null | grep -q "KEY_NAME" && echo "Exists"
-```
+**Total:** 60+ keys in SSOT
 
 **⚠️ DEPRECATO:**
+- SOPS + age → migrato a dotenvx (Feb 2026)
+- `.env.enc` → ora `.env` (cifrato con dotenvx)
 - GSM (Google Secret Manager) - non usare
-- `/media/sam/1TB/secrets.enc` - migrato a .env.enc
-- `~/.claude/.env.enc` - migrato a /media/sam/1TB/.env.enc
-- `/media/sam/1TB/.env` (plaintext) - eliminato
 
 ## MCP Server Configuration
 
