@@ -86,7 +86,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 25-01: TBD
+- [x] 25-01: Verify Gemini API key + E2E cross-review pipeline (Flash direct, Pro via OpenRouter)
 
 #### Phase 26: Quality Gates Integration
 **Goal**: Git hooks pre-commit/pre-push con validation framework, branch strategy feature→main, exec-approvals audit
@@ -208,7 +208,7 @@ See [v4.0 Archive](milestones/v4.0-ROADMAP.md) for full details.
 | 22. Agent Config & System Prompts | v7.0 | 1/1 | ✅ Complete | 2026-02-02 |
 | 23. Hooks & Webhooks | v7.0 | 1/1 | ✅ Complete | 2026-02-02 |
 | 24. Skills & LLM Task | v7.0 | 1/1 | ✅ Complete | 2026-02-02 |
-| 25. Gemini Cross-Review | v7.0 | 0/? | Not started | - |
+| 25. Gemini Cross-Review | v7.0 | 1/1 | ✅ Complete | 2026-02-02 |
 | 26. Quality Gates Integration | v7.0 | 0/? | Not started | - |
 | 27. Autonomous Loop (Piano C) | v7.0 | 0/? | Not started | - |
 | 28. Usage Tracking & Budget | v7.0 | 0/? | Not started | - |
