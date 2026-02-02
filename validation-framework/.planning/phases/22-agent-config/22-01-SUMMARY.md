@@ -22,7 +22,7 @@ Per-agent workspace bootstrap files and openclaw.json identity/thinking config f
 
 **openclaw.json changes:**
 - Identity blocks for all 4 agents (Bambam, Nautilus, Oracle, Flow)
-- `thinkingDefault: "low"` in agents.defaults
+- `thinkingDefault: "high"` in agents.defaults (high per coding/planning, cron jobs useranno `--thinking low` override)
 - Valid JSON confirmed
 
 ## Verification
@@ -30,7 +30,7 @@ Per-agent workspace bootstrap files and openclaw.json identity/thinking config f
 - `openclaw doctor`: 4 agents recognized, Matrix OK, 0 plugin errors
 - All workspace files present and under size limits
 - Identity names match expected values
-- thinkingDefault = "low"
+- thinkingDefault = "high" (changed from "low" post-checkpoint)
 
 ## Commits
 
