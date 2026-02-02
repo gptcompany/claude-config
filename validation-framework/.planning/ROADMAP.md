@@ -95,7 +95,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 26-01: TBD
+- [x] 26-01: Git hooks pre-commit/pre-push deployed to main agent workspace, exec-approvals audited
 
 #### Phase 27: Autonomous Loop (Piano C)
 **Goal**: Spec-first workflow completo, state persistence su disco, iteration loop con max rounds, escalation policy, progressive-deploy integration come gate finale
@@ -209,7 +209,7 @@ See [v4.0 Archive](milestones/v4.0-ROADMAP.md) for full details.
 | 23. Hooks & Webhooks | v7.0 | 1/1 | ✅ Complete | 2026-02-02 |
 | 24. Skills & LLM Task | v7.0 | 1/1 | ✅ Complete | 2026-02-02 |
 | 25. Gemini Cross-Review | v7.0 | 1/1 | ✅ Complete | 2026-02-02 |
-| 26. Quality Gates Integration | v7.0 | 0/? | Not started | - |
+| 26. Quality Gates Integration | v7.0 | 1/1 | ✅ Complete | 2026-02-02 |
 | 27. Autonomous Loop (Piano C) | v7.0 | 0/? | Not started | - |
 | 28. Usage Tracking & Budget | v7.0 | 0/? | Not started | - |
 | 29. Monitoring & Dashboards | v7.0 | 0/? | Not started | - |
