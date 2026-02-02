@@ -2,19 +2,19 @@
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-01-26)
+See: .planning/PROJECT.md (updated 2026-02-02)
 
 **Core value:** Every project gets production-grade validation with zero friction
-**Current focus:** v7.0 OpenClaw Full Autonomy
+**Current focus:** All milestones complete (v1.0-v7.0)
 
 ## Current Position
 
-Phase: 28 of 29 (Usage Tracking & Budget) — COMPLETE
-Plan: 28-01 complete (1/1)
-Status: Phase complete, budget enforcer deployed, Prometheus metrics flowing
-Last activity: 2026-02-02 - Phase 28 complete
+Phase: 29 of 29 (Monitoring & Dashboards) — COMPLETE
+Plan: 29-01 complete (1/1)
+Status: v7.0 milestone shipped
+Last activity: 2026-02-02 - v7.0 milestone complete
 
-Progress: ████████░░ 78%
+Progress: ██████████ 100%
 
 ## Shipped Milestones
 
@@ -26,37 +26,13 @@ Progress: ████████░░ 78%
 | v4.0 | 13-15 | 25 | 2026-01-25 |
 | v5.0 | 16 | 4 | 2026-01-26 |
 | v6.0 | 17-20 | 12 | 2026-01-26 |
-| **Total** | **20** | **66** | |
-
-## v7.0 Progress
-
-| Phase | Status |
-|-------|--------|
-| 21. Models & Providers | Complete |
-| 22. Agent Config & System Prompts | Complete |
-| 23. Hooks & Webhooks | Complete |
-| 24. Skills & LLM Task | Complete |
-| 25. Gemini Cross-Review | Complete |
-| 26. Quality Gates Integration | Complete |
-| 27. Autonomous Loop (Piano C) | Complete |
-| 28. Usage Tracking & Budget | Complete |
-| 29. Monitoring & Dashboards | Not started |
-
-## Roadmap Evolution
-
-- v7.0 created: OpenClaw Full Autonomy, 9 phases (Phase 21-29)
-  - Multi-model setup (Gemini free tier + Claude + OpenAI fallback)
-  - Agent config with system prompts and sandbox
-  - Custom hooks, webhooks, skills, LLM Task
-  - Gemini cross-model review pipeline
-  - Quality gates (validation framework) in OpenClaw loop
-  - Autonomous coding loop (Plan C: spec-first + auto-validate)
-  - Usage tracking, budget caps, monitoring dashboards
+| v7.0 | 21-29 | 9 | 2026-02-02 |
+| **Total** | **29** | **75** | |
 
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Phase 28 complete
+Stopped at: v7.0 milestone complete
 Resume file: None
 
 ## Pending Todos
@@ -65,6 +41,4 @@ None
 
 ## Blockers/Concerns
 
-- Gemini CLI headless OAuth in Docker container (needs token caching volume)
-- OpenClaw browser native CDP not supported (using Playwright via MCPorter)
-- .git/objects ownership conflict when openclaw user commits (ACL fix applied)
+None — all milestones shipped.

@@ -16,7 +16,7 @@ Build a reusable validation pipeline framework starting with core templates, the
 - ✅ [**v4.0 ECC Integration & Hooks Modernization**](milestones/v4.0-ROADMAP.md) (Phases 13-15) — SHIPPED 2026-01-25
 - ✅ [**v5.0 GSD + Validation + Claude-Flow Integration**](milestones/v5.0-ROADMAP.md) (Phase 16) — SHIPPED 2026-01-26
 - ✅ [**v6.0 Full-Stack Validation Platform**](milestones/v6.0-ROADMAP.md) (Phases 17-20) — SHIPPED 2026-01-26
-- 🚧 **v7.0 OpenClaw Full Autonomy** - Phases 21-29 (in progress)
+- ✅ [**v7.0 OpenClaw Full Autonomy**](milestones/v7.0-ROADMAP.md) (Phases 21-29) — SHIPPED 2026-02-02
 
 ---
 
@@ -34,7 +34,8 @@ Build a reusable validation pipeline framework starting with core templates, the
 
 ---
 
-### 🚧 v7.0 OpenClaw Full Autonomy (In Progress)
+<details>
+<summary>✅ v7.0 OpenClaw Full Autonomy (Phases 21-29) — SHIPPED 2026-02-02</summary>
 
 **Milestone Goal:** Configure OpenClaw al 100% delle capacità e abilitare loop di coding autonomo 24/7 con quality gates, cross-model review (Gemini), validation framework integrato, e monitoring.
 
@@ -123,7 +124,11 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 29-01: TBD
+- [x] 29-01: Grafana dashboard (8 panels), 3 alert rules, 9 Prometheus metrics
+
+**Total:** 9 plans, 9 phases
+
+</details>
 
 ---
 
@@ -212,9 +217,9 @@ See [v4.0 Archive](milestones/v4.0-ROADMAP.md) for full details.
 | 26. Quality Gates Integration | v7.0 | 1/1 | ✅ Complete | 2026-02-02 |
 | 27. Autonomous Loop (Piano C) | v7.0 | 1/1 | ✅ Complete | 2026-02-02 |
 | 28. Usage Tracking & Budget | v7.0 | 1/1 | ✅ Complete | 2026-02-02 |
-| 29. Monitoring & Dashboards | v7.0 | 0/? | Not started | - |
+| 29. Monitoring & Dashboards | v7.0 | 1/1 | ✅ Complete | 2026-02-02 |
 
-**Total:** 66 plans shipped (v1.0-v6.0), 9 phases planned (v7.0)
+**Total:** 75 plans shipped (v1.0-v7.0)
 
 **Test Coverage:**
 - v1.0-v5.0: 521 tests

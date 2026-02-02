@@ -8,11 +8,11 @@ A production-ready 14-dimension validation framework with tiered execution, conf
 
 **Every project gets production-grade validation with zero friction** — scaffold once, validate everywhere, with confidence-based iterative refinement.
 
-## Current State (v6.0 shipped 2026-01-26)
+## Current State (v7.0 shipped 2026-02-02)
 
 **Tech stack:** Python 3.12+, Node.js 22+, Jinja2, pytest, asyncio
 **Location:** `~/.claude/templates/validation/`
-**Size:** 80+ Python files, 27,437 LOC Python + 26,005 LOC JS, 724+ tests
+**Size:** 80+ Python files, ~33k LOC Python + 26k LOC JS, 724+ tests
 
 **Key components:**
 - ValidationOrchestrator (14-dimension tiered execution)
@@ -75,6 +75,18 @@ A production-ready 14-dimension validation framework with tiered execution, conf
 - ✓ Plugin system — v6.0
 - ✓ Cross-project metrics — v6.0
 
+### Validated (v7.0)
+
+- ✓ Multi-model provider config (Claude, Gemini, Kimi, OpenAI) — v7.0
+- ✓ Per-agent workspace bootstrap + system prompts — v7.0
+- ✓ Hooks & webhooks (validation-gate, command-logger, session-memory) — v7.0
+- ✓ Skills & LLM Task (tdd-cycle, validate-review) — v7.0
+- ✓ Gemini cross-model review pipeline — v7.0
+- ✓ Git quality gates (pre-commit/pre-push) — v7.0
+- ✓ Autonomous loop controller (spec-first) — v7.0
+- ✓ Usage tracking & budget enforcement (9 Prometheus metrics) — v7.0
+- ✓ Grafana monitoring dashboard (8 panels, 3 alerts) — v7.0
+
 ### Active
 
 (None - framework complete)
@@ -128,4 +140,4 @@ A production-ready 14-dimension validation framework with tiered execution, conf
 - **Simplicity**: No enterprise overhead — single scaffold script, minimal config
 
 ---
-*Last updated: 2026-01-26 after v6.0 milestone — Framework complete*
+*Last updated: 2026-02-02 after v7.0 milestone — All milestones shipped*
