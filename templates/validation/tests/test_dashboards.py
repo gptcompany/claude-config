@@ -12,7 +12,7 @@ import pytest
 # Import path setup
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from dashboards import get_dashboard_path, load_dashboard, DASHBOARD_DIR
+from dashboards import DASHBOARD_DIR, get_dashboard_path, load_dashboard
 
 
 class TestGetDashboardPath:

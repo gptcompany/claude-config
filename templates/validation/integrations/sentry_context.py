@@ -11,14 +11,14 @@ import logging
 from typing import TYPE_CHECKING, Any
 
 if TYPE_CHECKING:
-    from orchestrator import ValidationReport, TierResult
+    from orchestrator import TierResult, ValidationReport
 
 logger = logging.getLogger(__name__)
 
 # Check if sentry_sdk is available
 try:
     import sentry_sdk
-    from sentry_sdk import set_context, set_tag, add_breadcrumb, push_scope
+    from sentry_sdk import add_breadcrumb, push_scope, set_context, set_tag
 
     SENTRY_AVAILABLE = True
 except ImportError:
@@ -107,9 +107,11 @@ def _inject_tier_context(tier_result: "TierResult") -> None:
             "tier": tier_value,
             "tier_name": tier_name,
             "passed": tier_result.passed,
-            "score": (passed_validators / total_validators * 100)
-            if total_validators > 0
-            else 100.0,
+            "score": (
+                (passed_validators / total_validators * 100)
+                if total_validators > 0
+                else 100.0
+            ),
             "blockers": len(failed_validators) if tier_value == 1 else 0,
             "warnings": len(failed_validators) if tier_value == 2 else 0,
             "validators_run": validators_run,
@@ -209,9 +211,11 @@ def _inject_report_context(report: "ValidationReport") -> None:
     add_breadcrumb(
         category="validation",
         message=f"Validation {status}: {report.project}",
-        level="error"
-        if report.blocked
-        else ("info" if report.overall_passed else "warning"),
+        level=(
+            "error"
+            if report.blocked
+            else ("info" if report.overall_passed else "warning")
+        ),
         data={
             "tiers_run": len(report.tiers),
             "validators": all_validators,

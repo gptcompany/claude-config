@@ -16,9 +16,9 @@ DRIFT_DETECTOR="${SCRIPT_DIR}/drift-detector.py"
 DOTENVX="/home/sam/.local/bin/dotenvx"
 ENV_FILE="/media/sam/1TB/.env"
 
-# Load secrets from dotenvx (not from environment/crontab!)
+# Load secrets from dotenvx
 if [[ -f "$ENV_FILE" ]]; then
-    eval "$($DOTENVX decrypt -f "$ENV_FILE" --stdout 2>/dev/null | grep -E '^[A-Z_]+=' | sed 's/^/export /')"
+    eval "$($DOTENVX decrypt -f "$ENV_FILE" --stdout 2>/dev/null | grep -E '^[A-Z_]+=')"
 fi
 
 DISCORD_WEBHOOK="${DISCORD_WEBHOOK_URL:-}"

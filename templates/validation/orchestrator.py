@@ -20,6 +20,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
 from pathlib import Path
+from typing import Any
 
 # =============================================================================
 # Environment Controls
@@ -27,13 +28,14 @@ from pathlib import Path
 
 AGENT_SPAWN_ENABLED = os.environ.get("VALIDATION_AGENT_SPAWN", "true").lower() == "true"
 SWARM_ENABLED = os.environ.get("VALIDATION_SWARM", "true").lower() == "true"
+CACHE_ENABLED = os.environ.get("VALIDATION_CACHE_ENABLED", "true").lower() != "false"
 
 # =============================================================================
 # Integration Imports (Optional - graceful degradation)
 # =============================================================================
 
 try:
-    from integrations.metrics import push_validation_metrics, METRICS_AVAILABLE
+    from integrations.metrics import METRICS_AVAILABLE, push_validation_metrics
 except ImportError:
     METRICS_AVAILABLE = False
 
@@ -41,11 +43,24 @@ except ImportError:
         return False
 
 
+# Plugin system (Phase 20 - graceful degradation)
+try:
+    from plugins import load_plugins
+
+    PLUGINS_AVAILABLE = True
+except ImportError:
+    PLUGINS_AVAILABLE = False
+
+    def load_plugins(specs: list[str]) -> dict[str, type]:  # type: ignore[misc]
+        """Stub when plugins module unavailable."""
+        return {}
+
+
 try:
     from integrations.sentry_context import (
-        inject_validation_context,
-        add_validation_breadcrumb,
         SENTRY_AVAILABLE,
+        add_validation_breadcrumb,
+        inject_validation_context,
     )
 except ImportError:
     SENTRY_AVAILABLE = False
@@ -55,6 +70,103 @@ except ImportError:
 
     def add_validation_breadcrumb(*args, **kwargs) -> bool:
         return False
+
+
+# Cache integration (Phase 19 - graceful degradation)
+try:
+    from resilience.cache import CACHE_AVAILABLE
+    from resilience.cache import ValidationCache as _ValidationCache
+except ImportError:
+    CACHE_AVAILABLE = False
+    _ValidationCache = None  # type: ignore[misc, assignment]
+
+
+# Resilience integration (Phase 19-03 - graceful degradation)
+
+
+class _MockBreaker:
+    """Mock circuit breaker for when resilience module is unavailable."""
+
+    def should_attempt(self) -> bool:
+        return True
+
+    def record_success(self) -> None:
+        pass
+
+    def record_failure(self) -> None:
+        pass
+
+
+class _StubCircuitOpenError(Exception):
+    """Stub for CircuitOpenError when resilience module unavailable."""
+
+    def __init__(self, name: str):
+        self.circuit_name = name
+        super().__init__(f"Circuit '{name}' is open")
+
+
+def _stub_get_breaker(*args: Any, **kwargs: Any) -> _MockBreaker:
+    """Stub that returns a mock breaker."""
+    del args, kwargs  # Unused
+    return _MockBreaker()
+
+
+def _stub_reset_all_breakers() -> int:
+    """Stub that does nothing."""
+    return 0
+
+
+_STUB_DEFAULT_TIMEOUTS: dict[str, int] = {
+    "code_quality": 60,
+    "type_safety": 120,
+    "security": 90,
+    "coverage": 300,
+    "visual": 30,
+    "behavioral": 30,
+    "default": 60,
+}
+
+
+def _stub_get_timeout(dimension: str, config: dict[str, Any] | None = None) -> int:
+    """Stub that returns default timeout."""
+    if config and "timeouts" in config:
+        return config["timeouts"].get(
+            dimension, _STUB_DEFAULT_TIMEOUTS.get(dimension, 60)
+        )
+    return _STUB_DEFAULT_TIMEOUTS.get(dimension, 60)
+
+
+async def _stub_with_timeout(
+    coro: Any, timeout: float, dimension: str = "unknown"
+) -> Any:
+    """Stub that just awaits the coroutine with asyncio.wait_for."""
+    del dimension  # Unused
+    return await asyncio.wait_for(coro, timeout=timeout)
+
+
+try:
+    from resilience.circuit_breaker import CircuitOpenError as _CircuitOpenError
+    from resilience.circuit_breaker import get_breaker as _get_breaker
+    from resilience.circuit_breaker import reset_all_breakers as _reset_all_breakers
+    from resilience.timeout import DEFAULT_TIMEOUTS as _DEFAULT_TIMEOUTS
+    from resilience.timeout import get_timeout as _get_timeout
+    from resilience.timeout import with_timeout as _with_timeout
+
+    RESILIENCE_AVAILABLE = True
+    CircuitOpenError = _CircuitOpenError
+    get_breaker = _get_breaker
+    reset_all_breakers = _reset_all_breakers
+    DEFAULT_TIMEOUTS = _DEFAULT_TIMEOUTS
+    get_timeout = _get_timeout
+    with_timeout = _with_timeout
+except ImportError:
+    RESILIENCE_AVAILABLE = False
+    CircuitOpenError = _StubCircuitOpenError  # type: ignore[misc, assignment]
+    get_breaker = _stub_get_breaker  # type: ignore[assignment]
+    reset_all_breakers = _stub_reset_all_breakers
+    DEFAULT_TIMEOUTS = _STUB_DEFAULT_TIMEOUTS
+    get_timeout = _stub_get_timeout  # type: ignore[assignment]
+    with_timeout = _stub_with_timeout  # type: ignore[assignment]
 
 
 # =============================================================================
@@ -100,12 +212,18 @@ def _log_integrations_status():
         integrations.append("Prometheus metrics")
     if SENTRY_AVAILABLE:
         integrations.append("Sentry context")
+    if CACHE_AVAILABLE and CACHE_ENABLED:
+        integrations.append("Validation cache")
+    elif CACHE_AVAILABLE and not CACHE_ENABLED:
+        integrations.append("Validation cache (disabled)")
+    if RESILIENCE_AVAILABLE:
+        integrations.append("Resilience (circuit breaker, timeouts)")
 
     if integrations:
         logger.info(f"Integrations available: {', '.join(integrations)}")
     else:
         logger.info(
-            "No optional integrations available (prometheus_client, sentry_sdk)"
+            "No optional integrations available (prometheus_client, sentry_sdk, diskcache)"
         )
 
 
@@ -447,7 +565,9 @@ class CoverageValidator(BaseValidator):
         try:
             import xml.etree.ElementTree as ET
 
-            tree = ET.parse(coverage_file)
+            tree = ET.parse(
+                coverage_file
+            )  # nosec B314 - internal coverage XML, no user input
             line_rate = float(tree.getroot().get("line-rate", 0)) * 100
 
             passed = line_rate >= self.min_coverage
@@ -481,40 +601,40 @@ class CoverageValidator(BaseValidator):
 
 # Import real validators with fallback to stubs
 try:
-    from validators.design_principles.validator import (  # type: ignore[import-not-found]
+    from validators.design_principles.validator import (
         DesignPrinciplesValidator as DesignPrinciplesValidatorImpl,
-    )
+    )  # type: ignore[import-not-found]
 except ImportError:
     DesignPrinciplesValidatorImpl = None  # type: ignore[assignment]
 
 try:
-    from validators.oss_reuse.validator import (  # type: ignore[import-not-found]
+    from validators.oss_reuse.validator import (
         OSSReuseValidator as OSSReuseValidatorImpl,
-    )
+    )  # type: ignore[import-not-found]
 except ImportError:
     OSSReuseValidatorImpl = None  # type: ignore[assignment]
 
 try:
-    from validators.mathematical.validator import (  # type: ignore[import-not-found]
+    from validators.mathematical.validator import (
         MathematicalValidator as MathematicalValidatorImpl,
-    )
+    )  # type: ignore[import-not-found]
 except ImportError:
     MathematicalValidatorImpl = None  # type: ignore[assignment]
 
 try:
-    from validators.api_contract.validator import (  # type: ignore[import-not-found]
+    from validators.api_contract.validator import (
         APIContractValidator as APIContractValidatorImpl,
-    )
+    )  # type: ignore[import-not-found]
 except ImportError:
     APIContractValidatorImpl = None  # type: ignore[assignment]
 
 # ECC Validators (from everything-claude-code integration)
 try:
-    from validators.ecc import (  # type: ignore[import-not-found]
-        E2EValidator,
+    from validators.ecc import (
+        E2EValidator,  # type: ignore[import-not-found]
+        EvalValidator,
         SecurityEnhancedValidator,
         TDDValidator,
-        EvalValidator,
     )
 
     ECC_VALIDATORS_AVAILABLE = True
@@ -527,9 +647,7 @@ except ImportError:
 
 # Visual Validator (Phase 18 integration)
 try:
-    from validators.visual import (  # type: ignore[import-not-found]
-        VisualTargetValidator,
-    )
+    from validators.visual import VisualTargetValidator  # type: ignore[import-not-found]
 
     VISUAL_VALIDATOR_AVAILABLE = True
 except ImportError:
@@ -538,9 +656,7 @@ except ImportError:
 
 # Behavioral Validator (Phase 18 integration)
 try:
-    from validators.behavioral import (  # type: ignore[import-not-found]
-        BehavioralValidator,
-    )
+    from validators.behavioral import BehavioralValidator  # type: ignore[import-not-found]
 
     BEHAVIORAL_VALIDATOR_AVAILABLE = True
 except ImportError:
@@ -975,7 +1091,9 @@ class ValidationOrchestrator:
             print("Tier 2 warnings - consider fixing")
     """
 
-    # Registry of validators by dimension name
+    # Registry of validators by dimension name.
+    # Additional validators can be loaded via plugins (see _load_plugins).
+    # Plugin validators are registered at runtime from config["plugins"] list.
     VALIDATOR_REGISTRY: dict[str, type[BaseValidator]] = {
         "code_quality": CodeQualityValidator,
         "type_safety": TypeSafetyValidator,
@@ -1017,21 +1135,53 @@ class ValidationOrchestrator:
     else:
         VALIDATOR_REGISTRY["behavioral"] = BaseValidator
 
+    # Validators that don't use file paths (cannot be cached by file hash)
+    FILELESS_VALIDATORS = {
+        "architecture",
+        "documentation",
+        "performance",
+        "accessibility",
+    }
+
     def __init__(self, config_path: Path | None = None):
         self.config = self._load_config(config_path)
         self.validators: dict[str, BaseValidator] = {}
+        self._cache: Any = None  # _ValidationCache or None
         self._register_validators()
+        self._load_plugins()
+        self._init_cache()
 
     def _load_config(self, path: Path | None) -> dict:
-        """Load validation config."""
-        if path and path.exists():
-            return json.loads(path.read_text())
+        """
+        Load validation config with global inheritance.
 
-        # Default config
-        return {
-            "project_name": PROJECT_NAME or "unknown",
-            "dimensions": DIMENSIONS_CONFIG or {},
-        }
+        Config inheritance chain (RFC 7396 JSON Merge Patch):
+        1. Template defaults (DEFAULT_CONFIG)
+        2. Global config (~/.claude/validation/global-config.json)
+        3. Project config (.claude/validation/config.json)
+
+        Args:
+            path: Optional explicit config file or project directory path.
+                  If None, searches from cwd.
+
+        Returns:
+            Merged config dict with _config_source metadata.
+        """
+        try:
+            from config_loader import load_config
+
+            return load_config(path)
+        except ImportError:
+            # Fallback if config_loader not available
+            logger.warning("config_loader not available, using legacy config loading")
+            if path and path.exists():
+                return json.loads(path.read_text())
+
+            # Default config
+            return {
+                "project_name": PROJECT_NAME or "unknown",
+                "dimensions": DIMENSIONS_CONFIG or {},
+            }
 
     def _register_validators(self):
         """Register validators based on config."""
@@ -1063,10 +1213,96 @@ class ValidationOrchestrator:
                 if "tier" in dim_config:
                     self.validators[name].tier = ValidationTier(dim_config["tier"])
 
+    def _load_plugins(self) -> None:
+        """
+        Load and register plugin validators from config.
+
+        Plugins are loaded from the "plugins" list in config. Each plugin
+        must provide a Validator class or get_validator() function.
+
+        Plugin validators default to Tier 3 (MONITOR) unless:
+        - The validator class sets a different tier
+        - The config dimensions explicitly set the tier
+
+        Example config:
+            {
+                "plugins": ["my-validator", "./local/plugin"],
+                "dimensions": {
+                    "my_validator": {"enabled": true, "tier": 2}
+                }
+            }
+        """
+        plugin_specs = self.config.get("plugins", [])
+        if not plugin_specs:
+            return
+
+        if not PLUGINS_AVAILABLE:
+            logger.warning("Plugin system unavailable, skipping plugin loading")
+            return
+
+        plugins = load_plugins(plugin_specs)
+        dimensions = self.config.get("dimensions", {})
+
+        for name, validator_cls in plugins.items():
+            try:
+                # Instantiate the validator
+                instance = validator_cls()
+                self.validators[name] = instance
+
+                # Normalize tier: handle None, int, or ValidationTier
+                if not hasattr(instance, "tier") or instance.tier is None:
+                    instance.tier = ValidationTier.MONITOR
+                elif isinstance(instance.tier, int):
+                    # Convert integer tier to ValidationTier enum
+                    instance.tier = ValidationTier(instance.tier)
+
+                # Override tier from config if specified
+                if name in dimensions and "tier" in dimensions[name]:
+                    instance.tier = ValidationTier(dimensions[name]["tier"])
+
+                tier_name = (
+                    instance.tier.name
+                    if isinstance(instance.tier, ValidationTier)
+                    else str(instance.tier)
+                )
+                logger.info(f"Registered plugin validator: {name} (tier={tier_name})")
+
+            except Exception as e:
+                logger.warning(f"Failed to instantiate plugin {name}: {e}")
+
+    def _init_cache(self) -> None:
+        """Initialize validation cache if available and enabled."""
+        if not CACHE_AVAILABLE or not CACHE_ENABLED or _ValidationCache is None:
+            logger.debug("Cache disabled or unavailable")
+            return
+
+        try:
+            self._cache = _ValidationCache()
+            if self._cache is not None:
+                self._cache.set_config_hash(self.config)
+            logger.debug("Validation cache initialized")
+        except Exception as e:
+            logger.warning(f"Failed to initialize cache: {e}")
+            self._cache = None
+
     def _get_tier(self, dimension: str) -> ValidationTier:
         """Get tier for a dimension."""
         validator = self.validators.get(dimension)
         return validator.tier if validator else ValidationTier.MONITOR
+
+    def get_validator_timeout(self, dimension: str) -> int:
+        """
+        Get timeout for a specific validator dimension.
+
+        Uses config timeouts if specified, otherwise falls back to defaults.
+
+        Args:
+            dimension: Validator dimension name
+
+        Returns:
+            Timeout in seconds
+        """
+        return get_timeout(dimension, self.config)
 
     async def _run_validator(
         self, name: str, validator: BaseValidator
@@ -1082,6 +1318,179 @@ class ValidationOrchestrator:
                 passed=False,
                 message=f"Validator error: {e}",
             )
+
+    async def _run_validator_resilient(
+        self, name: str, validator: BaseValidator
+    ) -> ValidationResult:
+        """
+        Run a single validator with resilience (timeout + circuit breaker).
+
+        Uses configurable timeouts and circuit breaker pattern for fault tolerance.
+        Falls back to standard execution if resilience module unavailable.
+
+        Args:
+            name: Validator dimension name
+            validator: Validator instance
+
+        Returns:
+            ValidationResult (may indicate timeout or circuit open)
+        """
+        timeout = self.get_validator_timeout(name)
+        breaker = get_breaker(name)
+
+        # Check circuit breaker state
+        if not breaker.should_attempt():
+            logger.warning(f"Circuit open for '{name}' - skipping validation")
+            return ValidationResult(
+                dimension=name,
+                tier=validator.tier,
+                passed=False,
+                message="Circuit breaker open - validator disabled",
+                details={"circuit_open": True},
+            )
+
+        start = datetime.now()
+        try:
+            # Run with timeout
+            result = await with_timeout(
+                validator.validate(), timeout=timeout, dimension=name
+            )
+            breaker.record_success()
+            return result
+
+        except asyncio.TimeoutError:
+            breaker.record_failure()
+            elapsed = int((datetime.now() - start).total_seconds() * 1000)
+            logger.warning(f"Validator '{name}' timed out after {timeout}s")
+            return ValidationResult(
+                dimension=name,
+                tier=validator.tier,
+                passed=False,
+                message=f"Timeout after {timeout}s",
+                details={"timeout": True, "timeout_seconds": timeout},
+                duration_ms=elapsed,
+            )
+
+        except CircuitOpenError:
+            logger.warning(f"Circuit opened during '{name}' execution")
+            return ValidationResult(
+                dimension=name,
+                tier=validator.tier,
+                passed=False,
+                message="Circuit breaker tripped",
+                details={"circuit_open": True},
+            )
+
+        except Exception as e:
+            breaker.record_failure()
+            elapsed = int((datetime.now() - start).total_seconds() * 1000)
+            logger.error(f"Validator '{name}' failed: {e}")
+            return ValidationResult(
+                dimension=name,
+                tier=validator.tier,
+                passed=False,
+                message=f"Validator error: {e}",
+                details={"error": str(e)},
+                duration_ms=elapsed,
+            )
+
+    async def _run_validator_cached(
+        self,
+        name: str,
+        validator: BaseValidator,
+        file_path: str | None = None,
+    ) -> ValidationResult:
+        """
+        Run a validator with cache support.
+
+        For file-based validators, checks cache first. For fileless validators
+        (architecture, documentation, etc.), always runs the validator.
+
+        Args:
+            name: Validator dimension name
+            validator: Validator instance
+            file_path: Optional file path for cache key
+
+        Returns:
+            ValidationResult (from cache or fresh run)
+        """
+        # Skip caching for fileless validators
+        if name in self.FILELESS_VALIDATORS or not file_path:
+            return await self._run_validator(name, validator)
+
+        # Check cache if available
+        if self._cache:
+            cached = self._cache.get(file_path, name)
+            if cached:
+                # Reconstruct ValidationResult from cached dict
+                return ValidationResult(
+                    dimension=cached.get("dimension", name),
+                    tier=ValidationTier(cached.get("tier", validator.tier.value)),
+                    passed=cached.get("passed", False),
+                    message=cached.get("message", ""),
+                    details=cached.get("details", {}),
+                    fix_suggestion=cached.get("fix_suggestion"),
+                    agent=cached.get("agent"),
+                    duration_ms=cached.get("duration_ms", 0),
+                )
+
+        # Run validator
+        result = await self._run_validator(name, validator)
+
+        # Cache result
+        if self._cache and file_path:
+            self._cache.set(
+                file_path,
+                name,
+                {
+                    "dimension": result.dimension,
+                    "tier": result.tier.value,
+                    "passed": result.passed,
+                    "message": result.message,
+                    "details": result.details,
+                    "fix_suggestion": result.fix_suggestion,
+                    "agent": result.agent,
+                    "duration_ms": result.duration_ms,
+                },
+            )
+
+        return result
+
+    def clear_cache(self) -> int:
+        """
+        Clear all cached validation results.
+
+        Returns:
+            Number of entries cleared
+        """
+        if not self._cache:
+            return 0
+        return self._cache.invalidate_all()
+
+    def cache_stats(self) -> dict:
+        """
+        Get cache statistics.
+
+        Returns:
+            Dict with hits, misses, hit_rate, size_bytes, entries
+        """
+        if not self._cache:
+            return {
+                "available": False,
+                "enabled": CACHE_ENABLED,
+                "hits": 0,
+                "misses": 0,
+                "hit_rate": 0.0,
+                "size_bytes": 0,
+                "entries": 0,
+            }
+
+        stats = self._cache.stats()
+        return {
+            "available": True,
+            "enabled": CACHE_ENABLED,
+            **stats.to_dict(),
+        }
 
     async def run_tier(self, tier: ValidationTier) -> TierResult:
         """Run all validators for a specific tier."""
@@ -1107,6 +1516,108 @@ class ValidationOrchestrator:
         )
 
         return TierResult(tier=tier, results=list(results))
+
+    async def run_tier_graceful(self, tier: ValidationTier) -> TierResult:
+        """
+        Run all validators for a tier with graceful degradation.
+
+        Uses resilient execution (timeouts + circuit breaker) and returns
+        partial results on failures. Never hangs indefinitely.
+
+        Args:
+            tier: Validation tier to run
+
+        Returns:
+            TierResult with all available results (partial on failures)
+        """
+        tier_validators = [
+            (name, v) for name, v in self.validators.items() if v.tier == tier
+        ]
+
+        if not tier_validators:
+            return TierResult(tier=tier, results=[])
+
+        # Run all validators concurrently with resilience
+        tasks = [self._run_validator_resilient(name, v) for name, v in tier_validators]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        # Process results, converting exceptions to failed results
+        processed_results: list[ValidationResult] = []
+        for (name, v), result in zip(tier_validators, results, strict=True):
+            if isinstance(result, BaseException):
+                logger.error(
+                    f"Validator '{name}' raised unexpected exception: {result}"
+                )
+                processed_results.append(
+                    ValidationResult(
+                        dimension=name,
+                        tier=v.tier,
+                        passed=False,
+                        message=f"Unexpected error: {type(result).__name__}",
+                        details={
+                            "error": str(result),
+                            "exception_type": type(result).__name__,
+                        },
+                    )
+                )
+            elif isinstance(result, ValidationResult):
+                processed_results.append(result)
+
+        return TierResult(tier=tier, results=processed_results)
+
+    async def run_validators_graceful(
+        self, validator_names: list[str] | None = None
+    ) -> dict[str, ValidationResult]:
+        """
+        Run validators with graceful degradation.
+
+        Returns partial results on failures - never hangs indefinitely.
+        Catches TimeoutError, CircuitOpenError, and Exception, returning
+        appropriate failed results for each.
+
+        Args:
+            validator_names: Optional list of validators to run.
+                           If None, runs all registered validators.
+
+        Returns:
+            Dict mapping dimension name to ValidationResult
+        """
+        if validator_names is None:
+            validators_to_run = list(self.validators.items())
+        else:
+            validators_to_run = [
+                (name, v)
+                for name, v in self.validators.items()
+                if name in validator_names
+            ]
+
+        if not validators_to_run:
+            return {}
+
+        # Run all validators concurrently with resilience
+        tasks = [
+            self._run_validator_resilient(name, v) for name, v in validators_to_run
+        ]
+        results = await asyncio.gather(*tasks, return_exceptions=True)
+
+        # Build result dictionary
+        result_dict: dict[str, ValidationResult] = {}
+        for (name, v), result in zip(validators_to_run, results, strict=True):
+            if isinstance(result, BaseException):
+                logger.error(
+                    f"Validator '{name}' raised unexpected exception: {result}"
+                )
+                result_dict[name] = ValidationResult(
+                    dimension=name,
+                    tier=v.tier,
+                    passed=False,
+                    message=f"Unexpected error: {type(result).__name__}",
+                    details={"error": str(result)},
+                )
+            elif isinstance(result, ValidationResult):
+                result_dict[name] = result
+
+        return result_dict
 
     async def _suggest_fixes(self, tier_result: TierResult):
         """Log fix suggestions and spawn agents for failed Tier 2 validators."""
@@ -1339,9 +1850,11 @@ class ValidationOrchestrator:
         return FileValidationResult(
             file_path=file_path,
             has_blockers=has_blockers,
-            message=f"Tier {tier} blockers: {', '.join(failed)}"
-            if has_blockers
-            else f"Tier {tier} passed ({len(results)} validators)",
+            message=(
+                f"Tier {tier} blockers: {', '.join(failed)}"
+                if has_blockers
+                else f"Tier {tier} passed ({len(results)} validators)"
+            ),
             results=list(results),
             duration_ms=_elapsed_ms(start),
         )

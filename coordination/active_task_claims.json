@@ -1,467 +1,3451 @@
 {
   "claims": [
     {
-      "taskId": "task-73b85f03-110851",
-      "issueId": "task:task-73b85f03-110851",
-      "claimant": "agent:test-session-1769252931118:task",
+      "taskId": "task-73b85f03-183834",
+      "issueId": "task:task-73b85f03-183834",
+      "claimant": "agent:test-session-1769451662132:task",
       "description": "Test task description",
-      "claimedAt": "2026-01-24T11:08:51.191Z",
+      "claimedAt": "2026-01-26T18:39:16.920Z",
+      "claimSuccess": true
+    }
+  ]
+}kId": "task-9559b173-181553",
+      "issueId": "task:task-9559b173-181553",
+      "claimant": "agent:multi-agent-test-1769451352718:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:15:53.312Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-73b85f03-110907",
-      "issueId": "task:task-73b85f03-110907",
-      "claimant": "agent:test-session-1769252947408:task",
+      "taskId": "task-a5c8d40d-181553",
+      "issueId": "task:task-a5c8d40d-181553",
+      "claimant": "agent:multi-agent-test-1769451353328:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:15:53.710Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181554",
+      "issueId": "task:task-9559b173-181554",
+      "claimant": "agent:multi-agent-test-1769451353281:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:15:54.185Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181554",
+      "issueId": "task:task-27de87c5-181554",
+      "claimant": "agent:multi-agent-test-1769451353693:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:15:54.536Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181554",
+      "issueId": "task:task-07e43f3b-181554",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:15:54.548Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181554",
+      "issueId": "task:task-a5c8d40d-181554",
+      "claimant": "agent:multi-agent-test-1769451354321:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:15:54.835Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181555",
+      "issueId": "task:task-6e3b0dd6-181555",
+      "claimant": "agent:multi-agent-test-1769451354619:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:15:55.044Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-181555",
+      "issueId": "task:task-73b85f03-181555",
+      "claimant": "agent:test-session-1769451354674:task",
       "description": "Test task description",
-      "claimedAt": "2026-01-24T11:09:07.461Z",
+      "claimedAt": "2026-01-26T18:15:55.341Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-d94c6518-110922",
-      "issueId": "task:task-d94c6518-110922",
-      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
-      "description": "Test task execution",
-      "claimedAt": "2026-01-24T11:09:22.107Z",
+      "taskId": "task-07e43f3b-181555",
+      "issueId": "task:task-07e43f3b-181555",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:15:55.443Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-321b942c-111907",
-      "issueId": "task:task-321b942c-111907",
-      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
-      "description": "Test task",
-      "claimedAt": "2026-01-24T11:19:07.852Z",
+      "taskId": "task-44dc8c34-181555",
+      "issueId": "task:task-44dc8c34-181555",
+      "claimant": "agent:multi-agent-test-1769451355183:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:15:55.503Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-321b942c-111922",
-      "issueId": "task:task-321b942c-111922",
-      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
-      "description": "Test task",
-      "claimedAt": "2026-01-24T11:19:22.223Z",
+      "taskId": "task-07e43f3b-181555",
+      "issueId": "task:task-07e43f3b-181555",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:15:55.645Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-321b942c-111929",
-      "issueId": "task:task-321b942c-111929",
-      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
-      "description": "Test task",
-      "claimedAt": "2026-01-24T11:19:29.151Z",
+      "taskId": "task-9559b173-181555",
+      "issueId": "task:task-9559b173-181555",
+      "claimant": "agent:multi-agent-test-1769451355516:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:15:55.700Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-321b942c-111942",
-      "issueId": "task:task-321b942c-111942",
-      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
-      "description": "Test task",
-      "claimedAt": "2026-01-24T11:19:42.729Z",
+      "taskId": "task-a5c8d40d-181556",
+      "issueId": "task:task-a5c8d40d-181556",
+      "claimant": "agent:multi-agent-test-1769451355754:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:15:56.034Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-45c82177-113143",
-      "issueId": "task:task-45c82177-113143",
-      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
-      "description": "unknown task",
-      "claimedAt": "2026-01-24T11:31:43.405Z",
+      "taskId": "task-07e43f3b-181556",
+      "issueId": "task:task-07e43f3b-181556",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:15:56.101Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-45c82177-113227",
-      "issueId": "task:task-45c82177-113227",
-      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
-      "description": "unknown task",
-      "claimedAt": "2026-01-24T11:32:27.918Z",
+      "taskId": "task-07e43f3b-181556",
+      "issueId": "task:task-07e43f3b-181556",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:15:56.416Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-45c82177-113538",
-      "issueId": "task:task-45c82177-113538",
-      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
-      "description": "unknown task",
-      "claimedAt": "2026-01-24T11:35:38.142Z",
-      "claimSuccess": true
-    },
-    {
-      "taskId": "task-321b942c-121130",
-      "issueId": "task:task-321b942c-121130",
+      "taskId": "task-321b942c-181557",
+      "issueId": "task:task-321b942c-181557",
       "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
       "description": "Test task",
-      "claimedAt": "2026-01-24T12:11:30.093Z",
+      "claimedAt": "2026-01-26T18:15:57.205Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-73b85f03-121138",
-      "issueId": "task:task-73b85f03-121138",
-      "claimant": "agent:test-session-1769256698362:task",
+      "taskId": "task-c6fa32fd-181557",
+      "issueId": "task:task-c6fa32fd-181557",
+      "claimant": "agent:e2e-test-1769451356368:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:15:57.346Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181557",
+      "issueId": "task:task-07e43f3b-181557",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:15:57.561Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181600",
+      "issueId": "task:task-321b942c-181600",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:16:00.438Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-181601",
+      "issueId": "task:task-73b85f03-181601",
+      "claimant": "agent:test-session-1769451360894:task",
       "description": "Test task description",
-      "claimedAt": "2026-01-24T12:11:38.426Z",
+      "claimedAt": "2026-01-26T18:16:01.849Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-321b942c-121138",
-      "issueId": "task:task-321b942c-121138",
+      "taskId": "task-27de87c5-181602",
+      "issueId": "task:task-27de87c5-181602",
+      "claimant": "agent:multi-agent-test-1769451361082:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:16:02.085Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181602",
+      "issueId": "task:task-6e3b0dd6-181602",
+      "claimant": "agent:multi-agent-test-1769451362136:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:16:02.321Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181602",
+      "issueId": "task:task-44dc8c34-181602",
+      "claimant": "agent:multi-agent-test-1769451362366:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:16:02.794Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181603",
+      "issueId": "task:task-9559b173-181603",
+      "claimant": "agent:multi-agent-test-1769451362908:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:16:03.139Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181603",
+      "issueId": "task:task-c6fa32fd-181603",
+      "claimant": "agent:e2e-test-1769451363024:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:16:03.224Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181603",
+      "issueId": "task:task-c6fa32fd-181603",
+      "claimant": "agent:e2e-test-1769451362947:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:16:03.260Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181603",
+      "issueId": "task:task-27de87c5-181603",
+      "claimant": "agent:multi-agent-test-1769451362731:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:16:03.374Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181603",
+      "issueId": "task:task-a5c8d40d-181603",
+      "claimant": "agent:multi-agent-test-1769451363148:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:16:03.546Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181603",
+      "issueId": "task:task-6e3b0dd6-181603",
+      "claimant": "agent:multi-agent-test-1769451363622:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:16:03.957Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181604",
+      "issueId": "task:task-07e43f3b-181604",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:16:04.468Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181604",
+      "issueId": "task:task-44dc8c34-181604",
+      "claimant": "agent:multi-agent-test-1769451364066:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:16:04.691Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181604",
+      "issueId": "task:task-9559b173-181604",
+      "claimant": "agent:multi-agent-test-1769451364703:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:16:04.847Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181605",
+      "issueId": "task:task-07e43f3b-181605",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:16:05.042Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181605",
+      "issueId": "task:task-a5c8d40d-181605",
+      "claimant": "agent:multi-agent-test-1769451364948:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:16:05.161Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181605",
+      "issueId": "task:task-07e43f3b-181605",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:16:05.373Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-181605",
+      "issueId": "task:task-73b85f03-181605",
+      "claimant": "agent:test-session-1769451365324:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:16:05.408Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181605",
+      "issueId": "task:task-321b942c-181605",
       "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
       "description": "Test task",
-      "claimedAt": "2026-01-24T12:11:38.937Z",
+      "claimedAt": "2026-01-26T18:16:05.603Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-45c82177-121140",
-      "issueId": "task:task-45c82177-121140",
+      "taskId": "task-07e43f3b-181605",
+      "issueId": "task:task-07e43f3b-181605",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:16:05.982Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181606",
+      "issueId": "task:task-321b942c-181606",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:16:06.003Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-01dd30b7-181606",
+      "issueId": "task:task-01dd30b7-181606",
+      "claimant": "agent:multi-agent-test-1769451365520:task",
+      "description": "Task with unicode: emoji test",
+      "claimedAt": "2026-01-26T18:16:06.042Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-181606",
+      "issueId": "task:task-73b85f03-181606",
+      "claimant": "agent:test-session-1769451365757:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:16:06.135Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181608",
+      "issueId": "task:task-321b942c-181608",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:16:08.149Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181608",
+      "issueId": "task:task-321b942c-181608",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:16:08.714Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-45c82177-181610",
+      "issueId": "task:task-45c82177-181610",
       "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
       "description": "unknown task",
-      "claimedAt": "2026-01-24T12:11:40.415Z",
+      "claimedAt": "2026-01-26T18:16:10.932Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-27de87c5-122329",
-      "issueId": "task:task-27de87c5-122329",
-      "claimant": "agent:multi-agent-test-1769257408995:task",
-      "description": "Test task 1",
-      "claimedAt": "2026-01-24T12:23:29.050Z",
-      "claimSuccess": true
-    },
-    {
-      "taskId": "task-6e3b0dd6-122329",
-      "issueId": "task:task-6e3b0dd6-122329",
-      "claimant": "agent:multi-agent-test-1769257409059:task",
-      "description": "Persistent task",
-      "claimedAt": "2026-01-24T12:23:29.117Z",
-      "claimSuccess": true
-    },
-    {
-      "taskId": "task-44dc8c34-122329",
-      "issueId": "task:task-44dc8c34-122329",
-      "claimant": "agent:multi-agent-test-1769257409126:task",
-      "description": "Task Alpha",
-      "claimedAt": "2026-01-24T12:23:29.181Z",
-      "claimSuccess": true
-    },
-    {
-      "taskId": "task-9559b173-122329",
-      "issueId": "task:task-9559b173-122329",
-      "claimant": "agent:multi-agent-test-1769257409187:task",
-      "description": "Task Beta",
-      "claimedAt": "2026-01-24T12:23:29.243Z",
-      "claimSuccess": true
-    },
-    {
-      "taskId": "task-a5c8d40d-122329",
-      "issueId": "task:task-a5c8d40d-122329",
-      "claimant": "agent:multi-agent-test-1769257409248:task",
-      "description": "Task Gamma",
-      "claimedAt": "2026-01-24T12:23:29.309Z",
-      "claimSuccess": true
-    },
-    {
-      "taskId": "task-c6fa32fd-122329",
-      "issueId": "task:task-c6fa32fd-122329",
-      "claimant": "agent:e2e-test-1769257409293:task",
+      "taskId": "task-c6fa32fd-181611",
+      "issueId": "task:task-c6fa32fd-181611",
+      "claimant": "agent:e2e-test-1769451371123:task",
       "description": "E2E test task",
-      "claimedAt": "2026-01-24T12:23:29.348Z",
+      "claimedAt": "2026-01-26T18:16:11.422Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-07e43f3b-122329",
-      "issueId": "task:task-07e43f3b-122329",
+      "taskId": "task-27de87c5-181613",
+      "issueId": "task:task-27de87c5-181613",
+      "claimant": "agent:multi-agent-test-1769451373513:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:16:13.625Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181613",
+      "issueId": "task:task-27de87c5-181613",
+      "claimant": "agent:multi-agent-test-1769451373398:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:16:13.655Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181613",
+      "issueId": "task:task-6e3b0dd6-181613",
+      "claimant": "agent:multi-agent-test-1769451373667:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:16:13.934Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181613",
+      "issueId": "task:task-6e3b0dd6-181613",
+      "claimant": "agent:multi-agent-test-1769451373739:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:16:13.938Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181614",
+      "issueId": "task:task-27de87c5-181614",
+      "claimant": "agent:multi-agent-test-1769451374020:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:16:14.148Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181614",
+      "issueId": "task:task-44dc8c34-181614",
+      "claimant": "agent:multi-agent-test-1769451373986:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:16:14.212Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181614",
+      "issueId": "task:task-44dc8c34-181614",
+      "claimant": "agent:multi-agent-test-1769451374018:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:16:14.242Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181614",
+      "issueId": "task:task-6e3b0dd6-181614",
+      "claimant": "agent:multi-agent-test-1769451374164:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:16:14.348Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181614",
+      "issueId": "task:task-9559b173-181614",
+      "claimant": "agent:multi-agent-test-1769451374220:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:16:14.376Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181614",
+      "issueId": "task:task-9559b173-181614",
+      "claimant": "agent:multi-agent-test-1769451374261:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:16:14.393Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181614",
+      "issueId": "task:task-44dc8c34-181614",
+      "claimant": "agent:multi-agent-test-1769451374384:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:16:14.550Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181614",
+      "issueId": "task:task-a5c8d40d-181614",
+      "claimant": "agent:multi-agent-test-1769451374417:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:16:14.614Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181614",
+      "issueId": "task:task-07e43f3b-181614",
       "claimant": "agent:agent-source:task",
       "description": "Handoff task",
-      "claimedAt": "2026-01-24T12:23:29.371Z",
+      "claimedAt": "2026-01-26T18:16:14.805Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-07e43f3b-122329",
-      "issueId": "task:task-07e43f3b-122329",
+      "taskId": "task-07e43f3b-181614",
+      "issueId": "task:task-07e43f3b-181614",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:16:14.862Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181614",
+      "issueId": "task:task-9559b173-181614",
+      "claimant": "agent:multi-agent-test-1769451374567:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:16:14.898Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181615",
+      "issueId": "task:task-07e43f3b-181615",
       "claimant": "agent:agent-target:task",
       "description": "Handoff task",
-      "claimedAt": "2026-01-24T12:23:29.441Z",
+      "claimedAt": "2026-01-26T18:16:15.070Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-01dd30b7-122330",
-      "issueId": "task:task-01dd30b7-122330",
-      "claimant": "agent:multi-agent-test-1769257410735:task",
-      "description": "Task with unicode: emoji test",
-      "claimedAt": "2026-01-24T12:23:30.801Z",
+      "taskId": "task-07e43f3b-181615",
+      "issueId": "task:task-07e43f3b-181615",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:16:15.105Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-27de87c5-122347",
-      "issueId": "task:task-27de87c5-122347",
-      "claimant": "agent:multi-agent-test-1769257427905:task",
-      "description": "Test task 1",
-      "claimedAt": "2026-01-24T12:23:47.977Z",
-      "claimSuccess": true
-    },
-    {
-      "taskId": "task-6e3b0dd6-122348",
-      "issueId": "task:task-6e3b0dd6-122348",
-      "claimant": "agent:multi-agent-test-1769257427986:task",
-      "description": "Persistent task",
-      "claimedAt": "2026-01-24T12:23:48.046Z",
-      "claimSuccess": true
-    },
-    {
-      "taskId": "task-44dc8c34-122348",
-      "issueId": "task:task-44dc8c34-122348",
-      "claimant": "agent:multi-agent-test-1769257428058:task",
-      "description": "Task Alpha",
-      "claimedAt": "2026-01-24T12:23:48.120Z",
-      "claimSuccess": true
-    },
-    {
-      "taskId": "task-9559b173-122348",
-      "issueId": "task:task-9559b173-122348",
-      "claimant": "agent:multi-agent-test-1769257428126:task",
-      "description": "Task Beta",
-      "claimedAt": "2026-01-24T12:23:48.187Z",
-      "claimSuccess": true
-    },
-    {
-      "taskId": "task-a5c8d40d-122348",
-      "issueId": "task:task-a5c8d40d-122348",
-      "claimant": "agent:multi-agent-test-1769257428193:task",
+      "taskId": "task-a5c8d40d-181615",
+      "issueId": "task:task-a5c8d40d-181615",
+      "claimant": "agent:multi-agent-test-1769451374924:task",
       "description": "Task Gamma",
-      "claimedAt": "2026-01-24T12:23:48.250Z",
+      "claimedAt": "2026-01-26T18:16:15.147Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-07e43f3b-122348",
-      "issueId": "task:task-07e43f3b-122348",
+      "taskId": "task-07e43f3b-181615",
+      "issueId": "task:task-07e43f3b-181615",
       "claimant": "agent:agent-source:task",
       "description": "Handoff task",
-      "claimedAt": "2026-01-24T12:23:48.320Z",
+      "claimedAt": "2026-01-26T18:16:15.412Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-c6fa32fd-122348",
-      "issueId": "task:task-c6fa32fd-122348",
-      "claimant": "agent:e2e-test-1769257428301:task",
+      "taskId": "task-07e43f3b-181615",
+      "issueId": "task:task-07e43f3b-181615",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:16:15.547Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181616",
+      "issueId": "task:task-27de87c5-181616",
+      "claimant": "agent:multi-agent-test-1769451376041:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:16:16.240Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181616",
+      "issueId": "task:task-6e3b0dd6-181616",
+      "claimant": "agent:multi-agent-test-1769451376297:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:16:16.862Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181617",
+      "issueId": "task:task-44dc8c34-181617",
+      "claimant": "agent:multi-agent-test-1769451376875:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:16:17.070Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181617",
+      "issueId": "task:task-9559b173-181617",
+      "claimant": "agent:multi-agent-test-1769451377104:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:16:17.286Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181617",
+      "issueId": "task:task-a5c8d40d-181617",
+      "claimant": "agent:multi-agent-test-1769451377296:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:16:17.519Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181617",
+      "issueId": "task:task-07e43f3b-181617",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:16:17.813Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181618",
+      "issueId": "task:task-07e43f3b-181618",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:16:18.078Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181623",
+      "issueId": "task:task-27de87c5-181623",
+      "claimant": "agent:multi-agent-test-1769451383685:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:16:23.963Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181624",
+      "issueId": "task:task-6e3b0dd6-181624",
+      "claimant": "agent:multi-agent-test-1769451384037:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:16:24.517Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181624",
+      "issueId": "task:task-44dc8c34-181624",
+      "claimant": "agent:multi-agent-test-1769451384565:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:16:24.790Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181625",
+      "issueId": "task:task-9559b173-181625",
+      "claimant": "agent:multi-agent-test-1769451384803:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:16:25.312Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181625",
+      "issueId": "task:task-a5c8d40d-181625",
+      "claimant": "agent:multi-agent-test-1769451385365:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:16:25.764Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181626",
+      "issueId": "task:task-07e43f3b-181626",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:16:26.047Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181626",
+      "issueId": "task:task-07e43f3b-181626",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:16:26.313Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181634",
+      "issueId": "task:task-c6fa32fd-181634",
+      "claimant": "agent:e2e-test-1769451394173:task",
       "description": "E2E test task",
-      "claimedAt": "2026-01-24T12:23:48.361Z",
+      "claimedAt": "2026-01-26T18:16:34.307Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-07e43f3b-122348",
-      "issueId": "task:task-07e43f3b-122348",
-      "claimant": "agent:agent-target:task",
-      "description": "Handoff task",
-      "claimedAt": "2026-01-24T12:23:48.393Z",
-      "claimSuccess": true
-    },
-    {
-      "taskId": "task-01dd30b7-122349",
-      "issueId": "task:task-01dd30b7-122349",
-      "claimant": "agent:multi-agent-test-1769257429779:task",
-      "description": "Task with unicode: emoji test",
-      "claimedAt": "2026-01-24T12:23:49.831Z",
-      "claimSuccess": true
-    },
-    {
-      "taskId": "task-27de87c5-122359",
-      "issueId": "task:task-27de87c5-122359",
-      "claimant": "agent:multi-agent-test-1769257439316:task",
-      "description": "Test task 1",
-      "claimedAt": "2026-01-24T12:23:59.369Z",
-      "claimSuccess": true
-    },
-    {
-      "taskId": "task-6e3b0dd6-122359",
-      "issueId": "task:task-6e3b0dd6-122359",
-      "claimant": "agent:multi-agent-test-1769257439378:task",
-      "description": "Persistent task",
-      "claimedAt": "2026-01-24T12:23:59.442Z",
-      "claimSuccess": true
-    },
-    {
-      "taskId": "task-44dc8c34-122359",
-      "issueId": "task:task-44dc8c34-122359",
-      "claimant": "agent:multi-agent-test-1769257439455:task",
-      "description": "Task Alpha",
-      "claimedAt": "2026-01-24T12:23:59.511Z",
-      "claimSuccess": true
-    },
-    {
-      "taskId": "task-9559b173-122359",
-      "issueId": "task:task-9559b173-122359",
-      "claimant": "agent:multi-agent-test-1769257439516:task",
-      "description": "Task Beta",
-      "claimedAt": "2026-01-24T12:23:59.571Z",
-      "claimSuccess": true
-    },
-    {
-      "taskId": "task-a5c8d40d-122359",
-      "issueId": "task:task-a5c8d40d-122359",
-      "claimant": "agent:multi-agent-test-1769257439576:task",
-      "description": "Task Gamma",
-      "claimedAt": "2026-01-24T12:23:59.632Z",
-      "claimSuccess": true
-    },
-    {
-      "taskId": "task-07e43f3b-122359",
-      "issueId": "task:task-07e43f3b-122359",
-      "claimant": "agent:agent-source:task",
-      "description": "Handoff task",
-      "claimedAt": "2026-01-24T12:23:59.697Z",
-      "claimSuccess": true
-    },
-    {
-      "taskId": "task-c6fa32fd-122359",
-      "issueId": "task:task-c6fa32fd-122359",
-      "claimant": "agent:e2e-test-1769257439663:task",
+      "taskId": "task-c6fa32fd-181637",
+      "issueId": "task:task-c6fa32fd-181637",
+      "claimant": "agent:e2e-test-1769451397844:task",
       "description": "E2E test task",
-      "claimedAt": "2026-01-24T12:23:59.716Z",
+      "claimedAt": "2026-01-26T18:16:37.931Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-07e43f3b-122359",
-      "issueId": "task:task-07e43f3b-122359",
-      "claimant": "agent:agent-target:task",
-      "description": "Handoff task",
-      "claimedAt": "2026-01-24T12:23:59.761Z",
-      "claimSuccess": true
-    },
-    {
-      "taskId": "task-01dd30b7-122401",
-      "issueId": "task:task-01dd30b7-122401",
-      "claimant": "agent:multi-agent-test-1769257441098:task",
-      "description": "Task with unicode: emoji test",
-      "claimedAt": "2026-01-24T12:24:01.144Z",
-      "claimSuccess": true
-    },
-    {
-      "taskId": "task-27de87c5-122409",
-      "issueId": "task:task-27de87c5-122409",
-      "claimant": "agent:multi-agent-test-1769257449801:task",
-      "description": "Test task 1",
-      "claimedAt": "2026-01-24T12:24:09.863Z",
-      "claimSuccess": true
-    },
-    {
-      "taskId": "task-6e3b0dd6-122409",
-      "issueId": "task:task-6e3b0dd6-122409",
-      "claimant": "agent:multi-agent-test-1769257449873:task",
-      "description": "Persistent task",
-      "claimedAt": "2026-01-24T12:24:09.930Z",
-      "claimSuccess": true
-    },
-    {
-      "taskId": "task-44dc8c34-122410",
-      "issueId": "task:task-44dc8c34-122410",
-      "claimant": "agent:multi-agent-test-1769257449940:task",
-      "description": "Task Alpha",
-      "claimedAt": "2026-01-24T12:24:10.012Z",
-      "claimSuccess": true
-    },
-    {
-      "taskId": "task-9559b173-122410",
-      "issueId": "task:task-9559b173-122410",
-      "claimant": "agent:multi-agent-test-1769257450018:task",
-      "description": "Task Beta",
-      "claimedAt": "2026-01-24T12:24:10.075Z",
-      "claimSuccess": true
-    },
-    {
-      "taskId": "task-a5c8d40d-122410",
-      "issueId": "task:task-a5c8d40d-122410",
-      "claimant": "agent:multi-agent-test-1769257450081:task",
-      "description": "Task Gamma",
-      "claimedAt": "2026-01-24T12:24:10.137Z",
-      "claimSuccess": true
-    },
-    {
-      "taskId": "task-07e43f3b-122410",
-      "issueId": "task:task-07e43f3b-122410",
-      "claimant": "agent:agent-source:task",
-      "description": "Handoff task",
-      "claimedAt": "2026-01-24T12:24:10.203Z",
-      "claimSuccess": true
-    },
-    {
-      "taskId": "task-c6fa32fd-122410",
-      "issueId": "task:task-c6fa32fd-122410",
-      "claimant": "agent:e2e-test-1769257450156:task",
+      "taskId": "task-c6fa32fd-181640",
+      "issueId": "task:task-c6fa32fd-181640",
+      "claimant": "agent:e2e-test-1769451400592:task",
       "description": "E2E test task",
-      "claimedAt": "2026-01-24T12:24:10.210Z",
+      "claimedAt": "2026-01-26T18:16:40.689Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-07e43f3b-122410",
-      "issueId": "task:task-07e43f3b-122410",
-      "claimant": "agent:agent-target:task",
-      "description": "Handoff task",
-      "claimedAt": "2026-01-24T12:24:10.261Z",
-      "claimSuccess": true
-    },
-    {
-      "taskId": "task-01dd30b7-122411",
-      "issueId": "task:task-01dd30b7-122411",
-      "claimant": "agent:multi-agent-test-1769257451641:task",
-      "description": "Task with unicode: emoji test",
-      "claimedAt": "2026-01-24T12:24:11.704Z",
-      "claimSuccess": true
-    },
-    {
-      "taskId": "task-27de87c5-122459",
-      "issueId": "task:task-27de87c5-122459",
-      "claimant": "agent:multi-agent-test-1769257499213:task",
+      "taskId": "task-27de87c5-181640",
+      "issueId": "task:task-27de87c5-181640",
+      "claimant": "agent:multi-agent-test-1769451400868:task",
       "description": "Test task 1",
-      "claimedAt": "2026-01-24T12:24:59.271Z",
+      "claimedAt": "2026-01-26T18:16:40.943Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-6e3b0dd6-122459",
-      "issueId": "task:task-6e3b0dd6-122459",
-      "claimant": "agent:multi-agent-test-1769257499280:task",
+      "taskId": "task-27de87c5-181641",
+      "issueId": "task:task-27de87c5-181641",
+      "claimant": "agent:multi-agent-test-1769451400891:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:16:41.034Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181641",
+      "issueId": "task:task-6e3b0dd6-181641",
+      "claimant": "agent:multi-agent-test-1769451400954:task",
       "description": "Persistent task",
-      "claimedAt": "2026-01-24T12:24:59.333Z",
+      "claimedAt": "2026-01-26T18:16:41.180Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-44dc8c34-122459",
-      "issueId": "task:task-44dc8c34-122459",
-      "claimant": "agent:multi-agent-test-1769257499342:task",
+      "taskId": "task-6e3b0dd6-181641",
+      "issueId": "task:task-6e3b0dd6-181641",
+      "claimant": "agent:multi-agent-test-1769451401104:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:16:41.277Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-181641",
+      "issueId": "task:task-73b85f03-181641",
+      "claimant": "agent:test-session-1769451401206:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:16:41.304Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181641",
+      "issueId": "task:task-44dc8c34-181641",
+      "claimant": "agent:multi-agent-test-1769451401262:task",
       "description": "Task Alpha",
-      "claimedAt": "2026-01-24T12:24:59.414Z",
+      "claimedAt": "2026-01-26T18:16:41.519Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-9559b173-122459",
-      "issueId": "task:task-9559b173-122459",
-      "claimant": "agent:multi-agent-test-1769257499423:task",
+      "taskId": "task-44dc8c34-181641",
+      "issueId": "task:task-44dc8c34-181641",
+      "claimant": "agent:multi-agent-test-1769451401336:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:16:41.595Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181641",
+      "issueId": "task:task-9559b173-181641",
+      "claimant": "agent:multi-agent-test-1769451401570:task",
       "description": "Task Beta",
-      "claimedAt": "2026-01-24T12:24:59.484Z",
+      "claimedAt": "2026-01-26T18:16:41.741Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-a5c8d40d-122459",
-      "issueId": "task:task-a5c8d40d-122459",
-      "claimant": "agent:multi-agent-test-1769257499491:task",
+      "taskId": "task-9559b173-181641",
+      "issueId": "task:task-9559b173-181641",
+      "claimant": "agent:multi-agent-test-1769451401613:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:16:41.823Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181641",
+      "issueId": "task:task-a5c8d40d-181641",
+      "claimant": "agent:multi-agent-test-1769451401812:task",
       "description": "Task Gamma",
-      "claimedAt": "2026-01-24T12:24:59.547Z",
+      "claimedAt": "2026-01-26T18:16:41.903Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-07e43f3b-122459",
-      "issueId": "task:task-07e43f3b-122459",
+      "taskId": "task-a5c8d40d-181641",
+      "issueId": "task:task-a5c8d40d-181641",
+      "claimant": "agent:multi-agent-test-1769451401835:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:16:41.973Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181642",
+      "issueId": "task:task-07e43f3b-181642",
       "claimant": "agent:agent-source:task",
       "description": "Handoff task",
-      "claimedAt": "2026-01-24T12:24:59.610Z",
+      "claimedAt": "2026-01-26T18:16:42.067Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-07e43f3b-122459",
-      "issueId": "task:task-07e43f3b-122459",
+      "taskId": "task-07e43f3b-181642",
+      "issueId": "task:task-07e43f3b-181642",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:16:42.153Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181642",
+      "issueId": "task:task-07e43f3b-181642",
       "claimant": "agent:agent-target:task",
       "description": "Handoff task",
-      "claimedAt": "2026-01-24T12:24:59.720Z",
+      "claimedAt": "2026-01-26T18:16:42.214Z",
       "claimSuccess": true
     },
     {
-      "taskId": "task-01dd30b7-122501",
-      "issueId": "task:task-01dd30b7-122501",
-      "claimant": "agent:multi-agent-test-1769257500962:task",
+      "taskId": "task-07e43f3b-181642",
+      "issueId": "task:task-07e43f3b-181642",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:16:42.361Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181643",
+      "issueId": "task:task-27de87c5-181643",
+      "claimant": "agent:multi-agent-test-1769451403462:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:16:43.646Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181643",
+      "issueId": "task:task-6e3b0dd6-181643",
+      "claimant": "agent:multi-agent-test-1769451403658:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:16:43.771Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181643",
+      "issueId": "task:task-44dc8c34-181643",
+      "claimant": "agent:multi-agent-test-1769451403805:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:16:43.999Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-181644",
+      "issueId": "task:task-73b85f03-181644",
+      "claimant": "agent:test-session-1769451404214:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:16:44.310Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181644",
+      "issueId": "task:task-9559b173-181644",
+      "claimant": "agent:multi-agent-test-1769451404008:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:16:44.699Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181644",
+      "issueId": "task:task-a5c8d40d-181644",
+      "claimant": "agent:multi-agent-test-1769451404710:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:16:44.791Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181645",
+      "issueId": "task:task-07e43f3b-181645",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:16:45.003Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181645",
+      "issueId": "task:task-07e43f3b-181645",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:16:45.153Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-181645",
+      "issueId": "task:task-73b85f03-181645",
+      "claimant": "agent:test-session-1769451405162:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:16:45.350Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-181646",
+      "issueId": "task:task-73b85f03-181646",
+      "claimant": "agent:test-session-1769451405939:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:16:46.033Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181647",
+      "issueId": "task:task-c6fa32fd-181647",
+      "claimant": "agent:e2e-test-1769451407687:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:16:47.856Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181707",
+      "issueId": "task:task-321b942c-181707",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:17:07.099Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181707",
+      "issueId": "task:task-321b942c-181707",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:17:07.414Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181709",
+      "issueId": "task:task-27de87c5-181709",
+      "claimant": "agent:multi-agent-test-1769451428947:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:17:09.039Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181709",
+      "issueId": "task:task-6e3b0dd6-181709",
+      "claimant": "agent:multi-agent-test-1769451429056:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:17:09.135Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181709",
+      "issueId": "task:task-44dc8c34-181709",
+      "claimant": "agent:multi-agent-test-1769451429149:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:17:09.224Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181709",
+      "issueId": "task:task-9559b173-181709",
+      "claimant": "agent:multi-agent-test-1769451429231:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:17:09.300Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181709",
+      "issueId": "task:task-a5c8d40d-181709",
+      "claimant": "agent:multi-agent-test-1769451429311:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:17:09.390Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181709",
+      "issueId": "task:task-07e43f3b-181709",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:17:09.465Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181709",
+      "issueId": "task:task-07e43f3b-181709",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:17:09.564Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-181711",
+      "issueId": "task:task-73b85f03-181711",
+      "claimant": "agent:test-session-1769451431827:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:17:11.918Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181712",
+      "issueId": "task:task-321b942c-181712",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:17:12.993Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-181718",
+      "issueId": "task:task-73b85f03-181718",
+      "claimant": "agent:test-session-1769451438891:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:17:18.976Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181719",
+      "issueId": "task:task-321b942c-181719",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:17:19.263Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181721",
+      "issueId": "task:task-27de87c5-181721",
+      "claimant": "agent:multi-agent-test-1769451441327:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:17:21.484Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181721",
+      "issueId": "task:task-6e3b0dd6-181721",
+      "claimant": "agent:multi-agent-test-1769451441505:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:17:21.579Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181721",
+      "issueId": "task:task-44dc8c34-181721",
+      "claimant": "agent:multi-agent-test-1769451441592:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:17:21.661Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181721",
+      "issueId": "task:task-9559b173-181721",
+      "claimant": "agent:multi-agent-test-1769451441670:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:17:21.742Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181721",
+      "issueId": "task:task-a5c8d40d-181721",
+      "claimant": "agent:multi-agent-test-1769451441751:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:17:21.821Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181721",
+      "issueId": "task:task-07e43f3b-181721",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:17:21.920Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181722",
+      "issueId": "task:task-07e43f3b-181722",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:17:22.074Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181722",
+      "issueId": "task:task-27de87c5-181722",
+      "claimant": "agent:multi-agent-test-1769451442718:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:17:22.787Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181722",
+      "issueId": "task:task-6e3b0dd6-181722",
+      "claimant": "agent:multi-agent-test-1769451442798:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:17:22.867Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181722",
+      "issueId": "task:task-44dc8c34-181722",
+      "claimant": "agent:multi-agent-test-1769451442878:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:17:22.948Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181723",
+      "issueId": "task:task-9559b173-181723",
+      "claimant": "agent:multi-agent-test-1769451442956:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:17:23.029Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181723",
+      "issueId": "task:task-321b942c-181723",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:17:23.036Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181723",
+      "issueId": "task:task-a5c8d40d-181723",
+      "claimant": "agent:multi-agent-test-1769451443038:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:17:23.112Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181723",
+      "issueId": "task:task-07e43f3b-181723",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:17:23.208Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181723",
+      "issueId": "task:task-07e43f3b-181723",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:17:23.301Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-181723",
+      "issueId": "task:task-73b85f03-181723",
+      "claimant": "agent:test-session-1769451443552:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:17:23.752Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-181726",
+      "issueId": "task:task-73b85f03-181726",
+      "claimant": "agent:test-session-1769451445990:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:17:26.061Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181727",
+      "issueId": "task:task-c6fa32fd-181727",
+      "claimant": "agent:e2e-test-1769451447452:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:17:27.547Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-181728",
+      "issueId": "task:task-73b85f03-181728",
+      "claimant": "agent:test-session-1769451448230:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:17:28.411Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181730",
+      "issueId": "task:task-321b942c-181730",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:17:30.874Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181731",
+      "issueId": "task:task-321b942c-181731",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:17:31.446Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-181732",
+      "issueId": "task:task-73b85f03-181732",
+      "claimant": "agent:test-session-1769451452102:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:17:32.382Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181733",
+      "issueId": "task:task-27de87c5-181733",
+      "claimant": "agent:multi-agent-test-1769451452308:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:17:33.201Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181733",
+      "issueId": "task:task-6e3b0dd6-181733",
+      "claimant": "agent:multi-agent-test-1769451453462:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:17:33.669Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181734",
+      "issueId": "task:task-44dc8c34-181734",
+      "claimant": "agent:multi-agent-test-1769451453799:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:17:34.445Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181734",
+      "issueId": "task:task-9559b173-181734",
+      "claimant": "agent:multi-agent-test-1769451454483:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:17:34.649Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181734",
+      "issueId": "task:task-a5c8d40d-181734",
+      "claimant": "agent:multi-agent-test-1769451454659:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:17:34.957Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181735",
+      "issueId": "task:task-27de87c5-181735",
+      "claimant": "agent:multi-agent-test-1769451454806:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:17:35.065Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181735",
+      "issueId": "task:task-6e3b0dd6-181735",
+      "claimant": "agent:multi-agent-test-1769451455174:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:17:35.617Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181735",
+      "issueId": "task:task-07e43f3b-181735",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:17:35.664Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181736",
+      "issueId": "task:task-44dc8c34-181736",
+      "claimant": "agent:multi-agent-test-1769451455774:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:17:36.301Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181736",
+      "issueId": "task:task-07e43f3b-181736",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:17:36.417Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181736",
+      "issueId": "task:task-321b942c-181736",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:17:36.468Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181736",
+      "issueId": "task:task-9559b173-181736",
+      "claimant": "agent:multi-agent-test-1769451456372:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:17:36.723Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-181737",
+      "issueId": "task:task-73b85f03-181737",
+      "claimant": "agent:test-session-1769451456528:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:17:37.208Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181737",
+      "issueId": "task:task-321b942c-181737",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:17:37.262Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181737",
+      "issueId": "task:task-a5c8d40d-181737",
+      "claimant": "agent:multi-agent-test-1769451456801:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:17:37.408Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181737",
+      "issueId": "task:task-c6fa32fd-181737",
+      "claimant": "agent:e2e-test-1769451457554:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:17:37.785Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181737",
+      "issueId": "task:task-07e43f3b-181737",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:17:37.851Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181737",
+      "issueId": "task:task-07e43f3b-181737",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:17:37.974Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-181738",
+      "issueId": "task:task-73b85f03-181738",
+      "claimant": "agent:test-session-1769451458256:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:17:38.483Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181738",
+      "issueId": "task:task-c6fa32fd-181738",
+      "claimant": "agent:e2e-test-1769451457938:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:17:38.664Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181739",
+      "issueId": "task:task-c6fa32fd-181739",
+      "claimant": "agent:e2e-test-1769451459297:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:17:39.917Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181739",
+      "issueId": "task:task-c6fa32fd-181739",
+      "claimant": "agent:e2e-test-1769451459587:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:17:39.986Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181741",
+      "issueId": "task:task-c6fa32fd-181741",
+      "claimant": "agent:e2e-test-1769451461189:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:17:41.920Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181742",
+      "issueId": "task:task-321b942c-181742",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:17:42.323Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181742",
+      "issueId": "task:task-321b942c-181742",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:17:42.375Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-181743",
+      "issueId": "task:task-73b85f03-181743",
+      "claimant": "agent:test-session-1769451462548:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:17:43.048Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181743",
+      "issueId": "task:task-c6fa32fd-181743",
+      "claimant": "agent:e2e-test-1769451462855:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:17:43.320Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181743",
+      "issueId": "task:task-c6fa32fd-181743",
+      "claimant": "agent:e2e-test-1769451463458:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:17:43.603Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181744",
+      "issueId": "task:task-321b942c-181744",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:17:44.144Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-181745",
+      "issueId": "task:task-73b85f03-181745",
+      "claimant": "agent:test-session-1769451465666:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:17:45.891Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181745",
+      "issueId": "task:task-c6fa32fd-181745",
+      "claimant": "agent:e2e-test-1769451465775:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:17:45.957Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181747",
+      "issueId": "task:task-c6fa32fd-181747",
+      "claimant": "agent:e2e-test-1769451467351:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:17:47.468Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-181748",
+      "issueId": "task:task-73b85f03-181748",
+      "claimant": "agent:test-session-1769451468017:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:17:48.195Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181749",
+      "issueId": "task:task-321b942c-181749",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:17:49.198Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181750",
+      "issueId": "task:task-27de87c5-181750",
+      "claimant": "agent:multi-agent-test-1769451469937:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:17:50.149Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181750",
+      "issueId": "task:task-6e3b0dd6-181750",
+      "claimant": "agent:multi-agent-test-1769451470160:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:17:50.403Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181750",
+      "issueId": "task:task-44dc8c34-181750",
+      "claimant": "agent:multi-agent-test-1769451470417:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:17:50.521Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181750",
+      "issueId": "task:task-9559b173-181750",
+      "claimant": "agent:multi-agent-test-1769451470531:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:17:50.626Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-181750",
+      "issueId": "task:task-73b85f03-181750",
+      "claimant": "agent:test-session-1769451470511:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:17:50.676Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181750",
+      "issueId": "task:task-a5c8d40d-181750",
+      "claimant": "agent:multi-agent-test-1769451470636:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:17:50.879Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181751",
+      "issueId": "task:task-07e43f3b-181751",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:17:51.024Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181751",
+      "issueId": "task:task-07e43f3b-181751",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:17:51.275Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181752",
+      "issueId": "task:task-27de87c5-181752",
+      "claimant": "agent:multi-agent-test-1769451472711:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:17:52.833Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181752",
+      "issueId": "task:task-6e3b0dd6-181752",
+      "claimant": "agent:multi-agent-test-1769451472849:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:17:52.929Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181753",
+      "issueId": "task:task-44dc8c34-181753",
+      "claimant": "agent:multi-agent-test-1769451472963:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:17:53.264Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181753",
+      "issueId": "task:task-9559b173-181753",
+      "claimant": "agent:multi-agent-test-1769451473356:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:17:53.484Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181753",
+      "issueId": "task:task-a5c8d40d-181753",
+      "claimant": "agent:multi-agent-test-1769451473503:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:17:53.605Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181753",
+      "issueId": "task:task-07e43f3b-181753",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:17:53.711Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181753",
+      "issueId": "task:task-07e43f3b-181753",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:17:53.810Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181753",
+      "issueId": "task:task-c6fa32fd-181753",
+      "claimant": "agent:e2e-test-1769451473688:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:17:53.819Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181754",
+      "issueId": "task:task-321b942c-181754",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:17:54.775Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181757",
+      "issueId": "task:task-321b942c-181757",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:17:57.058Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181757",
+      "issueId": "task:task-321b942c-181757",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:17:57.868Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181802",
+      "issueId": "task:task-27de87c5-181802",
+      "claimant": "agent:multi-agent-test-1769451481864:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:18:02.034Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181802",
+      "issueId": "task:task-6e3b0dd6-181802",
+      "claimant": "agent:multi-agent-test-1769451482046:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:18:02.407Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181802",
+      "issueId": "task:task-44dc8c34-181802",
+      "claimant": "agent:multi-agent-test-1769451482439:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:18:02.623Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181802",
+      "issueId": "task:task-9559b173-181802",
+      "claimant": "agent:multi-agent-test-1769451482652:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:18:02.843Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181802",
+      "issueId": "task:task-a5c8d40d-181802",
+      "claimant": "agent:multi-agent-test-1769451482855:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:18:02.973Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181803",
+      "issueId": "task:task-07e43f3b-181803",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:18:03.104Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181803",
+      "issueId": "task:task-07e43f3b-181803",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:18:03.191Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181805",
+      "issueId": "task:task-27de87c5-181805",
+      "claimant": "agent:multi-agent-test-1769451484911:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:18:05.019Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181805",
+      "issueId": "task:task-6e3b0dd6-181805",
+      "claimant": "agent:multi-agent-test-1769451485034:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:18:05.123Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181805",
+      "issueId": "task:task-44dc8c34-181805",
+      "claimant": "agent:multi-agent-test-1769451485143:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:18:05.258Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181805",
+      "issueId": "task:task-9559b173-181805",
+      "claimant": "agent:multi-agent-test-1769451485272:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:18:05.376Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181805",
+      "issueId": "task:task-27de87c5-181805",
+      "claimant": "agent:multi-agent-test-1769451485391:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:18:05.476Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181805",
+      "issueId": "task:task-07e43f3b-181805",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:18:05.615Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181805",
+      "issueId": "task:task-6e3b0dd6-181805",
+      "claimant": "agent:multi-agent-test-1769451485488:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:18:05.640Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181805",
+      "issueId": "task:task-07e43f3b-181805",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:18:05.736Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181805",
+      "issueId": "task:task-9559b173-181805",
+      "claimant": "agent:multi-agent-test-1769451485745:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:18:05.857Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181805",
+      "issueId": "task:task-a5c8d40d-181805",
+      "claimant": "agent:multi-agent-test-1769451485868:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:18:05.955Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181806",
+      "issueId": "task:task-07e43f3b-181806",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:18:06.083Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181806",
+      "issueId": "task:task-27de87c5-181806",
+      "claimant": "agent:multi-agent-test-1769451486103:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:18:06.233Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181806",
+      "issueId": "task:task-07e43f3b-181806",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:18:06.272Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181806",
+      "issueId": "task:task-6e3b0dd6-181806",
+      "claimant": "agent:multi-agent-test-1769451486248:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:18:06.332Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181806",
+      "issueId": "task:task-44dc8c34-181806",
+      "claimant": "agent:multi-agent-test-1769451486355:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:18:06.439Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181806",
+      "issueId": "task:task-9559b173-181806",
+      "claimant": "agent:multi-agent-test-1769451486453:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:18:06.537Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181806",
+      "issueId": "task:task-a5c8d40d-181806",
+      "claimant": "agent:multi-agent-test-1769451486545:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:18:06.632Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181806",
+      "issueId": "task:task-07e43f3b-181806",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:18:06.739Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181806",
+      "issueId": "task:task-07e43f3b-181806",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:18:06.856Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181810",
+      "issueId": "task:task-c6fa32fd-181810",
+      "claimant": "agent:e2e-test-1769451489891:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:18:10.082Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181810",
+      "issueId": "task:task-c6fa32fd-181810",
+      "claimant": "agent:e2e-test-1769451490588:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:18:10.768Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181811",
+      "issueId": "task:task-321b942c-181811",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:18:11.314Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181811",
+      "issueId": "task:task-321b942c-181811",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:18:11.920Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181812",
+      "issueId": "task:task-c6fa32fd-181812",
+      "claimant": "agent:e2e-test-1769451492147:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:18:12.431Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181814",
+      "issueId": "task:task-c6fa32fd-181814",
+      "claimant": "agent:e2e-test-1769451494797:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:18:14.933Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181816",
+      "issueId": "task:task-27de87c5-181816",
+      "claimant": "agent:multi-agent-test-1769451496518:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:18:16.628Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181816",
+      "issueId": "task:task-6e3b0dd6-181816",
+      "claimant": "agent:multi-agent-test-1769451496657:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:18:16.762Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181816",
+      "issueId": "task:task-27de87c5-181816",
+      "claimant": "agent:multi-agent-test-1769451496679:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:18:16.854Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181816",
+      "issueId": "task:task-321b942c-181816",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:18:16.887Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181816",
+      "issueId": "task:task-44dc8c34-181816",
+      "claimant": "agent:multi-agent-test-1769451496779:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:18:16.914Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181817",
+      "issueId": "task:task-6e3b0dd6-181817",
+      "claimant": "agent:multi-agent-test-1769451496911:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:18:17.024Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181817",
+      "issueId": "task:task-9559b173-181817",
+      "claimant": "agent:multi-agent-test-1769451496927:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:18:17.173Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181817",
+      "issueId": "task:task-a5c8d40d-181817",
+      "claimant": "agent:multi-agent-test-1769451497193:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:18:17.322Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181817",
+      "issueId": "task:task-a5c8d40d-181817",
+      "claimant": "agent:multi-agent-test-1769451497345:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:18:17.452Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181817",
+      "issueId": "task:task-07e43f3b-181817",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:18:17.465Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181817",
+      "issueId": "task:task-07e43f3b-181817",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:18:17.589Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181817",
+      "issueId": "task:task-07e43f3b-181817",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:18:17.599Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181817",
+      "issueId": "task:task-07e43f3b-181817",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:18:17.708Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181821",
+      "issueId": "task:task-c6fa32fd-181821",
+      "claimant": "agent:e2e-test-1769451501579:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:18:21.679Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181821",
+      "issueId": "task:task-c6fa32fd-181821",
+      "claimant": "agent:e2e-test-1769451501797:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:18:21.950Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181825",
+      "issueId": "task:task-321b942c-181825",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:18:25.377Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181825",
+      "issueId": "task:task-321b942c-181825",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:18:25.777Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181827",
+      "issueId": "task:task-c6fa32fd-181827",
+      "claimant": "agent:e2e-test-1769451507516:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:18:27.744Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-181828",
+      "issueId": "task:task-73b85f03-181828",
+      "claimant": "agent:test-session-1769451508746:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:18:28.931Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181829",
+      "issueId": "task:task-c6fa32fd-181829",
+      "claimant": "agent:e2e-test-1769451509598:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:18:29.705Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181830",
+      "issueId": "task:task-321b942c-181830",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:18:30.008Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181833",
+      "issueId": "task:task-c6fa32fd-181833",
+      "claimant": "agent:e2e-test-1769451513254:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:18:33.660Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181834",
+      "issueId": "task:task-27de87c5-181834",
+      "claimant": "agent:multi-agent-test-1769451514860:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:18:34.965Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181835",
+      "issueId": "task:task-6e3b0dd6-181835",
+      "claimant": "agent:multi-agent-test-1769451514984:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:18:35.156Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181835",
+      "issueId": "task:task-44dc8c34-181835",
+      "claimant": "agent:multi-agent-test-1769451515263:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:18:35.446Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181835",
+      "issueId": "task:task-9559b173-181835",
+      "claimant": "agent:multi-agent-test-1769451515464:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:18:35.566Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181835",
+      "issueId": "task:task-a5c8d40d-181835",
+      "claimant": "agent:multi-agent-test-1769451515581:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:18:35.661Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181835",
+      "issueId": "task:task-07e43f3b-181835",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:18:35.752Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181835",
+      "issueId": "task:task-07e43f3b-181835",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:18:35.856Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181836",
+      "issueId": "task:task-27de87c5-181836",
+      "claimant": "agent:multi-agent-test-1769451516585:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:18:36.757Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181836",
+      "issueId": "task:task-6e3b0dd6-181836",
+      "claimant": "agent:multi-agent-test-1769451516770:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:18:36.870Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181836",
+      "issueId": "task:task-44dc8c34-181836",
+      "claimant": "agent:multi-agent-test-1769451516883:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:18:36.954Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181837",
+      "issueId": "task:task-9559b173-181837",
+      "claimant": "agent:multi-agent-test-1769451516968:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:18:37.107Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181837",
+      "issueId": "task:task-a5c8d40d-181837",
+      "claimant": "agent:multi-agent-test-1769451517128:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:18:37.241Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181837",
+      "issueId": "task:task-07e43f3b-181837",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:18:37.403Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181837",
+      "issueId": "task:task-07e43f3b-181837",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:18:37.526Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181837",
+      "issueId": "task:task-321b942c-181837",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:18:37.726Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-181838",
+      "issueId": "task:task-73b85f03-181838",
+      "claimant": "agent:test-session-1769451518165:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:18:38.265Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181841",
+      "issueId": "task:task-321b942c-181841",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:18:41.046Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181841",
+      "issueId": "task:task-c6fa32fd-181841",
+      "claimant": "agent:e2e-test-1769451521127:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:18:41.228Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181841",
+      "issueId": "task:task-27de87c5-181841",
+      "claimant": "agent:multi-agent-test-1769451521553:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:18:41.702Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181841",
+      "issueId": "task:task-6e3b0dd6-181841",
+      "claimant": "agent:multi-agent-test-1769451521751:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:18:41.832Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181841",
+      "issueId": "task:task-c6fa32fd-181841",
+      "claimant": "agent:e2e-test-1769451521849:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:18:41.944Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181842",
+      "issueId": "task:task-44dc8c34-181842",
+      "claimant": "agent:multi-agent-test-1769451521884:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:18:42.025Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181842",
+      "issueId": "task:task-9559b173-181842",
+      "claimant": "agent:multi-agent-test-1769451522034:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:18:42.166Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181842",
+      "issueId": "task:task-a5c8d40d-181842",
+      "claimant": "agent:multi-agent-test-1769451522182:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:18:42.295Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181842",
+      "issueId": "task:task-07e43f3b-181842",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:18:42.592Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181842",
+      "issueId": "task:task-07e43f3b-181842",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:18:42.763Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-181843",
+      "issueId": "task:task-73b85f03-181843",
+      "claimant": "agent:test-session-1769451523475:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:18:43.655Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-181844",
+      "issueId": "task:task-73b85f03-181844",
+      "claimant": "agent:test-session-1769451523871:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:18:44.004Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181844",
+      "issueId": "task:task-27de87c5-181844",
+      "claimant": "agent:multi-agent-test-1769451523958:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:18:44.064Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181844",
+      "issueId": "task:task-6e3b0dd6-181844",
+      "claimant": "agent:multi-agent-test-1769451524077:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:18:44.187Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181844",
+      "issueId": "task:task-44dc8c34-181844",
+      "claimant": "agent:multi-agent-test-1769451524242:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:18:44.386Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181844",
+      "issueId": "task:task-9559b173-181844",
+      "claimant": "agent:multi-agent-test-1769451524408:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:18:44.700Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181844",
+      "issueId": "task:task-a5c8d40d-181844",
+      "claimant": "agent:multi-agent-test-1769451524721:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:18:44.858Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181845",
+      "issueId": "task:task-07e43f3b-181845",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:18:45.096Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181845",
+      "issueId": "task:task-07e43f3b-181845",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:18:45.401Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181849",
+      "issueId": "task:task-c6fa32fd-181849",
+      "claimant": "agent:e2e-test-1769451528983:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:18:49.081Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181850",
+      "issueId": "task:task-c6fa32fd-181850",
+      "claimant": "agent:e2e-test-1769451530193:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:18:50.284Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181851",
+      "issueId": "task:task-27de87c5-181851",
+      "claimant": "agent:multi-agent-test-1769451531339:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:18:51.494Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181851",
+      "issueId": "task:task-6e3b0dd6-181851",
+      "claimant": "agent:multi-agent-test-1769451531523:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:18:51.651Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181851",
+      "issueId": "task:task-44dc8c34-181851",
+      "claimant": "agent:multi-agent-test-1769451531668:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:18:51.855Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181851",
+      "issueId": "task:task-9559b173-181851",
+      "claimant": "agent:multi-agent-test-1769451531869:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:18:51.983Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181852",
+      "issueId": "task:task-a5c8d40d-181852",
+      "claimant": "agent:multi-agent-test-1769451531995:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:18:52.107Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181852",
+      "issueId": "task:task-c6fa32fd-181852",
+      "claimant": "agent:e2e-test-1769451532072:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:18:52.247Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181852",
+      "issueId": "task:task-07e43f3b-181852",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:18:52.279Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181852",
+      "issueId": "task:task-07e43f3b-181852",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:18:52.472Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181858",
+      "issueId": "task:task-c6fa32fd-181858",
+      "claimant": "agent:e2e-test-1769451538405:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:18:58.480Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-181902",
+      "issueId": "task:task-73b85f03-181902",
+      "claimant": "agent:test-session-1769451542264:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:19:02.363Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181904",
+      "issueId": "task:task-27de87c5-181904",
+      "claimant": "agent:multi-agent-test-1769451543923:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:19:04.017Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181904",
+      "issueId": "task:task-6e3b0dd6-181904",
+      "claimant": "agent:multi-agent-test-1769451544037:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:19:04.164Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181904",
+      "issueId": "task:task-44dc8c34-181904",
+      "claimant": "agent:multi-agent-test-1769451544194:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:19:04.277Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181904",
+      "issueId": "task:task-9559b173-181904",
+      "claimant": "agent:multi-agent-test-1769451544287:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:19:04.378Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181904",
+      "issueId": "task:task-a5c8d40d-181904",
+      "claimant": "agent:multi-agent-test-1769451544389:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:19:04.477Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181904",
+      "issueId": "task:task-07e43f3b-181904",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:19:04.571Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181904",
+      "issueId": "task:task-07e43f3b-181904",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:19:04.689Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181905",
+      "issueId": "task:task-321b942c-181905",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:19:05.044Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-181905",
+      "issueId": "task:task-73b85f03-181905",
+      "claimant": "agent:test-session-1769451545136:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:19:05.250Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181905",
+      "issueId": "task:task-27de87c5-181905",
+      "claimant": "agent:multi-agent-test-1769451545886:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:19:05.990Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181906",
+      "issueId": "task:task-321b942c-181906",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:19:06.189Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181906",
+      "issueId": "task:task-6e3b0dd6-181906",
+      "claimant": "agent:multi-agent-test-1769451546014:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:19:06.216Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181906",
+      "issueId": "task:task-44dc8c34-181906",
+      "claimant": "agent:multi-agent-test-1769451546242:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:19:06.423Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181906",
+      "issueId": "task:task-9559b173-181906",
+      "claimant": "agent:multi-agent-test-1769451546446:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:19:06.617Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181906",
+      "issueId": "task:task-a5c8d40d-181906",
+      "claimant": "agent:multi-agent-test-1769451546643:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:19:06.755Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181906",
+      "issueId": "task:task-27de87c5-181906",
+      "claimant": "agent:multi-agent-test-1769451546699:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:19:06.810Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181907",
+      "issueId": "task:task-6e3b0dd6-181907",
+      "claimant": "agent:multi-agent-test-1769451546851:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:19:07.172Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181907",
+      "issueId": "task:task-07e43f3b-181907",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:19:07.858Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181909",
+      "issueId": "task:task-44dc8c34-181909",
+      "claimant": "agent:multi-agent-test-1769451549402:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:19:10.337Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181911",
+      "issueId": "task:task-9559b173-181911",
+      "claimant": "agent:multi-agent-test-1769451550983:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:19:11.486Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181912",
+      "issueId": "task:task-a5c8d40d-181912",
+      "claimant": "agent:multi-agent-test-1769451552418:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:19:13.899Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181917",
+      "issueId": "task:task-07e43f3b-181917",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:19:17.192Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181917",
+      "issueId": "task:task-07e43f3b-181917",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:19:17.372Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181918",
+      "issueId": "task:task-27de87c5-181918",
+      "claimant": "agent:multi-agent-test-1769451558132:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:19:18.240Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181918",
+      "issueId": "task:task-6e3b0dd6-181918",
+      "claimant": "agent:multi-agent-test-1769451558259:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:19:18.399Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181918",
+      "issueId": "task:task-44dc8c34-181918",
+      "claimant": "agent:multi-agent-test-1769451558416:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:19:18.619Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181918",
+      "issueId": "task:task-9559b173-181918",
+      "claimant": "agent:multi-agent-test-1769451558644:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:19:18.741Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181918",
+      "issueId": "task:task-a5c8d40d-181918",
+      "claimant": "agent:multi-agent-test-1769451558754:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:19:18.859Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181918",
+      "issueId": "task:task-27de87c5-181918",
+      "claimant": "agent:multi-agent-test-1769451558568:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:19:18.971Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181918",
+      "issueId": "task:task-27de87c5-181918",
+      "claimant": "agent:multi-agent-test-1769451558822:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:19:18.997Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181919",
+      "issueId": "task:task-07e43f3b-181919",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:19:19.010Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181919",
+      "issueId": "task:task-6e3b0dd6-181919",
+      "claimant": "agent:multi-agent-test-1769451558996:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:19:19.092Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181919",
+      "issueId": "task:task-07e43f3b-181919",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:19:19.103Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181919",
+      "issueId": "task:task-6e3b0dd6-181919",
+      "claimant": "agent:multi-agent-test-1769451559009:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:19:19.161Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181919",
+      "issueId": "task:task-44dc8c34-181919",
+      "claimant": "agent:multi-agent-test-1769451559119:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:19:19.311Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181919",
+      "issueId": "task:task-9559b173-181919",
+      "claimant": "agent:multi-agent-test-1769451559341:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:19:19.509Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181919",
+      "issueId": "task:task-44dc8c34-181919",
+      "claimant": "agent:multi-agent-test-1769451559183:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:19:19.565Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181919",
+      "issueId": "task:task-c6fa32fd-181919",
+      "claimant": "agent:e2e-test-1769451559586:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:19:19.697Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181920",
+      "issueId": "task:task-a5c8d40d-181920",
+      "claimant": "agent:multi-agent-test-1769451559535:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:19:20.059Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181920",
+      "issueId": "task:task-9559b173-181920",
+      "claimant": "agent:multi-agent-test-1769451559580:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:19:20.135Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181920",
+      "issueId": "task:task-c6fa32fd-181920",
+      "claimant": "agent:e2e-test-1769451559916:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:19:20.186Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181920",
+      "issueId": "task:task-07e43f3b-181920",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:19:20.340Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181920",
+      "issueId": "task:task-07e43f3b-181920",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:19:20.474Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181920",
+      "issueId": "task:task-c6fa32fd-181920",
+      "claimant": "agent:e2e-test-1769451560320:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:19:20.497Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181920",
+      "issueId": "task:task-a5c8d40d-181920",
+      "claimant": "agent:multi-agent-test-1769451560194:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:19:21.926Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-181927",
+      "issueId": "task:task-73b85f03-181927",
+      "claimant": "agent:test-session-1769451563610:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:19:27.370Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181927",
+      "issueId": "task:task-321b942c-181927",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:19:27.674Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181927",
+      "issueId": "task:task-07e43f3b-181927",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:19:27.899Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181928",
+      "issueId": "task:task-321b942c-181928",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:19:28.163Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181928",
+      "issueId": "task:task-07e43f3b-181928",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:19:28.647Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181933",
+      "issueId": "task:task-321b942c-181933",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:19:35.605Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181939",
+      "issueId": "task:task-321b942c-181939",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:19:40.526Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181940",
+      "issueId": "task:task-27de87c5-181940",
+      "claimant": "agent:multi-agent-test-1769451580526:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:19:40.693Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181940",
+      "issueId": "task:task-321b942c-181940",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:19:40.909Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181940",
+      "issueId": "task:task-321b942c-181940",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:19:40.942Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181941",
+      "issueId": "task:task-27de87c5-181941",
+      "claimant": "agent:multi-agent-test-1769451580812:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:19:41.118Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181941",
+      "issueId": "task:task-27de87c5-181941",
+      "claimant": "agent:multi-agent-test-1769451580920:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:19:41.249Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181941",
+      "issueId": "task:task-6e3b0dd6-181941",
+      "claimant": "agent:multi-agent-test-1769451580854:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:19:41.438Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181941",
+      "issueId": "task:task-6e3b0dd6-181941",
+      "claimant": "agent:multi-agent-test-1769451581288:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:19:41.506Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181941",
+      "issueId": "task:task-6e3b0dd6-181941",
+      "claimant": "agent:multi-agent-test-1769451581452:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:19:41.584Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181941",
+      "issueId": "task:task-6e3b0dd6-181941",
+      "claimant": "agent:multi-agent-test-1769451581135:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:19:41.678Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181941",
+      "issueId": "task:task-44dc8c34-181941",
+      "claimant": "agent:multi-agent-test-1769451581533:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:19:41.703Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181941",
+      "issueId": "task:task-44dc8c34-181941",
+      "claimant": "agent:multi-agent-test-1769451581518:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:19:41.845Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181941",
+      "issueId": "task:task-9559b173-181941",
+      "claimant": "agent:multi-agent-test-1769451581712:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:19:41.923Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181942",
+      "issueId": "task:task-44dc8c34-181942",
+      "claimant": "agent:multi-agent-test-1769451581794:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:19:42.002Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181942",
+      "issueId": "task:task-9559b173-181942",
+      "claimant": "agent:multi-agent-test-1769451581907:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:19:42.129Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181942",
+      "issueId": "task:task-44dc8c34-181942",
+      "claimant": "agent:multi-agent-test-1769451581649:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:19:42.179Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181942",
+      "issueId": "task:task-a5c8d40d-181942",
+      "claimant": "agent:multi-agent-test-1769451581933:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:19:42.198Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181942",
+      "issueId": "task:task-c6fa32fd-181942",
+      "claimant": "agent:e2e-test-1769451581864:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:19:42.293Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181942",
+      "issueId": "task:task-a5c8d40d-181942",
+      "claimant": "agent:multi-agent-test-1769451582182:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:19:42.431Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181942",
+      "issueId": "task:task-9559b173-181942",
+      "claimant": "agent:multi-agent-test-1769451582228:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:19:42.528Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181942",
+      "issueId": "task:task-a5c8d40d-181942",
+      "claimant": "agent:multi-agent-test-1769451582556:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:19:42.710Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181942",
+      "issueId": "task:task-07e43f3b-181942",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:19:42.743Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181942",
+      "issueId": "task:task-c6fa32fd-181942",
+      "claimant": "agent:e2e-test-1769451582663:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:19:42.797Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181942",
+      "issueId": "task:task-07e43f3b-181942",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:19:42.867Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181942",
+      "issueId": "task:task-07e43f3b-181942",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:19:42.949Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181943",
+      "issueId": "task:task-c6fa32fd-181943",
+      "claimant": "agent:e2e-test-1769451582491:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:19:43.123Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181943",
+      "issueId": "task:task-07e43f3b-181943",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:19:43.174Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181943",
+      "issueId": "task:task-07e43f3b-181943",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:19:43.286Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181943",
+      "issueId": "task:task-07e43f3b-181943",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:19:43.514Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181945",
+      "issueId": "task:task-321b942c-181945",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:19:45.093Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-01dd30b7-181950",
+      "issueId": "task:task-01dd30b7-181950",
+      "claimant": "agent:multi-agent-test-1769451589775:task",
       "description": "Task with unicode: emoji test",
-      "claimedAt": "2026-01-24T12:25:01.007Z",
+      "claimedAt": "2026-01-26T18:19:50.032Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181950",
+      "issueId": "task:task-27de87c5-181950",
+      "claimant": "agent:multi-agent-test-1769451590240:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:19:50.408Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181950",
+      "issueId": "task:task-6e3b0dd6-181950",
+      "claimant": "agent:multi-agent-test-1769451590489:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:19:50.752Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181951",
+      "issueId": "task:task-44dc8c34-181951",
+      "claimant": "agent:multi-agent-test-1769451590813:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:19:51.240Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181951",
+      "issueId": "task:task-9559b173-181951",
+      "claimant": "agent:multi-agent-test-1769451591328:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:19:51.761Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181951",
+      "issueId": "task:task-a5c8d40d-181951",
+      "claimant": "agent:multi-agent-test-1769451591794:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:19:51.968Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181952",
+      "issueId": "task:task-07e43f3b-181952",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:19:52.252Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181952",
+      "issueId": "task:task-07e43f3b-181952",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:19:52.443Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-45c82177-181952",
+      "issueId": "task:task-45c82177-181952",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "unknown task",
+      "claimedAt": "2026-01-26T18:19:52.490Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-181956",
+      "issueId": "task:task-c6fa32fd-181956",
+      "claimant": "agent:e2e-test-1769451596202:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:19:56.615Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-181956",
+      "issueId": "task:task-321b942c-181956",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:19:56.939Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-181957",
+      "issueId": "task:task-73b85f03-181957",
+      "claimant": "agent:test-session-1769451596792:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:19:57.038Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-181957",
+      "issueId": "task:task-27de87c5-181957",
+      "claimant": "agent:multi-agent-test-1769451597041:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:19:57.175Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-181957",
+      "issueId": "task:task-6e3b0dd6-181957",
+      "claimant": "agent:multi-agent-test-1769451597191:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:19:57.383Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-181957",
+      "issueId": "task:task-44dc8c34-181957",
+      "claimant": "agent:multi-agent-test-1769451597452:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:19:57.592Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-181957",
+      "issueId": "task:task-9559b173-181957",
+      "claimant": "agent:multi-agent-test-1769451597632:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:19:57.809Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-181957",
+      "issueId": "task:task-a5c8d40d-181957",
+      "claimant": "agent:multi-agent-test-1769451597863:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:19:57.937Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181958",
+      "issueId": "task:task-07e43f3b-181958",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:19:58.149Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-181958",
+      "issueId": "task:task-07e43f3b-181958",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:19:58.409Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-182001",
+      "issueId": "task:task-c6fa32fd-182001",
+      "claimant": "agent:e2e-test-1769451600929:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:20:01.133Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-182003",
+      "issueId": "task:task-321b942c-182003",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:20:03.487Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-182004",
+      "issueId": "task:task-c6fa32fd-182004",
+      "claimant": "agent:e2e-test-1769451603919:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:20:04.008Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-182008",
+      "issueId": "task:task-73b85f03-182008",
+      "claimant": "agent:test-session-1769451608784:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:20:08.876Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-182010",
+      "issueId": "task:task-c6fa32fd-182010",
+      "claimant": "agent:e2e-test-1769451610084:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:20:10.188Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-182023",
+      "issueId": "task:task-73b85f03-182023",
+      "claimant": "agent:test-session-1769451623030:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:20:23.336Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-182024",
+      "issueId": "task:task-c6fa32fd-182024",
+      "claimant": "agent:e2e-test-1769451624229:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:20:24.404Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-182026",
+      "issueId": "task:task-27de87c5-182026",
+      "claimant": "agent:multi-agent-test-1769451625435:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:20:26.392Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-182030",
+      "issueId": "task:task-73b85f03-182030",
+      "claimant": "agent:test-session-1769451629449:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:20:30.383Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-c6fa32fd-182030",
+      "issueId": "task:task-c6fa32fd-182030",
+      "claimant": "agent:e2e-test-1769451630637:task",
+      "description": "E2E test task",
+      "claimedAt": "2026-01-26T18:20:30.839Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-182031",
+      "issueId": "task:task-73b85f03-182031",
+      "claimant": "agent:test-session-1769451630951:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:20:31.117Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-182031",
+      "issueId": "task:task-321b942c-182031",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:20:31.343Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-182031",
+      "issueId": "task:task-44dc8c34-182031",
+      "claimant": "agent:multi-agent-test-1769451631505:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:20:31.845Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-182031",
+      "issueId": "task:task-321b942c-182031",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:20:31.862Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-27de87c5-182031",
+      "issueId": "task:task-27de87c5-182031",
+      "claimant": "agent:multi-agent-test-1769451631846:task",
+      "description": "Test task 1",
+      "claimedAt": "2026-01-26T18:20:31.973Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-182032",
+      "issueId": "task:task-9559b173-182032",
+      "claimant": "agent:multi-agent-test-1769451631874:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:20:32.030Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-321b942c-182032",
+      "issueId": "task:task-321b942c-182032",
+      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
+      "description": "Test task",
+      "claimedAt": "2026-01-26T18:20:32.038Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-182032",
+      "issueId": "task:task-6e3b0dd6-182032",
+      "claimant": "agent:multi-agent-test-1769451632003:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:20:32.119Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-182032",
+      "issueId": "task:task-a5c8d40d-182032",
+      "claimant": "agent:multi-agent-test-1769451632043:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:20:32.150Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-182032",
+      "issueId": "task:task-07e43f3b-182032",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:20:32.529Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-182032",
+      "issueId": "task:task-44dc8c34-182032",
+      "claimant": "agent:multi-agent-test-1769451632209:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:20:32.535Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-182032",
+      "issueId": "task:task-07e43f3b-182032",
+      "claimant": "agent:agent-target:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:20:32.802Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-182032",
+      "issueId": "task:task-9559b173-182032",
+      "claimant": "agent:multi-agent-test-1769451632572:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:20:32.883Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-182033",
+      "issueId": "task:task-a5c8d40d-182033",
+      "claimant": "agent:multi-agent-test-1769451632918:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:20:33.238Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-07e43f3b-182033",
+      "issueId": "task:task-07e43f3b-182033",
+      "claimant": "agent:agent-source:task",
+      "description": "Handoff task",
+      "claimedAt": "2026-01-26T18:20:33.432Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-182042",
+      "issueId": "task:task-73b85f03-182042",
+      "claimant": "agent:test-session-1769451636090:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:20:42.473Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-182123",
+      "issueId": "task:task-73b85f03-182123",
+      "claimant": "agent:test-session-1769451683166:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:21:23.465Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-182123",
+      "issueId": "task:task-73b85f03-182123",
+      "claimant": "agent:test-session-1769451646261:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:21:23.556Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-6e3b0dd6-182123",
+      "issueId": "task:task-6e3b0dd6-182123",
+      "claimant": "agent:multi-agent-test-1769451683452:task",
+      "description": "Persistent task",
+      "claimedAt": "2026-01-26T18:21:23.816Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-44dc8c34-182125",
+      "issueId": "task:task-44dc8c34-182125",
+      "claimant": "agent:multi-agent-test-1769451683835:task",
+      "description": "Task Alpha",
+      "claimedAt": "2026-01-26T18:21:25.890Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-9559b173-182126",
+      "issueId": "task:task-9559b173-182126",
+      "claimant": "agent:multi-agent-test-1769451685954:task",
+      "description": "Task Beta",
+      "claimedAt": "2026-01-26T18:21:26.038Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-a5c8d40d-182126",
+      "issueId": "task:task-a5c8d40d-182126",
+      "claimant": "agent:multi-agent-test-1769451686054:task",
+      "description": "Task Gamma",
+      "claimedAt": "2026-01-26T18:21:26.138Z",
+      "claimSuccess": true
+    },
+    {
+      "taskId": "task-73b85f03-183754",
+      "issueId": "task:task-73b85f03-183754",
+      "claimant": "agent:test-session-1769451641807:task",
+      "description": "Test task description",
+      "claimedAt": "2026-01-26T18:38:34.491Z",
       "claimSuccess": true
     }
   ]

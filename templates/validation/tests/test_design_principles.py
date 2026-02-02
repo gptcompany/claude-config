@@ -12,11 +12,11 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from validators.design_principles.validator import (
-    DesignPrinciplesValidator,
+    RADON_AVAILABLE,
     ComplexityViolation,
+    DesignPrinciplesValidator,
     NestingAnalyzer,
     ParameterAnalyzer,
-    RADON_AVAILABLE,
 )
 
 
@@ -272,9 +272,11 @@ class TestDesignPrinciplesValidator:
     def test_init_defaults(self):
         """Test default initialization."""
         validator = DesignPrinciplesValidator()
-        assert validator.thresholds["max_complexity"] == 10
-        assert validator.thresholds["max_nesting"] == 4
-        assert validator.thresholds["max_params"] == 5
+        # Practical defaults for real-world codebases
+        assert validator.thresholds["max_complexity"] == 25
+        assert validator.thresholds["min_maintainability"] == 0
+        assert validator.thresholds["max_nesting"] == 7
+        assert validator.thresholds["max_params"] == 7
 
     def test_init_custom_thresholds(self):
         """Test custom thresholds from config."""

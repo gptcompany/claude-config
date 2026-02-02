@@ -8,11 +8,11 @@ Provides optional integrations for observability:
 All integrations gracefully degrade if dependencies are unavailable.
 """
 
-from .metrics import push_validation_metrics, METRICS_AVAILABLE
+from .metrics import METRICS_AVAILABLE, push_validation_metrics
 from .sentry_context import (
-    inject_validation_context,
-    capture_validation_error,
     SENTRY_AVAILABLE,
+    capture_validation_error,
+    inject_validation_context,
 )
 
 __all__ = [

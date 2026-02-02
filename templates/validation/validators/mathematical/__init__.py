@@ -1,7 +1,7 @@
 """Mathematical validation module."""
 
-from .validator import MathematicalValidator
 from .cas_client import CASClient
-from .formula_extractor import FormulaExtractor, ExtractedFormula
+from .formula_extractor import ExtractedFormula, FormulaExtractor
+from .validator import MathematicalValidator
 
 __all__ = ["MathematicalValidator", "CASClient", "FormulaExtractor", "ExtractedFormula"]

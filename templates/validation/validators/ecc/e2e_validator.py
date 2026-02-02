@@ -131,9 +131,9 @@ class E2EValidator(ECCValidatorBase):
                     "skipped": skipped,
                     "duration_s": duration_s,
                 },
-                fix_suggestion="Run: npx playwright test --debug"
-                if not is_passed
-                else None,
+                fix_suggestion=(
+                    "Run: npx playwright test --debug" if not is_passed else None
+                ),
                 agent=self.agent if not is_passed else None,
                 duration_ms=self._format_duration(start),
             )

@@ -6,23 +6,39 @@ Provides:
 - validate_config(): Validate config against schema, return clear errors
 - load_config_with_defaults(): Load config with defaults applied
 - merge_configs(): Merge project config with template defaults
+- load_global_config(): Load global config from ~/.claude/validation/global-config.json
+- load_project_config(): Load project-specific config
+- load_config(): Compose global + project configs with RFC 7396 merge patch semantics
+
+Config Inheritance (RFC 7396 JSON Merge Patch):
+    1. Global config at ~/.claude/validation/global-config.json provides defaults
+    2. Project config at .claude/validation/config.json overrides global
+    3. Template defaults fill in any missing fields
+    4. Result has _config_source field indicating merge result
 
 Usage:
-    from config_loader import load_config_with_defaults, validate_config
+    from config_loader import load_config, validate_config
 
-    # Validate first
+    # Load with inheritance (recommended)
+    config = load_config()  # Auto-discovers project config
+
+    # Or explicit project path
+    config = load_config(Path("/path/to/project"))
+
+    # Legacy: validate first then load with defaults
     errors = validate_config(Path("config.json"))
     if errors:
         print("Config invalid:", errors)
         sys.exit(1)
-
-    # Load with defaults
     config = load_config_with_defaults(Path("config.json"))
 """
 
 import json
+import logging
 import sys
 from pathlib import Path
+
+logger = logging.getLogger(__name__)
 
 try:
     import jsonschema  # noqa: F401
@@ -36,10 +52,11 @@ except ImportError:
 
 
 # =============================================================================
-# Schema Location
+# Schema and Config Paths
 # =============================================================================
 
 SCHEMA_PATH = Path(__file__).parent / "config.schema.json"
+GLOBAL_CONFIG_PATH = Path.home() / ".claude" / "validation" / "global-config.json"
 
 
 # =============================================================================
@@ -358,8 +375,10 @@ def merge_configs(project_config: dict) -> dict:
     result = deep_merge(result, project_config)
 
     # Special handling for dimensions: ensure all dimensions have defaults
+    # Also preserve custom dimensions (plugins, project-specific) that aren't in defaults
     if "dimensions" in result:
         merged_dims = {}
+        # First, merge default dimensions with any overrides
         for dim_name, default_dim in DEFAULT_DIMENSIONS.items():
             if dim_name in result["dimensions"]:
                 merged_dims[dim_name] = deep_merge(
@@ -367,6 +386,10 @@ def merge_configs(project_config: dict) -> dict:
                 )
             else:
                 merged_dims[dim_name] = default_dim.copy()
+        # Then, preserve any custom dimensions from project config (e.g., plugins)
+        for dim_name, dim_config in result["dimensions"].items():
+            if dim_name not in merged_dims:
+                merged_dims[dim_name] = dim_config
         result["dimensions"] = merged_dims
 
     return result
@@ -423,6 +446,170 @@ def find_validation_config(start_dir: Path | None = None) -> Path | None:
         current = current.parent
 
     return None
+
+
+# =============================================================================
+# Global Config Inheritance (RFC 7396 JSON Merge Patch)
+# =============================================================================
+
+
+def load_global_config() -> dict:
+    """
+    Load global validation config from ~/.claude/validation/global-config.json.
+
+    Returns:
+        Global config dict if exists, empty dict otherwise.
+        Handles JSON parse errors gracefully (returns empty dict + logs warning).
+    """
+    if not GLOBAL_CONFIG_PATH.exists():
+        logger.debug(f"Global config not found at {GLOBAL_CONFIG_PATH}")
+        return {}
+
+    try:
+        content = GLOBAL_CONFIG_PATH.read_text()
+        config = json.loads(content)
+        logger.debug(f"Loaded global config from {GLOBAL_CONFIG_PATH}")
+        return config
+    except json.JSONDecodeError as e:
+        logger.warning(f"Invalid JSON in global config {GLOBAL_CONFIG_PATH}: {e}")
+        return {}
+    except OSError as e:
+        logger.warning(f"Error reading global config {GLOBAL_CONFIG_PATH}: {e}")
+        return {}
+
+
+def load_project_config(path: Path | None = None) -> dict:
+    """
+    Load project-specific validation config.
+
+    Args:
+        path: Explicit config file path or project directory.
+              If None, searches from cwd for .claude/validation/config.json.
+              If directory, searches within that directory.
+              If file, loads that file directly.
+
+    Returns:
+        Project config dict if found, empty dict otherwise.
+        Handles JSON parse errors gracefully (returns empty dict + logs warning).
+    """
+    config_path: Path | None = None
+
+    if path is None:
+        # Search from current working directory
+        config_path = find_validation_config()
+    elif path.is_file():
+        # Explicit file path
+        config_path = path
+    elif path.is_dir():
+        # Search within the specified directory
+        config_path = find_validation_config(path)
+    else:
+        # Path doesn't exist
+        logger.debug(f"Project config path does not exist: {path}")
+        return {}
+
+    if config_path is None:
+        logger.debug("No project config found")
+        return {}
+
+    try:
+        content = config_path.read_text()
+        config = json.loads(content)
+        logger.debug(f"Loaded project config from {config_path}")
+        return config
+    except json.JSONDecodeError as e:
+        logger.warning(f"Invalid JSON in project config {config_path}: {e}")
+        return {}
+    except OSError as e:
+        logger.warning(f"Error reading project config {config_path}: {e}")
+        return {}
+
+
+def merge_configs_rfc7396(global_config: dict, project_config: dict) -> dict:
+    """
+    Merge configs using RFC 7396 JSON Merge Patch semantics.
+
+    RFC 7396 rules:
+    - Project values override global at same path
+    - Nested dicts are recursively merged
+    - Arrays are replaced entirely (not merged element-by-element)
+    - null values in project remove keys from global (not implemented yet)
+
+    This is essentially the same as deep_merge but named explicitly for RFC 7396.
+
+    Args:
+        global_config: Base config (global defaults)
+        project_config: Override config (project-specific)
+
+    Returns:
+        Merged config with project values taking precedence
+    """
+    return deep_merge(global_config, project_config)
+
+
+def load_config(project_path: Path | None = None) -> dict:
+    """
+    Load validation config with full inheritance chain.
+
+    Composition order (later overrides earlier):
+    1. Template defaults (DEFAULT_CONFIG)
+    2. Global config (~/.claude/validation/global-config.json)
+    3. Project config (.claude/validation/config.json)
+
+    Args:
+        project_path: Path to project directory or config file.
+                     If None, searches from cwd.
+
+    Returns:
+        Fully merged config dict with _config_source field indicating sources.
+
+    Example:
+        >>> config = load_config()
+        >>> print(config["_config_source"])
+        {'global': True, 'project': True, 'global_path': '...', 'project_path': '...'}
+    """
+    # Track config sources
+    config_source = {
+        "global": False,
+        "project": False,
+        "global_path": None,
+        "project_path": None,
+    }
+
+    # Step 1: Load global config
+    global_config = load_global_config()
+    if global_config:
+        config_source["global"] = True
+        config_source["global_path"] = str(GLOBAL_CONFIG_PATH)
+
+    # Step 2: Load project config
+    project_config = load_project_config(project_path)
+    if project_config:
+        config_source["project"] = True
+        # Find the actual path for source tracking
+        if project_path and project_path.is_file():
+            config_source["project_path"] = str(project_path)
+        else:
+            found_path = find_validation_config(project_path)
+            if found_path:
+                config_source["project_path"] = str(found_path)
+
+    # Step 3: Merge global + project using RFC 7396 semantics
+    merged_user_config = merge_configs_rfc7396(global_config, project_config)
+
+    # Step 4: Merge with template defaults
+    # merge_configs() applies DEFAULT_CONFIG as base
+    final_config = merge_configs(merged_user_config)
+
+    # Step 5: Add config source metadata
+    final_config["_config_source"] = config_source
+
+    logger.info(
+        f"Config loaded: global={config_source['global']}, "
+        f"project={config_source['project']}"
+    )
+
+    return final_config
 
 
 # =============================================================================

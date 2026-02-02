@@ -3,11 +3,7 @@
 
 import pytest
 
-from validators.multimodal.score_fusion import (
-    DimensionScore,
-    FusionResult,
-    ScoreFusion,
-)
+from validators.multimodal.score_fusion import DimensionScore, FusionResult, ScoreFusion
 
 
 class TestDimensionScore:

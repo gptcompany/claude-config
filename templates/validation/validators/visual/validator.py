@@ -118,7 +118,10 @@ class VisualTargetValidator(BaseValidator):
                 diff_output.replace(".png", "_pixel.png") if diff_output else None
             )
             pixel_result = self.odiff_runner.compare(
-                baseline, current, odiff_diff or "/tmp/odiff_diff.png"
+                baseline,
+                current,
+                odiff_diff
+                or "/tmp/odiff_diff.png",  # nosec B108 - temp diff file, safe fallback
             )
             if pixel_result.error:
                 errors.append(f"ODiff: {pixel_result.error}")

@@ -2,23 +2,23 @@
 """Unit tests for ralph_loop.py - Ralph Loop State Machine."""
 
 import json
+
+# Import the module under test
+import sys
 import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock
 
 import pytest
 
-# Import the module under test
-import sys
-
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from ralph_loop import (
-    LoopState,
-    RalphLoopConfig,
     IterationHistory,
     LoopResult,
+    LoopState,
     RalphLoop,
+    RalphLoopConfig,
     _create_empty_tier_result,
 )
 
@@ -892,6 +892,679 @@ class TestAsyncMethods:
         assert result.state == LoopState.COMPLETE
         assert result.iteration == 3
         assert "Max iterations" in result.message
+
+
+class TestParseFiles:
+    """Tests for parse_files function."""
+
+    def test_parse_files_comma_separated(self):
+        from ralph_loop import parse_files
+
+        result = parse_files("file1.py,file2.py,file3.py")
+        assert result == ["file1.py", "file2.py", "file3.py"]
+
+    def test_parse_files_space_separated(self):
+        from ralph_loop import parse_files
+
+        result = parse_files("file1.py file2.py")
+        assert result == ["file1.py", "file2.py"]
+
+    def test_parse_files_mixed(self):
+        from ralph_loop import parse_files
+
+        result = parse_files("file1.py, file2.py file3.py")
+        assert result == ["file1.py", "file2.py", "file3.py"]
+
+    def test_parse_files_none_tty(self, monkeypatch):
+        import io
+
+        from ralph_loop import parse_files
+
+        # Simulate a tty stdin
+        monkeypatch.setattr("sys.stdin", io.StringIO(""))
+        monkeypatch.setattr("sys.stdin.isatty", lambda: True)
+        result = parse_files(None)
+        assert result == []
+
+    def test_parse_files_from_stdin(self, monkeypatch):
+        import io
+
+        from ralph_loop import parse_files
+
+        stdin = io.StringIO("file1.py,file2.py\nfile3.py")
+        monkeypatch.setattr("sys.stdin", stdin)
+        result = parse_files(None)
+        assert result == ["file1.py", "file2.py", "file3.py"]
+
+    def test_parse_files_empty_string(self):
+        from ralph_loop import parse_files
+
+        # Empty string is truthy-ish but splits to nothing
+        result = parse_files("   ")
+        assert result == []
+
+
+class TestGetProjectFromGit:
+    """Tests for _get_project_from_git standalone function."""
+
+    def test_returns_string(self):
+        from ralph_loop import _get_project_from_git
+
+        result = _get_project_from_git()
+        assert isinstance(result, str)
+        assert len(result) > 0
+
+    def test_fallback_on_failure(self, monkeypatch):
+        # Make subprocess.run raise to trigger fallback
+        import subprocess as sp
+
+        from ralph_loop import _get_project_from_git
+
+        monkeypatch.setattr(
+            sp, "run", lambda *a, **k: (_ for _ in ()).throw(OSError("no git"))
+        )
+        result = _get_project_from_git()
+        assert isinstance(result, str)
+        assert len(result) > 0
+
+
+class TestGetProjectNameMethod:
+    """Tests for RalphLoop._get_project_name with git failure."""
+
+    def test_fallback_on_subprocess_error(self, monkeypatch):
+        import subprocess as sp
+
+        monkeypatch.setattr(
+            sp, "run", lambda *a, **k: (_ for _ in ()).throw(OSError("no git"))
+        )
+        mock_orch = MagicMock()
+        mock_orch.validators = {}
+        loop = RalphLoop(mock_orch, RalphLoopConfig())
+        name = loop._get_project_name()
+        assert isinstance(name, str)
+        assert len(name) > 0
+
+
+class TestCreateEmptyTierResultFallback:
+    """Test the EmptyTierResult fallback in _create_empty_tier_result."""
+
+    def test_fallback_when_orchestrator_import_fails(self, monkeypatch):
+        """Force the ImportError fallback path."""
+        import ralph_loop as rl_mod
+
+        # Temporarily remove orchestrator from sys.modules if present
+        saved = sys.modules.pop("orchestrator", None)
+        # Also patch importlib to fail
+        original_import = (
+            __builtins__.__import__
+            if hasattr(__builtins__, "__import__")
+            else __import__
+        )
+
+        def failing_import(name, *args, **kwargs):
+            if name == "orchestrator":
+                raise ImportError("forced")
+            return original_import(name, *args, **kwargs)
+
+        monkeypatch.setattr("builtins.__import__", failing_import)
+
+        result = rl_mod._create_empty_tier_result(2)
+        assert result.tier.value == 2
+        assert result.results == []
+        assert result.passed is True
+        assert result.failed_dimensions == []
+
+        # Restore
+        if saved is not None:
+            sys.modules["orchestrator"] = saved
+
+
+class TestRunTier2Tier3OuterException:
+    """Test the outer except branch in _run_tier2_and_tier3."""
+
+    @pytest.fixture
+    def mock_orchestrator(self):
+        mock = MagicMock()
+        mock_validator = MagicMock()
+        mock_tier_class = MagicMock(side_effect=lambda x: MagicMock(value=x))
+        mock_validator.tier.__class__ = mock_tier_class
+        mock.validators = {"test": mock_validator}
+        return mock
+
+    @pytest.mark.asyncio
+    async def test_outer_exception_returns_empty(self, mock_orchestrator):
+        """When asyncio.gather itself raises, get empty results."""
+        import asyncio
+
+        # Make run_tier raise a non-asyncio exception that escapes gather
+        async def mock_run_tier(tier):
+            raise RuntimeError("catastrophic")
+
+        mock_orchestrator.run_tier = mock_run_tier
+
+        # Patch asyncio.gather to raise directly
+        _ = asyncio.gather  # noqa: F841
+
+        async def failing_gather(*coros, **kwargs):
+            # Cancel the coros
+            for c in coros:
+                c.close()
+            raise RuntimeError("gather failed")
+
+        original = asyncio.gather
+        asyncio.gather = failing_gather
+        try:
+            loop = RalphLoop(mock_orchestrator, RalphLoopConfig())
+            t2, t3 = await loop._run_tier2_and_tier3()
+            assert t2.passed is True
+            assert t3.passed is True
+        finally:
+            asyncio.gather = original
+
+
+class TestAsyncMainCLI:
+    """Tests for async_main CLI function."""
+
+    @pytest.mark.asyncio
+    async def test_no_files_json(self, monkeypatch):
+        """Test async_main with no files in JSON mode."""
+        import io
+
+        from ralph_loop import async_main
+
+        monkeypatch.setattr("sys.argv", ["ralph_loop.py", "--json"])
+        monkeypatch.setattr("sys.stdin", io.StringIO(""))
+        monkeypatch.setattr("sys.stdin.isatty", lambda: True)
+        capsys_lines = []
+        monkeypatch.setattr(
+            "builtins.print",
+            lambda *a, **k: capsys_lines.append(" ".join(str(x) for x in a)),
+        )
+
+        with pytest.raises(SystemExit) as exc_info:
+            await async_main()
+        assert exc_info.value.code == 1
+        output = "\n".join(capsys_lines)
+        assert "error" in output.lower()
+
+    @pytest.mark.asyncio
+    async def test_no_files_text(self, monkeypatch):
+        """Test async_main with no files in text mode."""
+        import io
+
+        from ralph_loop import async_main
+
+        monkeypatch.setattr("sys.argv", ["ralph_loop.py"])
+        monkeypatch.setattr("sys.stdin", io.StringIO(""))
+        monkeypatch.setattr("sys.stdin.isatty", lambda: True)
+        capsys_lines = []
+        monkeypatch.setattr(
+            "builtins.print",
+            lambda *a, **k: capsys_lines.append(" ".join(str(x) for x in a)),
+        )
+
+        with pytest.raises(SystemExit) as exc_info:
+            await async_main()
+        assert exc_info.value.code == 1
+
+    @pytest.mark.asyncio
+    async def test_orchestrator_import_error_json(self, monkeypatch):
+        """Test async_main when orchestrator import fails, JSON mode."""
+        from ralph_loop import async_main
+
+        monkeypatch.setattr(
+            "sys.argv", ["ralph_loop.py", "--files", "test.py", "--json"]
+        )
+
+        # Make orchestrator import fail inside async_main
+        saved = sys.modules.pop("orchestrator", None)
+        original_import = __import__
+
+        def failing_import(name, *args, **kwargs):
+            if name == "orchestrator":
+                raise ImportError("forced")
+            return original_import(name, *args, **kwargs)
+
+        monkeypatch.setattr("builtins.__import__", failing_import)
+        capsys_lines = []
+        monkeypatch.setattr(
+            "builtins.print",
+            lambda *a, **k: capsys_lines.append(" ".join(str(x) for x in a)),
+        )
+
+        with pytest.raises(SystemExit) as exc_info:
+            await async_main()
+        assert exc_info.value.code == 1
+        output = "\n".join(capsys_lines)
+        assert "error" in output.lower()
+
+        if saved is not None:
+            sys.modules["orchestrator"] = saved
+
+    @pytest.mark.asyncio
+    async def test_orchestrator_import_error_text(self, monkeypatch):
+        """Test async_main when orchestrator import fails, text mode."""
+        from ralph_loop import async_main
+
+        monkeypatch.setattr("sys.argv", ["ralph_loop.py", "--files", "test.py"])
+
+        saved = sys.modules.pop("orchestrator", None)
+        original_import = __import__
+
+        def failing_import(name, *args, **kwargs):
+            if name == "orchestrator":
+                raise ImportError("forced")
+            return original_import(name, *args, **kwargs)
+
+        monkeypatch.setattr("builtins.__import__", failing_import)
+        capsys_lines = []
+        monkeypatch.setattr(
+            "builtins.print",
+            lambda *a, **k: capsys_lines.append(" ".join(str(x) for x in a)),
+        )
+
+        with pytest.raises(SystemExit) as exc_info:
+            await async_main()
+        assert exc_info.value.code == 1
+
+        if saved is not None:
+            sys.modules["orchestrator"] = saved
+
+    @pytest.mark.asyncio
+    async def test_successful_run_json(self, monkeypatch):
+        """Test async_main with successful run, JSON output."""
+        from ralph_loop import async_main
+
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "ralph_loop.py",
+                "--files",
+                "test.py",
+                "--json",
+                "--max-iterations",
+                "1",
+                "--threshold",
+                "0",
+            ],
+        )
+
+        # Mock the orchestrator
+        tier_result = MagicMock()
+        tier_result.passed = True
+        tier_result.results = [MagicMock(passed=True)]
+
+        async def mock_run_tier(tier):
+            return tier_result
+
+        mock_orch = MagicMock()
+        mock_validator = MagicMock()
+        mock_tier_class = MagicMock(side_effect=lambda x: MagicMock(value=x))
+        mock_validator.tier.__class__ = mock_tier_class
+        mock_orch.validators = {"test": mock_validator}
+        mock_orch.run_tier = mock_run_tier
+
+        original_import = __import__
+
+        def patched_import(name, *args, **kwargs):
+            if name == "orchestrator":
+                mod = MagicMock()
+                mod.ValidationOrchestrator.return_value = mock_orch
+                return mod
+            return original_import(name, *args, **kwargs)
+
+        monkeypatch.setattr("builtins.__import__", patched_import)
+
+        capsys_lines = []
+        monkeypatch.setattr(
+            "builtins.print",
+            lambda *a, **k: capsys_lines.append(" ".join(str(x) for x in a)),
+        )
+
+        with pytest.raises(SystemExit) as exc_info:
+            await async_main()
+        assert exc_info.value.code == 0
+        output = "\n".join(capsys_lines)
+        parsed = json.loads(output)
+        assert parsed["state"] == "complete"
+
+    @pytest.mark.asyncio
+    async def test_successful_run_text(self, monkeypatch):
+        """Test async_main with successful run, text output."""
+        from ralph_loop import async_main
+
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "ralph_loop.py",
+                "--files",
+                "test.py",
+                "--max-iterations",
+                "1",
+                "--threshold",
+                "0",
+                "--project",
+                "testproj",
+            ],
+        )
+
+        tier_result = MagicMock()
+        tier_result.passed = True
+        tier_result.results = [MagicMock(passed=True)]
+
+        async def mock_run_tier(tier):
+            return tier_result
+
+        mock_orch = MagicMock()
+        mock_validator = MagicMock()
+        mock_tier_class = MagicMock(side_effect=lambda x: MagicMock(value=x))
+        mock_validator.tier.__class__ = mock_tier_class
+        mock_orch.validators = {"test": mock_validator}
+        mock_orch.run_tier = mock_run_tier
+
+        original_import = __import__
+
+        def patched_import(name, *args, **kwargs):
+            if name == "orchestrator":
+                mod = MagicMock()
+                mod.ValidationOrchestrator.return_value = mock_orch
+                return mod
+            return original_import(name, *args, **kwargs)
+
+        monkeypatch.setattr("builtins.__import__", patched_import)
+
+        capsys_lines = []
+        monkeypatch.setattr(
+            "builtins.print",
+            lambda *a, **k: capsys_lines.append(" ".join(str(x) for x in a)),
+        )
+
+        with pytest.raises(SystemExit) as exc_info:
+            await async_main()
+        assert exc_info.value.code == 0
+        output = "\n".join(capsys_lines)
+        assert "RALPH LOOP RESULT" in output
+
+    @pytest.mark.asyncio
+    async def test_blocked_run_text(self, monkeypatch):
+        """Test async_main with blocked result, text output with blockers."""
+        from ralph_loop import async_main
+
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "ralph_loop.py",
+                "--files",
+                "test.py",
+                "--max-iterations",
+                "1",
+                "--project",
+                "testproj",
+            ],
+        )
+
+        tier_result = MagicMock()
+        tier_result.passed = False
+        tier_result.failed_dimensions = ["syntax"]
+        tier_result.results = []
+
+        async def mock_run_tier(tier):
+            return tier_result
+
+        mock_orch = MagicMock()
+        mock_validator = MagicMock()
+        mock_tier_class = MagicMock(side_effect=lambda x: MagicMock(value=x))
+        mock_validator.tier.__class__ = mock_tier_class
+        mock_orch.validators = {"test": mock_validator}
+        mock_orch.run_tier = mock_run_tier
+
+        original_import = __import__
+
+        def patched_import(name, *args, **kwargs):
+            if name == "orchestrator":
+                mod = MagicMock()
+                mod.ValidationOrchestrator.return_value = mock_orch
+                return mod
+            return original_import(name, *args, **kwargs)
+
+        monkeypatch.setattr("builtins.__import__", patched_import)
+
+        capsys_lines = []
+        monkeypatch.setattr(
+            "builtins.print",
+            lambda *a, **k: capsys_lines.append(" ".join(str(x) for x in a)),
+        )
+
+        with pytest.raises(SystemExit) as exc_info:
+            await async_main()
+        assert exc_info.value.code == 1
+        output = "\n".join(capsys_lines)
+        assert "Blockers" in output
+
+    @pytest.mark.asyncio
+    async def test_below_threshold_exit_code(self, monkeypatch):
+        """Test exit code 2 when score below threshold."""
+        from ralph_loop import async_main
+
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "ralph_loop.py",
+                "--files",
+                "test.py",
+                "--json",
+                "--max-iterations",
+                "1",
+                "--threshold",
+                "100",
+            ],
+        )
+
+        tier1 = MagicMock()
+        tier1.passed = True
+        tier1.results = [MagicMock(passed=True)]
+        tier2 = MagicMock()
+        tier2.results = [MagicMock(passed=False)]
+        tier3 = MagicMock()
+        tier3.results = [MagicMock(passed=False)]
+
+        async def mock_run_tier(tier):
+            if tier.value == 1:
+                return tier1
+            elif tier.value == 2:
+                return tier2
+            return tier3
+
+        mock_orch = MagicMock()
+        mock_validator = MagicMock()
+        mock_tier_class = MagicMock(side_effect=lambda x: MagicMock(value=x))
+        mock_validator.tier.__class__ = mock_tier_class
+        mock_orch.validators = {"test": mock_validator}
+        mock_orch.run_tier = mock_run_tier
+
+        original_import = __import__
+
+        def patched_import(name, *args, **kwargs):
+            if name == "orchestrator":
+                mod = MagicMock()
+                mod.ValidationOrchestrator.return_value = mock_orch
+                return mod
+            return original_import(name, *args, **kwargs)
+
+        monkeypatch.setattr("builtins.__import__", patched_import)
+
+        capsys_lines = []
+        monkeypatch.setattr(
+            "builtins.print",
+            lambda *a, **k: capsys_lines.append(" ".join(str(x) for x in a)),
+        )
+
+        with pytest.raises(SystemExit) as exc_info:
+            await async_main()
+        assert exc_info.value.code == 2
+
+    @pytest.mark.asyncio
+    async def test_config_file_loading(self, monkeypatch, tmp_path):
+        """Test async_main with --config flag."""
+        from ralph_loop import async_main
+
+        config_file = tmp_path / "config.json"
+        config_file.write_text(
+            json.dumps({"max_iterations": 1, "min_score_threshold": 0})
+        )
+
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "ralph_loop.py",
+                "--files",
+                "test.py",
+                "--json",
+                "--config",
+                str(config_file),
+            ],
+        )
+
+        tier_result = MagicMock()
+        tier_result.passed = True
+        tier_result.results = [MagicMock(passed=True)]
+
+        async def mock_run_tier(tier):
+            return tier_result
+
+        mock_orch = MagicMock()
+        mock_validator = MagicMock()
+        mock_tier_class = MagicMock(side_effect=lambda x: MagicMock(value=x))
+        mock_validator.tier.__class__ = mock_tier_class
+        mock_orch.validators = {"test": mock_validator}
+        mock_orch.run_tier = mock_run_tier
+
+        original_import = __import__
+
+        def patched_import(name, *args, **kwargs):
+            if name == "orchestrator":
+                mod = MagicMock()
+                mod.ValidationOrchestrator.return_value = mock_orch
+                return mod
+            return original_import(name, *args, **kwargs)
+
+        monkeypatch.setattr("builtins.__import__", patched_import)
+
+        capsys_lines = []
+        monkeypatch.setattr(
+            "builtins.print",
+            lambda *a, **k: capsys_lines.append(" ".join(str(x) for x in a)),
+        )
+
+        with pytest.raises(SystemExit) as exc_info:
+            await async_main()
+        assert exc_info.value.code == 0
+
+    @pytest.mark.asyncio
+    async def test_text_output_with_history(self, monkeypatch):
+        """Test text output includes history section."""
+        from ralph_loop import async_main
+
+        monkeypatch.setattr(
+            "sys.argv",
+            [
+                "ralph_loop.py",
+                "--files",
+                "test.py",
+                "--max-iterations",
+                "2",
+                "--threshold",
+                "100",
+                "--project",
+                "testproj",
+            ],
+        )
+
+        tier1 = MagicMock()
+        tier1.passed = True
+        tier1.results = [MagicMock(passed=True)]
+        tier2 = MagicMock()
+        tier2.results = [MagicMock(passed=False)]
+        tier3 = MagicMock()
+        tier3.results = [MagicMock(passed=False)]
+
+        async def mock_run_tier(tier):
+            if tier.value == 1:
+                return tier1
+            elif tier.value == 2:
+                return tier2
+            return tier3
+
+        mock_orch = MagicMock()
+        mock_validator = MagicMock()
+        mock_tier_class = MagicMock(side_effect=lambda x: MagicMock(value=x))
+        mock_validator.tier.__class__ = mock_tier_class
+        mock_orch.validators = {"test": mock_validator}
+        mock_orch.run_tier = mock_run_tier
+
+        original_import = __import__
+
+        def patched_import(name, *args, **kwargs):
+            if name == "orchestrator":
+                mod = MagicMock()
+                mod.ValidationOrchestrator.return_value = mock_orch
+                return mod
+            return original_import(name, *args, **kwargs)
+
+        monkeypatch.setattr("builtins.__import__", patched_import)
+
+        capsys_lines = []
+        monkeypatch.setattr(
+            "builtins.print",
+            lambda *a, **k: capsys_lines.append(" ".join(str(x) for x in a)),
+        )
+
+        with pytest.raises(SystemExit):
+            await async_main()
+        output = "\n".join(capsys_lines)
+        assert "HISTORY" in output
+        assert "Iteration" in output
+
+
+class TestMainFunction:
+    """Test the sync main() wrapper."""
+
+    def test_main_calls_async_main(self, monkeypatch):
+        import io
+
+        from ralph_loop import main
+
+        monkeypatch.setattr("sys.argv", ["ralph_loop.py", "--json"])
+        monkeypatch.setattr("sys.stdin", io.StringIO(""))
+        monkeypatch.setattr("sys.stdin.isatty", lambda: True)
+        capsys_lines = []
+        monkeypatch.setattr(
+            "builtins.print",
+            lambda *a, **k: capsys_lines.append(" ".join(str(x) for x in a)),
+        )
+
+        with pytest.raises(SystemExit):
+            main()
+
+
+class TestImportFallbacks:
+    """Test the import fallback branches for integrations."""
+
+    def test_metrics_fallback(self):
+        """The fallback push_validation_metrics returns False."""
+        # We can test this by calling the function directly if integrations are loaded
+        # If they are loaded, we test the real ones; the fallback is for when they're not
+        from ralph_loop import push_validation_metrics
+
+        # Just verify it's callable
+        assert callable(push_validation_metrics)
+
+    def test_sentry_fallback(self):
+        """The fallback inject/add functions return False."""
+        from ralph_loop import add_validation_breadcrumb, inject_validation_context
+
+        assert callable(inject_validation_context)
+        assert callable(add_validation_breadcrumb)
 
 
 if __name__ == "__main__":

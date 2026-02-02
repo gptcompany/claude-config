@@ -134,9 +134,11 @@ class OSSReuseValidator(BaseValidator):
             dimension=self.dimension,
             tier=self.tier,
             passed=passed,
-            message=f"{len(filtered_matches)} OSS suggestions"
-            if not passed
-            else "No reimplementations detected",
+            message=(
+                f"{len(filtered_matches)} OSS suggestions"
+                if not passed
+                else "No reimplementations detected"
+            ),
             details={
                 "files_scanned": files_scanned,
                 "total_matches": len(matches),

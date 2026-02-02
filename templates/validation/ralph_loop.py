@@ -157,7 +157,7 @@ class LoopResult:
 # =============================================================================
 
 try:
-    from integrations.metrics import push_validation_metrics, METRICS_AVAILABLE
+    from integrations.metrics import METRICS_AVAILABLE, push_validation_metrics
 except ImportError:
     METRICS_AVAILABLE = False
 
@@ -167,9 +167,9 @@ except ImportError:
 
 try:
     from integrations.sentry_context import (
-        inject_validation_context,
-        add_validation_breadcrumb,
         SENTRY_AVAILABLE,
+        add_validation_breadcrumb,
+        inject_validation_context,
     )
 except ImportError:
     SENTRY_AVAILABLE = False
@@ -689,7 +689,11 @@ Config file format (JSON):
         print(f"{'=' * 60}")
         print(f"State:       {result.state.value}")
         print(f"Iterations:  {result.iteration}")
-        print(f"Score:       {result.score:.1f if result.score else 'N/A'}")
+        print(
+            f"Score:       {result.score:.1f}"
+            if result.score is not None
+            else "Score:       N/A"
+        )
         print(f"Duration:    {result.execution_time_ms}ms")
 
         if result.blockers:

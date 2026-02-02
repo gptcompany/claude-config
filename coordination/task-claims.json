@@ -1,102 +1,12 @@
 {
   "claims": {
-    "task-321b942c-111907": {
-      "taskId": "task-321b942c-111907",
-      "issueId": "task:task-321b942c-111907",
-      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
-      "description": "Test task",
-      "claimedAt": "2026-01-24T11:19:07.852Z",
-      "sessionId": "session-mks7j5xo-rp3lzmdp",
-      "status": "running"
-    },
-    "task-321b942c-111922": {
-      "taskId": "task-321b942c-111922",
-      "issueId": "task:task-321b942c-111922",
-      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
-      "description": "Test task",
-      "claimedAt": "2026-01-24T11:19:22.223Z",
-      "sessionId": "session-mks7j5xo-rp3lzmdp",
-      "status": "running"
-    },
-    "task-321b942c-111929": {
-      "taskId": "task-321b942c-111929",
-      "issueId": "task:task-321b942c-111929",
-      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
-      "description": "Test task",
-      "claimedAt": "2026-01-24T11:19:29.151Z",
-      "sessionId": "session-mks7j5xo-rp3lzmdp",
-      "status": "running"
-    },
-    "task-321b942c-111942": {
-      "taskId": "task-321b942c-111942",
-      "issueId": "task:task-321b942c-111942",
-      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
-      "description": "Test task",
-      "claimedAt": "2026-01-24T11:19:42.729Z",
-      "sessionId": "session-mks7j5xo-rp3lzmdp",
-      "status": "running"
-    },
-    "task-45c82177-113143": {
-      "taskId": "task-45c82177-113143",
-      "issueId": "task:task-45c82177-113143",
-      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
-      "description": "unknown task",
-      "claimedAt": "2026-01-24T11:31:43.405Z",
-      "sessionId": "session-mks7j5xo-rp3lzmdp",
-      "status": "running"
-    },
-    "task-45c82177-113227": {
-      "taskId": "task-45c82177-113227",
-      "issueId": "task:task-45c82177-113227",
-      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
-      "description": "unknown task",
-      "claimedAt": "2026-01-24T11:32:27.918Z",
-      "sessionId": "session-mks7j5xo-rp3lzmdp",
-      "status": "running"
-    },
-    "task-45c82177-113538": {
-      "taskId": "task-45c82177-113538",
-      "issueId": "task:task-45c82177-113538",
-      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
-      "description": "unknown task",
-      "claimedAt": "2026-01-24T11:35:38.142Z",
-      "sessionId": "session-mks7j5xo-rp3lzmdp",
-      "status": "running"
-    },
-    "task-321b942c-121130": {
-      "taskId": "task-321b942c-121130",
-      "issueId": "task:task-321b942c-121130",
-      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
-      "description": "Test task",
-      "claimedAt": "2026-01-24T12:11:30.092Z",
-      "sessionId": "session-mks7j5xo-rp3lzmdp",
-      "status": "running"
-    },
-    "task-73b85f03-121138": {
-      "taskId": "task-73b85f03-121138",
-      "issueId": "task:task-73b85f03-121138",
-      "claimant": "agent:test-session-1769256698362:task",
+    "task-73b85f03-190932": {
+      "taskId": "task-73b85f03-190932",
+      "issueId": "task:task-73b85f03-190932",
+      "claimant": "agent:test-session-1769451683166:task",
       "description": "Test task description",
-      "claimedAt": "2026-01-24T12:11:38.425Z",
-      "sessionId": "test-session-1769256698362",
-      "status": "running"
-    },
-    "task-321b942c-121138": {
-      "taskId": "task-321b942c-121138",
-      "issueId": "task:task-321b942c-121138",
-      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
-      "description": "Test task",
-      "claimedAt": "2026-01-24T12:11:38.937Z",
-      "sessionId": "session-mks7j5xo-rp3lzmdp",
-      "status": "running"
-    },
-    "task-45c82177-121140": {
-      "taskId": "task-45c82177-121140",
-      "issueId": "task:task-45c82177-121140",
-      "claimant": "agent:session-mks7j5xo-rp3lzmdp:task",
-      "description": "unknown task",
-      "claimedAt": "2026-01-24T12:11:40.414Z",
-      "sessionId": "session-mks7j5xo-rp3lzmdp",
+      "claimedAt": "2026-01-26T19:13:33.866Z",
+      "sessionId": "test-session-1769451683166",
       "status": "running"
     }
   }

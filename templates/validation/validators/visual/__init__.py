@@ -7,16 +7,9 @@ Provides visual comparison tools for image-based validation:
 - PerceptualComparator: SSIM-based perceptual comparison
 """
 
-from .perceptual import (
-    SKIMAGE_AVAILABLE,
-    PerceptualComparator,
-    PerceptualResult,
-)
+from .perceptual import SKIMAGE_AVAILABLE, PerceptualComparator, PerceptualResult
 from .pixel_diff import ODiffResult, ODiffRunner
-from .validator import (
-    VisualComparisonResult,
-    VisualTargetValidator,
-)
+from .validator import VisualComparisonResult, VisualTargetValidator
 
 __all__ = [
     # Main validator

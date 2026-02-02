@@ -13,7 +13,7 @@ import os
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from orchestrator import ValidationReport, TierResult
+    from orchestrator import TierResult, ValidationReport
 
 logger = logging.getLogger(__name__)
 
@@ -50,12 +50,7 @@ _warned_once = False
 
 def _initialize_metrics() -> bool:
     """Initialize metrics on first use (lazy initialization)."""
-    global \
-        _registry, \
-        _validation_runs, \
-        _validation_duration, \
-        _validation_score, \
-        _validation_blockers
+    global _registry, _validation_runs, _validation_duration, _validation_score, _validation_blockers
 
     if not METRICS_AVAILABLE or CollectorRegistry is None:
         return False
@@ -191,7 +186,9 @@ def _push_tier_metrics(tier_result: "TierResult", project: str) -> None:
             _validation_duration.labels(
                 tier=tier_value,
                 validator=validator_result.dimension,
-            ).observe(validator_result.duration_ms / 1000.0)  # Convert to seconds
+            ).observe(
+                validator_result.duration_ms / 1000.0
+            )  # Convert to seconds
 
         # Track blockers (only for failed validators)
         if not validator_result.passed:
@@ -217,12 +214,7 @@ def _push_tier_metrics(tier_result: "TierResult", project: str) -> None:
 
 def clear_metrics() -> None:
     """Clear all metrics (useful for testing)."""
-    global \
-        _registry, \
-        _validation_runs, \
-        _validation_duration, \
-        _validation_score, \
-        _validation_blockers
+    global _registry, _validation_runs, _validation_duration, _validation_score, _validation_blockers
     _registry = None
     _validation_runs = None
     _validation_duration = None

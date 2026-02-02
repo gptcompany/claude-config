@@ -13,7 +13,7 @@ from datetime import datetime
 from enum import Enum
 from typing import Any
 
-from .dom_diff import DOMComparator, ComparisonResult, ZSS_AVAILABLE
+from .dom_diff import ZSS_AVAILABLE, ComparisonResult, DOMComparator
 
 
 # Define types locally for standalone testing (matches orchestrator types)

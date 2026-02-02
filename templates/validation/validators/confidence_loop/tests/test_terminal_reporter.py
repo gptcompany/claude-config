@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Tests for TerminalReporter - terminal output for confidence loops."""
 
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
 
-from validators.confidence_loop.terminal_reporter import TerminalReporter
 from validators.confidence_loop.loop_controller import LoopState, RefinementStage
+from validators.confidence_loop.terminal_reporter import TerminalReporter
 from validators.confidence_loop.termination import TerminationResult
 
 

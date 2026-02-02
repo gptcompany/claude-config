@@ -29,9 +29,9 @@ Usage:
 
 from .base import ECCValidatorBase
 from .e2e_validator import E2EValidator
+from .eval_validator import EvalValidator
 from .security_enhanced import SecurityEnhancedValidator
 from .tdd_validator import TDDValidator
-from .eval_validator import EvalValidator
 
 __all__ = [
     "ECCValidatorBase",

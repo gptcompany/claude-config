@@ -2,8 +2,7 @@
 """Tests for GrafanaReporter - metrics push for confidence loops."""
 
 import urllib.error
-from unittest.mock import patch, MagicMock, Mock
-
+from unittest.mock import MagicMock, Mock, patch
 
 from validators.confidence_loop.grafana_reporter import GrafanaReporter
 from validators.confidence_loop.loop_controller import LoopState, RefinementStage

@@ -265,13 +265,14 @@
       }
     ]
   },
+  "statusLine": {
+    "type": "command",
+    "command": "node ~/.claude/scripts/statusline/context-monitor.js"
+  },
   "enabledPlugins": {
     "pyright-lsp@claude-plugins-official": true,
     "code-simplifier@claude-plugins-official": true
   },
-  "alwaysThinkingEnabled": true,
-  "statusLine": {
-    "type": "command",
-    "command": "node ~/.claude/scripts/statusline/context-monitor.js"
-  }
+  "language": "italian",
+  "alwaysThinkingEnabled": true
 }

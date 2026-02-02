@@ -1,20 +1,17 @@
 #!/usr/bin/env python3
 """Tests for ConfidenceLoopOrchestrator - orchestrator integration."""
 
-import pytest
-from unittest.mock import MagicMock, AsyncMock
+from unittest.mock import AsyncMock, MagicMock
 
+import pytest
+
+from validators.confidence_loop.grafana_reporter import GrafanaReporter
+from validators.confidence_loop.loop_controller import ProgressiveRefinementLoop
 from validators.confidence_loop.orchestrator_integration import (
     ConfidenceLoopOrchestrator,
 )
-from validators.confidence_loop.loop_controller import (
-    ProgressiveRefinementLoop,
-)
-from validators.confidence_loop.termination import (
-    TerminationEvaluator,
-)
 from validators.confidence_loop.terminal_reporter import TerminalReporter
-from validators.confidence_loop.grafana_reporter import GrafanaReporter
+from validators.confidence_loop.termination import TerminationEvaluator
 
 
 class TestConfidenceLoopOrchestratorInit:

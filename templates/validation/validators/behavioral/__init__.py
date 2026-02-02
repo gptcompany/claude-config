@@ -6,13 +6,13 @@ and current HTML documents. Returns confidence score based on similarity.
 Tier 3 validator (Monitor) - emits metrics, doesn't block.
 """
 
+from .dom_diff import ZSS_AVAILABLE, ComparisonResult, DOMComparator, DOMNode
 from .validator import (
-    BehavioralValidator,
     BehavioralConfig,
+    BehavioralValidator,
     ValidationResult,
     ValidationTier,
 )
-from .dom_diff import DOMComparator, DOMNode, ComparisonResult, ZSS_AVAILABLE
 
 __all__ = [
     # Main exports

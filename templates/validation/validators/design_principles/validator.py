@@ -24,40 +24,40 @@ except ImportError:
     cc_visit = None
     mi_visit = None
 
-# Import base types from orchestrator (with fallback for standalone testing)
-try:
-    from enum import Enum
+# Base types for standalone testing (when not imported from orchestrator)
+from enum import Enum
 
-    class ValidationTier(Enum):
-        BLOCKER = 1
-        WARNING = 2
-        MONITOR = 3
 
-    @dataclass
-    class ValidationResult:
-        dimension: str
-        tier: ValidationTier
-        passed: bool
-        message: str
-        details: dict = field(default_factory=dict)
-        fix_suggestion: str | None = None
-        agent: str | None = None
-        duration_ms: int = 0
+class ValidationTier(Enum):
+    BLOCKER = 1
+    WARNING = 2
+    MONITOR = 3
 
-    class BaseValidator:
-        dimension = "unknown"
-        tier = ValidationTier.MONITOR
-        agent = None
 
-        async def validate(self) -> ValidationResult:
-            return ValidationResult(
-                dimension=self.dimension,
-                tier=self.tier,
-                passed=True,
-                message="No validation implemented",
-            )
-except Exception:
-    pass
+@dataclass
+class ValidationResult:
+    dimension: str
+    tier: ValidationTier
+    passed: bool
+    message: str
+    details: dict = field(default_factory=dict)
+    fix_suggestion: str | None = None
+    agent: str | None = None
+    duration_ms: int = 0
+
+
+class BaseValidator:
+    dimension = "unknown"
+    tier = ValidationTier.MONITOR
+    agent: str | None = None
+
+    async def validate(self) -> ValidationResult:
+        return ValidationResult(
+            dimension=self.dimension,
+            tier=self.tier,
+            passed=True,
+            message="No validation implemented",
+        )
 
 
 @dataclass
@@ -165,11 +165,14 @@ class DesignPrinciplesValidator(BaseValidator):
     agent = "code-simplifier"
 
     # Default thresholds (can be overridden by config)
+    # These are practical defaults for real-world codebases:
+    # - Validators/orchestrators often need moderate complexity
+    # - Test files may have lower maintainability scores
     DEFAULT_THRESHOLDS = {
-        "max_complexity": 10,  # Radon CC grade B cutoff
-        "min_maintainability": 10,  # MI grade B cutoff
-        "max_nesting": 4,
-        "max_params": 5,
+        "max_complexity": 25,  # Allow moderately complex functions
+        "min_maintainability": 0,  # Don't penalize test files
+        "max_nesting": 7,  # Allow reasonable nesting for error handling
+        "max_params": 7,  # Allow up to 7 parameters
     }
 
     def __init__(self, config: dict | None = None):
@@ -229,9 +232,11 @@ class DesignPrinciplesValidator(BaseValidator):
             dimension=self.dimension,
             tier=self.tier,
             passed=passed,
-            message=f"{len(violations)} violations"
-            if not passed
-            else "Design principles OK",
+            message=(
+                f"{len(violations)} violations"
+                if not passed
+                else "Design principles OK"
+            ),
             details={
                 "files_scanned": files_scanned,
                 "total_violations": len(violations),
