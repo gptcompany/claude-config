@@ -56,7 +56,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 22-01: TBD
+- [x] 22-01: Per-agent workspace bootstrap + openclaw.json identity config
 
 #### Phase 23: Hooks & Webhooks
 **Goal**: Hook custom pre/post exec per validation, webhooks GitHub→agent action, escalation su Matrix
@@ -205,7 +205,7 @@ See [v4.0 Archive](milestones/v4.0-ROADMAP.md) for full details.
 | 20. Multi-Project Support | v6.0 | 4/4 | ✅ Complete | 2026-01-26 |
 
 | 21. Models & Providers | v7.0 | 1/1 | ✅ Complete | 2026-02-01 |
-| 22. Agent Config & System Prompts | v7.0 | 0/? | Not started | - |
+| 22. Agent Config & System Prompts | v7.0 | 1/1 | ✅ Complete | 2026-02-02 |
 | 23. Hooks & Webhooks | v7.0 | 0/? | Not started | - |
 | 24. Skills & LLM Task | v7.0 | 0/? | Not started | - |
 | 25. Gemini Cross-Review | v7.0 | 0/? | Not started | - |
