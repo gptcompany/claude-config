@@ -18,9 +18,9 @@ class TestSentryAvailability:
     def test_module_imports_without_sentry(self):
         """Test module loads even without sentry_sdk."""
         from integrations.sentry_context import (
-            inject_validation_context,
-            capture_validation_error,
             add_validation_breadcrumb,
+            capture_validation_error,
+            inject_validation_context,
         )
 
         # All functions should be callable
@@ -425,6 +425,129 @@ class TestTagValues:
                             )
                             if tier_call:
                                 assert tier_call[0][1] == "1"
+
+
+class TestSentryImportFallback:
+    """Tests for import fallback paths (lines 24-30)."""
+
+    def test_sentry_unavailable_sets_none(self):
+        """When sentry_sdk not available, functions are None."""
+        with patch("integrations.sentry_context.SENTRY_AVAILABLE", False):
+            from integrations.sentry_context import inject_validation_context
+
+            mock_result = MagicMock()
+            result = inject_validation_context(mock_result)
+            assert result is False
+
+    def test_import_without_sentry_sdk(self):
+        """Test module loads with fallbacks when sentry_sdk missing (lines 24-30)."""
+        import importlib
+        from integrations import sentry_context
+
+        original_import = __import__
+
+        def mock_import(name, *args, **kwargs):
+            if name == "sentry_sdk":
+                raise ImportError("mocked")
+            return original_import(name, *args, **kwargs)
+
+        with patch("builtins.__import__", side_effect=mock_import):
+            importlib.reload(sentry_context)
+
+        assert sentry_context.SENTRY_AVAILABLE is False
+        assert sentry_context.sentry_sdk is None
+        assert sentry_context.set_context is None
+        assert sentry_context.set_tag is None
+        assert sentry_context.add_breadcrumb is None
+        assert sentry_context.push_scope is None
+
+        # Restore
+        importlib.reload(sentry_context)
+
+
+class TestInjectContextSetContextNone:
+    """Test inject_validation_context when set_context is None (line 67)."""
+
+    def test_returns_false_when_set_context_none(self):
+        """Returns False when set_context/set_tag/add_breadcrumb are None."""
+        with patch(
+            "integrations.sentry_context._is_sentry_initialized", return_value=True
+        ):
+            with patch("integrations.sentry_context.set_context", None):
+                from integrations.sentry_context import inject_validation_context
+
+                mock_result = MagicMock()
+                result = inject_validation_context(mock_result)
+                assert result is False
+
+
+class TestInjectReportContextFailed:
+    """Test _inject_report_context with failed validators (line 160)."""
+
+    def test_inject_report_with_failed_validators(self):
+        """Test report context with failed validators in multiple tiers."""
+        with patch(
+            "integrations.sentry_context._is_sentry_initialized", return_value=True
+        ):
+            with patch("integrations.sentry_context.set_context") as mock_ctx:
+                with patch("integrations.sentry_context.set_tag"):
+                    with patch("integrations.sentry_context.add_breadcrumb"):
+                        from integrations.sentry_context import (
+                            inject_validation_context,
+                        )
+
+                        tier1 = MagicMock()
+                        tier1.tier = MagicMock(value=1, name="BLOCKER")
+                        tier1.results = [
+                            MagicMock(passed=False, dimension="syntax", duration_ms=50),
+                            MagicMock(
+                                passed=True, dimension="security", duration_ms=30
+                            ),
+                        ]
+
+                        tier2 = MagicMock()
+                        tier2.tier = MagicMock(value=2, name="WARNING")
+                        tier2.results = [
+                            MagicMock(passed=False, dimension="design", duration_ms=20),
+                        ]
+
+                        mock_report = MagicMock()
+                        mock_report.tiers = [tier1, tier2]
+                        mock_report.project = "test"
+                        mock_report.timestamp = "2024-01-01"
+                        mock_report.overall_passed = False
+                        mock_report.blocked = True
+
+                        result = inject_validation_context(mock_report)
+                        assert result is True
+
+                        # Check context was set with correct failed validators
+                        ctx_call = mock_ctx.call_args
+                        ctx_data = ctx_call[0][1]
+                        assert "syntax" in ctx_data["failed_validators"]
+                        assert "design" in ctx_data["failed_validators"]
+                        assert ctx_data["duration_ms"] == 100
+
+
+class TestCaptureValidationErrorException:
+    """Test capture_validation_error exception handling (lines 288-291)."""
+
+    def test_capture_returns_false_on_exception(self):
+        """Test returns False when push_scope raises."""
+        with patch(
+            "integrations.sentry_context._is_sentry_initialized", return_value=True
+        ):
+            with patch(
+                "integrations.sentry_context.push_scope",
+                side_effect=RuntimeError("Boom"),
+            ):
+                with patch("integrations.sentry_context.sentry_sdk"):
+                    from integrations.sentry_context import capture_validation_error
+
+                    result = capture_validation_error(
+                        ValueError("test"), {"validator_name": "x"}
+                    )
+                    assert result is False
 
 
 if __name__ == "__main__":

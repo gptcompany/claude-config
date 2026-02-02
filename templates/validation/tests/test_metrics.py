@@ -60,7 +60,7 @@ class TestPushValidationMetrics:
         except ImportError:
             pytest.skip("prometheus_client not installed")
 
-        from integrations.metrics import push_validation_metrics, clear_metrics
+        from integrations.metrics import clear_metrics, push_validation_metrics
 
         # Reset metrics state
         clear_metrics()
@@ -88,7 +88,7 @@ class TestPushValidationMetrics:
         except ImportError:
             pytest.skip("prometheus_client not installed")
 
-        from integrations.metrics import push_validation_metrics, clear_metrics
+        from integrations.metrics import clear_metrics, push_validation_metrics
 
         clear_metrics()
 
@@ -101,7 +101,9 @@ class TestPushValidationMetrics:
         tier2 = MagicMock()
         tier2.tier = MagicMock(value=2)
         tier2.passed = True
-        tier2.results = [MagicMock(passed=True, dimension="design", duration_ms=100)]
+        tier2.results = [
+            MagicMock(passed=True, dimension="design_principles", duration_ms=100)
+        ]
 
         mock_report = MagicMock()
         mock_report.tiers = [tier1, tier2]
@@ -118,7 +120,7 @@ class TestPushValidationMetrics:
         except ImportError:
             pytest.skip("prometheus_client not installed")
 
-        from integrations.metrics import push_validation_metrics, clear_metrics
+        from integrations.metrics import clear_metrics, push_validation_metrics
 
         clear_metrics()
 
@@ -142,7 +144,7 @@ class TestPushValidationMetrics:
         except ImportError:
             pytest.skip("prometheus_client not installed")
 
-        from integrations.metrics import push_validation_metrics, clear_metrics
+        from integrations.metrics import clear_metrics, push_validation_metrics
 
         clear_metrics()
 
@@ -188,7 +190,7 @@ class TestMetricLabels:
         except ImportError:
             pytest.skip("prometheus_client not installed")
 
-        from integrations.metrics import push_validation_metrics, clear_metrics
+        from integrations.metrics import clear_metrics, push_validation_metrics
 
         clear_metrics()
 
@@ -210,7 +212,7 @@ class TestMetricLabels:
         except ImportError:
             pytest.skip("prometheus_client not installed")
 
-        from integrations.metrics import push_validation_metrics, clear_metrics
+        from integrations.metrics import clear_metrics, push_validation_metrics
 
         clear_metrics()
 
@@ -237,7 +239,7 @@ class TestScoreCalculation:
         except ImportError:
             pytest.skip("prometheus_client not installed")
 
-        from integrations.metrics import _push_tier_metrics, _initialize_metrics
+        from integrations.metrics import _initialize_metrics, _push_tier_metrics
 
         _initialize_metrics()
 
@@ -259,7 +261,7 @@ class TestScoreCalculation:
         except ImportError:
             pytest.skip("prometheus_client not installed")
 
-        from integrations.metrics import _push_tier_metrics, _initialize_metrics
+        from integrations.metrics import _initialize_metrics, _push_tier_metrics
 
         _initialize_metrics()
 
@@ -301,7 +303,7 @@ class TestPushMetricsEdgeCases:
 
     def test_push_empty_results(self):
         """Test pushing metrics for result with empty results list."""
-        from integrations.metrics import push_validation_metrics, clear_metrics
+        from integrations.metrics import clear_metrics, push_validation_metrics
 
         clear_metrics()
 
@@ -322,7 +324,7 @@ class TestPushMetricsEdgeCases:
         except ImportError:
             pytest.skip("prometheus_client not installed")
 
-        from integrations.metrics import push_validation_metrics, clear_metrics
+        from integrations.metrics import clear_metrics, push_validation_metrics
 
         clear_metrics()
 
@@ -344,7 +346,7 @@ class TestPushMetricsEdgeCases:
         except ImportError:
             pytest.skip("prometheus_client not installed")
 
-        from integrations.metrics import push_validation_metrics, clear_metrics
+        from integrations.metrics import clear_metrics, push_validation_metrics
 
         clear_metrics()
 
@@ -385,6 +387,274 @@ class TestMetricsGracefulDegradation:
         # Should not raise
         clear_metrics()
         clear_metrics()  # Call twice to ensure idempotent
+
+
+class TestMetricsImportFallback:
+    """Tests for import fallback paths (lines 31-37)."""
+
+    def test_metrics_module_constants_when_unavailable(self):
+        """Test fallback constants when prometheus_client not available."""
+        with patch("integrations.metrics.METRICS_AVAILABLE", False):
+            from integrations.metrics import push_validation_metrics
+
+            mock_result = MagicMock()
+            result = push_validation_metrics(mock_result, "test")
+            assert result is False
+
+    def test_import_without_prometheus(self):
+        """Test module loads with fallbacks when prometheus_client missing (lines 31-37)."""
+        import importlib
+        from integrations import metrics
+
+        original_import = __import__
+
+        def mock_import(name, *args, **kwargs):
+            if name == "prometheus_client":
+                raise ImportError("mocked")
+            return original_import(name, *args, **kwargs)
+
+        with patch("builtins.__import__", side_effect=mock_import):
+            importlib.reload(metrics)
+
+        assert metrics.METRICS_AVAILABLE is False
+        assert metrics.CollectorRegistry is None
+        assert metrics.Counter is None
+        assert metrics.Gauge is None
+        assert metrics.Histogram is None
+        assert metrics.push_to_gateway is None
+
+        # Restore
+        importlib.reload(metrics)
+
+
+class TestInitializeMetricsEdgeCases:
+    """Tests for _initialize_metrics edge cases."""
+
+    def test_initialize_returns_false_when_unavailable(self):
+        """Test _initialize_metrics returns False when prometheus not available (line 56)."""
+        from integrations.metrics import clear_metrics
+
+        clear_metrics()
+        with patch("integrations.metrics.METRICS_AVAILABLE", False):
+            from integrations.metrics import _initialize_metrics
+
+            result = _initialize_metrics()
+            assert result is False
+
+    def test_initialize_returns_true_when_already_initialized(self):
+        """Test _initialize_metrics returns True if already initialized (lines 58-59)."""
+        try:
+            import prometheus_client  # noqa: F401
+        except ImportError:
+            pytest.skip("prometheus_client not installed")
+
+        from integrations.metrics import _initialize_metrics, clear_metrics
+
+        clear_metrics()
+        # First call initializes
+        _initialize_metrics()
+        # Second call returns True immediately
+        result = _initialize_metrics()
+        assert result is True
+
+    def test_initialize_returns_false_when_counter_none(self):
+        """Test returns False when Counter/Histogram/Gauge are None (line 64)."""
+        from integrations.metrics import clear_metrics
+
+        clear_metrics()
+        with patch("integrations.metrics.METRICS_AVAILABLE", True):
+            with patch("integrations.metrics.CollectorRegistry", MagicMock()):
+                with patch("integrations.metrics.Counter", None):
+                    from integrations.metrics import _initialize_metrics
+
+                    result = _initialize_metrics()
+                    assert result is False
+
+
+class TestPushMetricsInitFails:
+    """Tests for push when _initialize_metrics fails (line 128)."""
+
+    def test_push_returns_false_when_init_fails(self):
+        """Test push returns False when initialization fails."""
+        from integrations.metrics import clear_metrics
+
+        clear_metrics()
+        with patch("integrations.metrics.METRICS_AVAILABLE", True):
+            with patch("integrations.metrics._initialize_metrics", return_value=False):
+                from integrations.metrics import push_validation_metrics
+
+                mock_result = MagicMock()
+                result = push_validation_metrics(mock_result, "test")
+                assert result is False
+
+
+class TestPushTierMetricsDirectly:
+    """Tests for _push_tier_metrics directly (lines 161-167)."""
+
+    def test_push_tier_metrics_with_all_fields(self):
+        """Test _push_tier_metrics records all metrics correctly."""
+        try:
+            import prometheus_client  # noqa: F401
+        except ImportError:
+            pytest.skip("prometheus_client not installed")
+
+        from integrations.metrics import (
+            _initialize_metrics,
+            _push_tier_metrics,
+            clear_metrics,
+        )
+
+        clear_metrics()
+        _initialize_metrics()
+
+        mock_result = MagicMock()
+        mock_result.tier = MagicMock(value=1)
+        mock_result.passed = False
+        mock_result.results = [
+            MagicMock(passed=True, dimension="a", duration_ms=100),
+            MagicMock(passed=False, dimension="b", duration_ms=0),
+        ]
+
+        # Should not raise
+        _push_tier_metrics(mock_result, "test")
+
+
+class TestPushNullRegistryGateway:
+    """Test push_to_gateway None check (line 144)."""
+
+    def test_push_returns_false_when_push_to_gateway_none(self):
+        """Test returns False when push_to_gateway is None."""
+        try:
+            import prometheus_client  # noqa: F401
+        except ImportError:
+            pytest.skip("prometheus_client not installed")
+
+        from integrations.metrics import clear_metrics, push_validation_metrics
+
+        clear_metrics()
+
+        mock_result = MagicMock()
+        mock_result.tier = MagicMock(value=1)
+        mock_result.passed = True
+        mock_result.results = []
+
+        with patch("integrations.metrics.push_to_gateway", None):
+            result = push_validation_metrics(mock_result, "test")
+            assert result is False
+
+
+class TestPushWithTiersNoTier:
+    """Test push with result that has neither tiers nor tier (lines 138-140)."""
+
+    def test_push_with_result_having_tiers(self):
+        """Test push with ValidationReport-like object having tiers."""
+        try:
+            import prometheus_client  # noqa: F401
+        except ImportError:
+            pytest.skip("prometheus_client not installed")
+
+        from integrations.metrics import clear_metrics, push_validation_metrics
+
+        clear_metrics()
+
+        # Object with tiers (ValidationReport-like)
+        tier_result = MagicMock()
+        tier_result.tier = MagicMock(value=1)
+        tier_result.passed = True
+        tier_result.results = [
+            MagicMock(passed=True, dimension="a", duration_ms=10),
+        ]
+
+        mock_report = MagicMock(spec=["tiers"])
+        mock_report.tiers = [tier_result]
+
+        with patch("integrations.metrics.push_to_gateway"):
+            result = push_validation_metrics(mock_report, "test")
+        assert result is True
+
+    def test_push_with_single_tier_result(self):
+        """Test push with single TierResult (has tier, no tiers) lines 138-140."""
+        try:
+            import prometheus_client  # noqa: F401
+        except ImportError:
+            pytest.skip("prometheus_client not installed")
+
+        from integrations.metrics import clear_metrics, push_validation_metrics
+
+        clear_metrics()
+
+        mock_result = MagicMock(spec=["tier", "passed", "results"])
+        mock_result.tier = MagicMock(value=2)
+        mock_result.passed = True
+        mock_result.results = [
+            MagicMock(passed=True, dimension="x", duration_ms=50),
+        ]
+
+        with patch("integrations.metrics.push_to_gateway"):
+            result = push_validation_metrics(mock_result, "test")
+        assert result is True
+
+
+class TestClearMetricsCoversAllGlobals:
+    """Test clear_metrics resets all 4 metric globals (lines 219-222)."""
+
+    def test_clear_resets_all(self):
+        """All global metric vars are None after clear."""
+        from integrations import metrics
+
+        metrics.clear_metrics()
+        assert metrics._registry is None
+        assert metrics._validation_runs is None
+        assert metrics._validation_duration is None
+        assert metrics._validation_score is None
+        assert metrics._validation_blockers is None
+
+
+class TestWarnedOnceFlag:
+    """Test _warned_once flag path (lines 118-119)."""
+
+    def test_warned_once_suppresses_repeated_warnings(self):
+        """After first warning, subsequent calls don't warn again."""
+        import integrations.metrics as m
+
+        m._warned_once = False
+
+        with patch.object(m, "METRICS_AVAILABLE", False):
+            mock_result = MagicMock()
+            m.push_validation_metrics(mock_result, "test")
+            assert m._warned_once is True
+            # Second call should still return False but not warn again
+            m.push_validation_metrics(mock_result, "test")
+
+        # Reset
+        m._warned_once = False
+
+
+class TestPushExceptionPath:
+    """Test the exception handling in push_validation_metrics (line 155)."""
+
+    def test_push_catches_generic_exception(self):
+        """Test that generic exceptions are caught (line 155)."""
+        try:
+            import prometheus_client  # noqa: F401
+        except ImportError:
+            pytest.skip("prometheus_client not installed")
+
+        from integrations.metrics import clear_metrics, push_validation_metrics
+
+        clear_metrics()
+
+        mock_result = MagicMock()
+        mock_result.tier = MagicMock(value=1)
+        mock_result.passed = True
+        mock_result.results = []
+
+        with patch(
+            "integrations.metrics.push_to_gateway",
+            side_effect=Exception("unexpected"),
+        ):
+            result = push_validation_metrics(mock_result, "test")
+        assert result is False
 
 
 if __name__ == "__main__":

@@ -17,12 +17,16 @@ from config_loader import (
     DEFAULT_DIMENSIONS,
     DOMAIN_PRESETS,
     deep_merge,
-    merge_configs,
-    validate_config,
-    validate_config_dict,
-    load_config_with_defaults,
     find_validation_config,
     generate_config,
+    load_config,
+    load_config_with_defaults,
+    load_global_config,
+    load_project_config,
+    merge_configs,
+    merge_configs_rfc7396,
+    validate_config,
+    validate_config_dict,
 )
 
 
@@ -500,6 +504,675 @@ class TestCLI:
             with pytest.raises(SystemExit) as exc_info:
                 main()
             assert exc_info.value.code == 1
+
+
+# =============================================================================
+# Phase 20: Global Config Inheritance Tests (RFC 7396)
+# =============================================================================
+
+
+class TestLoadGlobalConfig:
+    """Tests for load_global_config() function."""
+
+    def test_load_global_config_exists(self):
+        """Test loading global config when file exists."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            global_config = {"enabled": True, "dimensions": {"coverage": {"tier": 1}}}
+            global_path = Path(tmpdir) / "global-config.json"
+            global_path.write_text(json.dumps(global_config))
+
+            with patch("config_loader.GLOBAL_CONFIG_PATH", global_path):
+                result = load_global_config()
+
+            assert result == global_config
+            assert result["enabled"] is True
+            assert result["dimensions"]["coverage"]["tier"] == 1
+
+    def test_load_global_config_missing(self):
+        """Test loading global config when file doesn't exist returns empty dict."""
+        with patch(
+            "config_loader.GLOBAL_CONFIG_PATH", Path("/nonexistent/global-config.json")
+        ):
+            result = load_global_config()
+
+        assert result == {}
+
+    def test_load_global_config_invalid_json(self):
+        """Test loading global config with invalid JSON returns empty dict."""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            f.write("not valid json {{{")
+            f.flush()
+
+            with patch("config_loader.GLOBAL_CONFIG_PATH", Path(f.name)):
+                result = load_global_config()
+
+        assert result == {}
+
+
+class TestLoadProjectConfig:
+    """Tests for load_project_config() function."""
+
+    def test_load_project_config_exists(self):
+        """Test loading project config when file exists."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Create .claude/validation/config.json
+            config_dir = Path(tmpdir) / ".claude" / "validation"
+            config_dir.mkdir(parents=True)
+            config_path = config_dir / "config.json"
+            project_config = {"project_name": "test", "domain": "trading"}
+            config_path.write_text(json.dumps(project_config))
+
+            result = load_project_config(Path(tmpdir))
+
+        assert result["project_name"] == "test"
+        assert result["domain"] == "trading"
+
+    def test_load_project_config_missing(self):
+        """Test loading project config when not found returns empty dict."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            result = load_project_config(Path(tmpdir))
+
+        assert result == {}
+
+    def test_load_project_config_explicit_file(self):
+        """Test loading project config with explicit file path."""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            config = {"project_name": "explicit", "custom_setting": True}
+            json.dump(config, f)
+            f.flush()
+
+            result = load_project_config(Path(f.name))
+
+        assert result["project_name"] == "explicit"
+        assert result["custom_setting"] is True
+
+    def test_load_project_config_invalid_json(self):
+        """Test loading project config with invalid JSON returns empty dict."""
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+            f.write("invalid json")
+            f.flush()
+
+            result = load_project_config(Path(f.name))
+
+        assert result == {}
+
+
+class TestMergeConfigsRfc7396:
+    """Tests for merge_configs_rfc7396() - RFC 7396 JSON Merge Patch semantics."""
+
+    def test_merge_configs_simple(self):
+        """Test that project values override global at same path."""
+        global_config = {"setting_a": "global", "setting_b": "global"}
+        project_config = {"setting_a": "project"}
+
+        result = merge_configs_rfc7396(global_config, project_config)
+
+        assert result["setting_a"] == "project"  # Overridden
+        assert result["setting_b"] == "global"  # Preserved
+
+    def test_merge_configs_deep(self):
+        """Test deep merge for nested dicts."""
+        global_config = {
+            "dimensions": {
+                "coverage": {"tier": 1, "min_percent": 70},
+                "security": {"tier": 1, "enabled": True},
+            }
+        }
+        project_config = {
+            "dimensions": {"coverage": {"min_percent": 90}}  # Override just this
+        }
+
+        result = merge_configs_rfc7396(global_config, project_config)
+
+        # Coverage min_percent overridden, tier preserved
+        assert result["dimensions"]["coverage"]["min_percent"] == 90
+        assert result["dimensions"]["coverage"]["tier"] == 1
+        # Security preserved entirely
+        assert result["dimensions"]["security"]["tier"] == 1
+        assert result["dimensions"]["security"]["enabled"] is True
+
+    def test_merge_configs_array_override(self):
+        """Test that arrays are replaced entirely, not merged element-by-element."""
+        global_config = {"scanners": ["bandit", "gitleaks", "trivy"]}
+        project_config = {"scanners": ["custom_scanner"]}
+
+        result = merge_configs_rfc7396(global_config, project_config)
+
+        # Array should be completely replaced
+        assert result["scanners"] == ["custom_scanner"]
+        assert "bandit" not in result["scanners"]
+
+
+class TestLoadConfigIntegration:
+    """Integration tests for load_config() with full inheritance chain."""
+
+    def test_load_config_integration(self):
+        """Test full config load with global + project merge."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Create global config
+            global_config = {
+                "enabled": True,
+                "dimensions": {
+                    "coverage": {"tier": 1, "min_percent": 70},
+                    "security": {"tier": 1, "fail_on": ["HIGH"]},
+                },
+            }
+            global_path = Path(tmpdir) / "global-config.json"
+            global_path.write_text(json.dumps(global_config))
+
+            # Create project directory with config
+            project_dir = Path(tmpdir) / "my_project"
+            config_dir = project_dir / ".claude" / "validation"
+            config_dir.mkdir(parents=True)
+            project_config = {
+                "project_name": "my_project",
+                "domain": "general",
+                "dimensions": {
+                    "coverage": {"min_percent": 90},  # Override global
+                },
+            }
+            (config_dir / "config.json").write_text(json.dumps(project_config))
+
+            with patch("config_loader.GLOBAL_CONFIG_PATH", global_path):
+                result = load_config(project_dir)
+
+            # Check merge results
+            assert result["project_name"] == "my_project"
+            # Coverage: min_percent from project (90), tier from global (1)
+            assert result["dimensions"]["coverage"]["min_percent"] == 90
+            assert result["dimensions"]["coverage"]["tier"] == 1
+            # Security from global
+            assert result["dimensions"]["security"]["tier"] == 1
+            # _config_source metadata
+            assert result["_config_source"]["global"] is True
+            assert result["_config_source"]["project"] is True
+
+    def test_load_config_only_global(self):
+        """Test config load with only global config (no project config)."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Create global config
+            global_config = {
+                "enabled": True,
+                "tier_1_only_global": True,
+                "dimensions": {"coverage": {"enabled": False}},
+            }
+            global_path = Path(tmpdir) / "global-config.json"
+            global_path.write_text(json.dumps(global_config))
+
+            # Empty project dir (no config)
+            project_dir = Path(tmpdir) / "empty_project"
+            project_dir.mkdir()
+
+            with patch("config_loader.GLOBAL_CONFIG_PATH", global_path):
+                result = load_config(project_dir)
+
+            assert result["_config_source"]["global"] is True
+            assert result["_config_source"]["project"] is False
+            # Global settings applied
+            assert result["enabled"] is True
+            assert result["dimensions"]["coverage"]["enabled"] is False
+
+    def test_load_config_only_project(self):
+        """Test config load with only project config (no global)."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Create project config only
+            project_dir = Path(tmpdir) / "my_project"
+            config_dir = project_dir / ".claude" / "validation"
+            config_dir.mkdir(parents=True)
+            project_config = {
+                "project_name": "standalone",
+                "domain": "trading",
+                "dimensions": {"coverage": {"min_percent": 85}},
+            }
+            (config_dir / "config.json").write_text(json.dumps(project_config))
+
+            with patch(
+                "config_loader.GLOBAL_CONFIG_PATH",
+                Path("/nonexistent/global-config.json"),
+            ):
+                result = load_config(project_dir)
+
+            assert result["_config_source"]["global"] is False
+            assert result["_config_source"]["project"] is True
+            assert result["project_name"] == "standalone"
+            assert result["dimensions"]["coverage"]["min_percent"] == 85
+
+    def test_load_config_no_configs(self):
+        """Test config load with no configs (defaults only)."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            project_dir = Path(tmpdir) / "bare_project"
+            project_dir.mkdir()
+
+            with patch(
+                "config_loader.GLOBAL_CONFIG_PATH",
+                Path("/nonexistent/global-config.json"),
+            ):
+                result = load_config(project_dir)
+
+            # Should get template defaults
+            assert result["_config_source"]["global"] is False
+            assert result["_config_source"]["project"] is False
+            # Defaults applied
+            assert "dimensions" in result
+            assert "code_quality" in result["dimensions"]
+
+
+class TestNoJsonschemaFallback:
+    """Tests for code paths when jsonschema is not available."""
+
+    def test_validate_config_without_jsonschema(self):
+        """Test validate_config basic validation without jsonschema (lines 292-297)."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            schema_path = Path(tmpdir) / "schema.json"
+            schema_path.write_text(json.dumps({"type": "object"}))
+
+            # Missing project_name and domain
+            config_path = Path(tmpdir) / "config.json"
+            config_path.write_text(json.dumps({}))
+
+            with patch("config_loader.SCHEMA_PATH", schema_path):
+                with patch("config_loader.HAS_JSONSCHEMA", False):
+                    errors = validate_config(config_path)
+            assert any("project_name" in e for e in errors)
+            assert any("domain" in e for e in errors)
+
+    def test_validate_config_without_jsonschema_invalid_domain(self):
+        """Test validate_config with invalid domain without jsonschema (line 296-297)."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            schema_path = Path(tmpdir) / "schema.json"
+            schema_path.write_text(json.dumps({"type": "object"}))
+
+            config_path = Path(tmpdir) / "config.json"
+            config_path.write_text(
+                json.dumps({"project_name": "test", "domain": "invalid"})
+            )
+
+            with patch("config_loader.SCHEMA_PATH", schema_path):
+                with patch("config_loader.HAS_JSONSCHEMA", False):
+                    errors = validate_config(config_path)
+            assert any("must be one of" in e for e in errors)
+
+    def test_validate_config_without_jsonschema_valid(self):
+        """Test validate_config passes with valid config without jsonschema."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            schema_path = Path(tmpdir) / "schema.json"
+            schema_path.write_text(json.dumps({"type": "object"}))
+
+            config_path = Path(tmpdir) / "config.json"
+            config_path.write_text(
+                json.dumps({"project_name": "test", "domain": "general"})
+            )
+
+            with patch("config_loader.SCHEMA_PATH", schema_path):
+                with patch("config_loader.HAS_JSONSCHEMA", False):
+                    errors = validate_config(config_path)
+            assert len(errors) == 0
+
+
+class TestImportFallback:
+    """Tests for jsonschema import fallback (lines 48-51)."""
+
+    def test_has_jsonschema_flag(self):
+        """Test HAS_JSONSCHEMA is set correctly."""
+        from config_loader import HAS_JSONSCHEMA
+
+        assert isinstance(HAS_JSONSCHEMA, bool)
+
+    def test_import_without_jsonschema(self):
+        """Test module works when jsonschema is not available (lines 48-51)."""
+        import importlib
+        import config_loader
+
+        original_import = (
+            __builtins__.__import__
+            if hasattr(__builtins__, "__import__")
+            else __import__
+        )
+
+        def mock_import(name, *args, **kwargs):
+            if name == "jsonschema":
+                raise ImportError("mocked")
+            return original_import(name, *args, **kwargs)
+
+        with patch("builtins.__import__", side_effect=mock_import):
+            importlib.reload(config_loader)
+
+        assert config_loader.HAS_JSONSCHEMA is False
+        assert config_loader.Draft202012Validator is None
+
+        # Restore
+        importlib.reload(config_loader)
+
+
+class TestSchemaJsonDecodeErrors:
+    """Tests for JSON decode errors in schema files."""
+
+    def test_validate_config_invalid_schema_json(self):
+        """Test validate_config with invalid JSON schema file (lines 281-282)."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            schema_path = Path(tmpdir) / "schema.json"
+            schema_path.write_text("not valid json {{{")
+
+            config_path = Path(tmpdir) / "config.json"
+            config_path.write_text(json.dumps({"project_name": "test"}))
+
+            with patch("config_loader.SCHEMA_PATH", schema_path):
+                errors = validate_config(config_path)
+            assert len(errors) == 1
+            assert "Invalid JSON in schema" in errors[0]
+
+    def test_validate_config_dict_invalid_schema_json(self):
+        """Test validate_config_dict with invalid JSON schema (lines 318-319)."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            schema_path = Path(tmpdir) / "schema.json"
+            schema_path.write_text("not valid json")
+
+            with patch("config_loader.SCHEMA_PATH", schema_path):
+                errors = validate_config_dict({"project_name": "test"})
+            assert len(errors) == 1
+            assert "Invalid JSON in schema" in errors[0]
+
+    def test_validate_config_dict_with_jsonschema(self):
+        """Test validate_config_dict with jsonschema available (lines 323-326)."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            schema_path = Path(tmpdir) / "schema.json"
+            schema_path.write_text(
+                json.dumps(
+                    {
+                        "$schema": "https://json-schema.org/draft/2020-12/schema",
+                        "type": "object",
+                        "required": ["project_name"],
+                        "properties": {"project_name": {"type": "string"}},
+                    }
+                )
+            )
+
+            with patch("config_loader.SCHEMA_PATH", schema_path):
+                # Missing required field
+                errors = validate_config_dict({})
+            assert len(errors) > 0
+            assert any("project_name" in e for e in errors)
+
+            with patch("config_loader.SCHEMA_PATH", schema_path):
+                # Valid
+                errors = validate_config_dict({"project_name": "test"})
+            assert len(errors) == 0
+
+
+class TestMergeConfigsCustomDimension:
+    """Test merge_configs with custom dimensions (line 388, 392)."""
+
+    def test_merge_preserves_custom_dimensions(self):
+        """Custom dimensions from project config are preserved (line 392)."""
+        project = {
+            "dimensions": {
+                "custom_validator": {"enabled": True, "tier": 2, "custom_opt": "x"}
+            }
+        }
+        result = merge_configs(project)
+        assert "custom_validator" in result["dimensions"]
+        assert result["dimensions"]["custom_validator"]["custom_opt"] == "x"
+
+    def test_dimension_missing_from_result_uses_default_copy(self):
+        """When a default dimension is not in result['dimensions'], it gets default copy (line 388)."""
+        # To hit line 388, we need result["dimensions"] to NOT contain a default dim.
+        # We can achieve this by patching DEFAULT_CONFIG to have empty dimensions,
+        # then deep_merge won't add them, but the special handling loop will.
+        empty_default = {**DEFAULT_CONFIG, "dimensions": {}}
+        with patch("config_loader.DEFAULT_CONFIG", empty_default):
+            result = merge_configs({"dimensions": {"coverage": {"min_percent": 99}}})
+        # All default dims should be present via the copy fallback
+        assert "visual" in result["dimensions"]
+        assert "code_quality" in result["dimensions"]
+        assert result["dimensions"]["coverage"]["min_percent"] == 99
+
+
+class TestLoadGlobalConfigOSError:
+    """Test OSError path in load_global_config (lines 476-478)."""
+
+    def test_load_global_config_os_error(self):
+        """Test OSError handling in load_global_config."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            global_path = Path(tmpdir) / "global-config.json"
+            global_path.write_text("{}")
+
+            with patch("config_loader.GLOBAL_CONFIG_PATH", global_path):
+                with patch.object(
+                    Path, "read_text", side_effect=OSError("perm denied")
+                ):
+                    result = load_global_config()
+            assert result == {}
+
+
+class TestLoadProjectConfigEdgeCases:
+    """Tests for load_project_config edge cases."""
+
+    def test_load_project_config_nonexistent_path(self):
+        """Test with path that doesn't exist (lines 508-509)."""
+        result = load_project_config(Path("/nonexistent/path/that/does/not/exist"))
+        assert result == {}
+
+    def test_load_project_config_os_error(self):
+        """Test OSError when reading project config (lines 523-525)."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config_path = Path(tmpdir) / "config.json"
+            config_path.write_text("{}")
+
+            with patch(
+                "config_loader.find_validation_config", return_value=config_path
+            ):
+                with patch.object(Path, "read_text", side_effect=OSError("denied")):
+                    result = load_project_config(Path(tmpdir))
+            assert result == {}
+
+    def test_load_project_config_none_searches_cwd(self):
+        """Test load_project_config with None uses cwd (line 499)."""
+        with patch("config_loader.find_validation_config", return_value=None):
+            result = load_project_config(None)
+        assert result == {}
+
+
+class TestLoadConfigProjectPathIsFile:
+    """Test load_config when project_path is a file (line 591)."""
+
+    def test_load_config_with_file_path(self):
+        """Test load_config with explicit file path sets project_path in source."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config_path = Path(tmpdir) / "config.json"
+            config_path.write_text(
+                json.dumps({"project_name": "test", "domain": "general"})
+            )
+
+            with patch(
+                "config_loader.GLOBAL_CONFIG_PATH",
+                Path("/nonexistent/global-config.json"),
+            ):
+                result = load_config(config_path)
+
+            assert result["_config_source"]["project"] is True
+            assert result["_config_source"]["project_path"] == str(config_path)
+
+
+class TestGenerateConfigDimensionDefault:
+    """Test generate_config dimension default copy (line 656)."""
+
+    def test_generate_config_dimension_not_in_config(self):
+        """Line 656: dim not in config['dimensions'] gets default copy."""
+        # Patch DEFAULT_CONFIG to have empty dimensions so generate_config
+        # starts with no dimensions, then the else branch at 656 is hit.
+        empty_default = {**DEFAULT_CONFIG, "dimensions": {}}
+        with patch("config_loader.DEFAULT_CONFIG", empty_default):
+            config = generate_config("test", "general")
+        # All 14 default dims should still be present via line 656
+        assert len(config["dimensions"]) == 14
+        assert config["dimensions"]["visual"]["enabled"] is False
+
+
+class TestCLIAdditional:
+    """Additional CLI tests for uncovered lines."""
+
+    def test_generate_invalid_domain_cli(self, capsys):
+        """Test --generate with invalid domain via CLI (lines 718-720)."""
+        with patch(
+            "sys.argv",
+            [
+                "config_loader.py",
+                "--generate",
+                "--project-name",
+                "test",
+                "--domain",
+                "general",
+            ],
+        ):
+            # Patch generate_config to raise ValueError
+            with patch(
+                "config_loader.generate_config",
+                side_effect=ValueError("bad domain"),
+            ):
+                from config_loader import main
+
+                with pytest.raises(SystemExit) as exc_info:
+                    main()
+                assert exc_info.value.code == 1
+
+        captured = capsys.readouterr()
+        assert "bad domain" in captured.err
+
+    def test_validate_failures_cli(self, capsys):
+        """Test --validate with failing config (lines 745-748)."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config_path = Path(tmpdir) / "config.json"
+            config_path.write_text(json.dumps({}))
+
+            schema_path = Path(tmpdir) / "schema.json"
+            schema_path.write_text(
+                json.dumps(
+                    {
+                        "$schema": "https://json-schema.org/draft/2020-12/schema",
+                        "type": "object",
+                        "required": ["project_name"],
+                        "properties": {"project_name": {"type": "string"}},
+                    }
+                )
+            )
+
+            with patch("config_loader.SCHEMA_PATH", schema_path):
+                with patch(
+                    "sys.argv",
+                    ["config_loader.py", "--validate", str(config_path)],
+                ):
+                    from config_loader import main
+
+                    with pytest.raises(SystemExit) as exc_info:
+                        main()
+                    assert exc_info.value.code == 1
+
+        captured = capsys.readouterr()
+        assert "Validation FAILED" in captured.out
+
+    def test_show_merged_cli(self, capsys):
+        """Test --show-merged (lines 753-760)."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config_path = Path(tmpdir) / "config.json"
+            config_path.write_text(
+                json.dumps({"project_name": "test", "domain": "general"})
+            )
+
+            schema_path = Path(tmpdir) / "schema.json"
+            schema_path.write_text(json.dumps({"type": "object", "properties": {}}))
+
+            with patch("config_loader.SCHEMA_PATH", schema_path):
+                with patch(
+                    "sys.argv",
+                    ["config_loader.py", "--show-merged", str(config_path)],
+                ):
+                    from config_loader import main
+
+                    main()
+
+        captured = capsys.readouterr()
+        assert "dimensions" in captured.out
+        assert "test" in captured.out
+
+    def test_show_merged_error_cli(self, capsys):
+        """Test --show-merged with invalid config (lines 757-759)."""
+        with patch(
+            "sys.argv",
+            ["config_loader.py", "--show-merged", "/nonexistent/config.json"],
+        ):
+            from config_loader import main
+
+            with pytest.raises(SystemExit) as exc_info:
+                main()
+            assert exc_info.value.code == 1
+
+        captured = capsys.readouterr()
+        assert "Error" in captured.err
+
+    def test_default_validation_failures_cli(self, capsys):
+        """Test default action (validate) with failures (lines 763-770)."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config_path = Path(tmpdir) / "config.json"
+            config_path.write_text(json.dumps({}))
+
+            schema_path = Path(tmpdir) / "schema.json"
+            schema_path.write_text(
+                json.dumps(
+                    {
+                        "$schema": "https://json-schema.org/draft/2020-12/schema",
+                        "type": "object",
+                        "required": ["project_name"],
+                        "properties": {"project_name": {"type": "string"}},
+                    }
+                )
+            )
+
+            with patch("config_loader.SCHEMA_PATH", schema_path):
+                with patch(
+                    "sys.argv",
+                    ["config_loader.py", str(config_path)],
+                ):
+                    from config_loader import main
+
+                    with pytest.raises(SystemExit) as exc_info:
+                        main()
+                    assert exc_info.value.code == 1
+
+        captured = capsys.readouterr()
+        assert "Validation FAILED" in captured.out
+
+    def test_default_validation_ok_cli(self, capsys):
+        """Test default action (validate) with valid config (line 770)."""
+        with tempfile.TemporaryDirectory() as tmpdir:
+            config_path = Path(tmpdir) / "config.json"
+            config_path.write_text(
+                json.dumps({"project_name": "test", "domain": "general"})
+            )
+
+            schema_path = Path(tmpdir) / "schema.json"
+            schema_path.write_text(json.dumps({"type": "object", "properties": {}}))
+
+            with patch("config_loader.SCHEMA_PATH", schema_path):
+                with patch(
+                    "sys.argv",
+                    ["config_loader.py", str(config_path)],
+                ):
+                    from config_loader import main
+
+                    main()
+
+        captured = capsys.readouterr()
+        assert "Validation OK" in captured.out
+
+    def test_main_entry_point_via_runpy(self):
+        """Test __name__ == '__main__' via runpy (line 774)."""
+        import runpy
+
+        with patch("sys.argv", ["config_loader.py", "--show-defaults"]):
+            runpy.run_path(
+                str(Path(__file__).parent.parent / "config_loader.py"),
+                run_name="__main__",
+            )
 
 
 if __name__ == "__main__":
