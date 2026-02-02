@@ -433,9 +433,9 @@ class TestODiffRunner:
                     str(Path(tmpdir) / "diff.png"),
                 )
 
-            assert result.pixel_score == pytest.approx(expected_score, rel=0.01), (
-                f"diff_pct={diff_pct} expected score={expected_score}, got {result.pixel_score}"
-            )
+            assert result.pixel_score == pytest.approx(
+                expected_score, rel=0.01
+            ), f"diff_pct={diff_pct} expected score={expected_score}, got {result.pixel_score}"
 
     @patch.object(ODiffRunner, "is_available", return_value=True)
     @patch("subprocess.run")

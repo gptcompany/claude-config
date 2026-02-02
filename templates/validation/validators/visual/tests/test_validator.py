@@ -128,7 +128,7 @@ class TestVisualTargetValidator:
         mock_odiff.compare.return_value = MagicMock(
             pixel_score=0.8,
             error=None,
-            diff_path="/tmp/diff.png",
+            diff_path="/tmp/diff.png",  # nosec B108 - test fixture path
             details={},
         )
         mock_odiff_cls.return_value = mock_odiff
@@ -165,7 +165,7 @@ class TestVisualTargetValidator:
         mock_perceptual.compare.return_value = MagicMock(
             ssim_score=0.9,
             error=None,
-            diff_image_path="/tmp/ssim_diff.png",
+            diff_image_path="/tmp/ssim_diff.png",  # nosec B108 - test fixture path
             details={},
         )
         mock_perceptual_cls.return_value = mock_perceptual
@@ -272,7 +272,7 @@ class TestVisualTargetValidator:
         mock_odiff.compare.return_value = MagicMock(
             pixel_score=0.5,
             error=None,
-            diff_path="/tmp/diff.png",
+            diff_path="/tmp/diff.png",  # nosec B108 - test fixture path
             details={},
         )
         mock_odiff_cls.return_value = mock_odiff
@@ -302,6 +302,172 @@ class TestVisualTargetValidator:
         assert result.diff_path is not None
 
 
+class TestBaseValidator:
+    """Tests for BaseValidator."""
+
+    @pytest.mark.asyncio
+    async def test_base_validator_validate(self):
+        """Test BaseValidator.validate() default implementation."""
+        from validators.visual.validator import BaseValidator
+
+        v = BaseValidator()
+        result = await v.validate()
+        assert result.passed is True
+        assert result.message == "No validation implemented"
+
+
+class TestVisualTargetValidatorEdgeCases:
+    """Edge case tests for compare() method."""
+
+    @patch("validators.visual.validator.ODiffRunner")
+    @patch("validators.visual.validator.PerceptualComparator")
+    def test_compare_odiff_error(self, mock_perceptual_cls, mock_odiff_cls):
+        """Test compare when odiff returns an error."""
+        mock_odiff = MagicMock()
+        mock_odiff.is_available.return_value = True
+        mock_odiff.compare.return_value = MagicMock(
+            pixel_score=0.0,
+            error="ODiff crashed",
+            diff_path=None,
+            details={},
+        )
+        mock_odiff_cls.return_value = mock_odiff
+
+        mock_perceptual = MagicMock()
+        mock_perceptual.is_available.return_value = True
+        mock_perceptual.compare.return_value = MagicMock(
+            ssim_score=0.9,
+            error=None,
+            diff_image_path=None,
+            details={},
+        )
+        mock_perceptual_cls.return_value = mock_perceptual
+
+        validator = VisualTargetValidator()
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            b = Path(tmpdir) / "b.png"
+            b.touch()
+            c = Path(tmpdir) / "c.png"
+            c.touch()
+            result = validator.compare(str(b), str(c))
+
+        # pixel_score=0, ssim_score=0.9 -> confidence=ssim_score
+        assert result.confidence == 0.9
+        assert "ODiff" in result.error
+
+    @patch("validators.visual.validator.ODiffRunner")
+    @patch("validators.visual.validator.PerceptualComparator")
+    def test_compare_ssim_error(self, mock_perceptual_cls, mock_odiff_cls):
+        """Test compare when ssim returns an error."""
+        mock_odiff = MagicMock()
+        mock_odiff.is_available.return_value = True
+        mock_odiff.compare.return_value = MagicMock(
+            pixel_score=0.8,
+            error=None,
+            diff_path=None,
+            details={},
+        )
+        mock_odiff_cls.return_value = mock_odiff
+
+        mock_perceptual = MagicMock()
+        mock_perceptual.is_available.return_value = True
+        mock_perceptual.compare.return_value = MagicMock(
+            ssim_score=0.0,
+            error="SSIM failed",
+            diff_image_path=None,
+            details={},
+        )
+        mock_perceptual_cls.return_value = mock_perceptual
+
+        validator = VisualTargetValidator()
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            b = Path(tmpdir) / "b.png"
+            b.touch()
+            c = Path(tmpdir) / "c.png"
+            c.touch()
+            result = validator.compare(str(b), str(c))
+
+        # ssim_score=0, pixel_score=0.8 -> confidence=pixel_score
+        assert result.confidence == 0.8
+        assert "SSIM" in result.error
+
+    @patch("validators.visual.validator.ODiffRunner")
+    @patch("validators.visual.validator.PerceptualComparator")
+    def test_compare_both_error_zero_scores(self, mock_perceptual_cls, mock_odiff_cls):
+        """Test compare when both tools error with zero scores."""
+        mock_odiff = MagicMock()
+        mock_odiff.is_available.return_value = True
+        mock_odiff.compare.return_value = MagicMock(
+            pixel_score=0.0,
+            error="ODiff crashed",
+            diff_path=None,
+            details={},
+        )
+        mock_odiff_cls.return_value = mock_odiff
+
+        mock_perceptual = MagicMock()
+        mock_perceptual.is_available.return_value = True
+        mock_perceptual.compare.return_value = MagicMock(
+            ssim_score=0.0,
+            error="SSIM failed",
+            diff_image_path=None,
+            details={},
+        )
+        mock_perceptual_cls.return_value = mock_perceptual
+
+        validator = VisualTargetValidator()
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            b = Path(tmpdir) / "b.png"
+            b.touch()
+            c = Path(tmpdir) / "c.png"
+            c.touch()
+            result = validator.compare(str(b), str(c))
+
+        assert result.confidence == 0.0
+        assert result.match is False
+        assert "ODiff" in result.error
+        assert "SSIM" in result.error
+
+    @patch("validators.visual.validator.ODiffRunner")
+    @patch("validators.visual.validator.PerceptualComparator")
+    def test_compare_mismatch_ssim_diff_path(self, mock_perceptual_cls, mock_odiff_cls):
+        """Test diff_path falls back to ssim when pixel has no diff."""
+        mock_odiff = MagicMock()
+        mock_odiff.is_available.return_value = True
+        mock_odiff.compare.return_value = MagicMock(
+            pixel_score=0.3,
+            error=None,
+            diff_path=None,
+            details={},
+        )
+        mock_odiff_cls.return_value = mock_odiff
+
+        mock_perceptual = MagicMock()
+        mock_perceptual.is_available.return_value = True
+        mock_perceptual.compare.return_value = MagicMock(
+            ssim_score=0.3,
+            error=None,
+            diff_image_path="/tmp/ssim.png",
+            details={},
+        )
+        mock_perceptual_cls.return_value = mock_perceptual
+
+        validator = VisualTargetValidator(config={"threshold": 0.85})
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            b = Path(tmpdir) / "b.png"
+            b.touch()
+            c = Path(tmpdir) / "c.png"
+            c.touch()
+            result = validator.compare(str(b), str(c))
+
+        assert result.match is False
+        assert result.diff_path == "/tmp/ssim.png"
+
+
 class TestVisualTargetValidatorAsync:
     """Tests for async validate() method."""
 
@@ -324,7 +490,7 @@ class TestVisualTargetValidatorAsync:
         validator = VisualTargetValidator(
             config={
                 "baseline_dir": "/nonexistent/baseline",
-                "current_dir": "/tmp",
+                "current_dir": "/tmp",  # nosec B108 - test fixture path
             }
         )
 
@@ -429,6 +595,38 @@ class TestVisualTargetValidatorAsync:
         assert result.passed is True
         assert result.details.get("images_compared") == 1
         assert result.details.get("mismatches") >= 1
+
+    @pytest.mark.asyncio
+    @pytest.mark.skipif(not SKIMAGE_AVAILABLE, reason="scikit-image not installed")
+    async def test_validate_with_diff_dir(self):
+        """Test validation creates diff_dir when configured."""
+        from PIL import Image
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            baseline_dir = Path(tmpdir) / "baseline"
+            current_dir = Path(tmpdir) / "current"
+            diff_dir = Path(tmpdir) / "diffs"
+            baseline_dir.mkdir()
+            current_dir.mkdir()
+
+            img1 = Image.new("RGB", (100, 100), color="red")
+            img2 = Image.new("RGB", (100, 100), color="blue")
+            img1.save(baseline_dir / "test.png")
+            img2.save(current_dir / "test.png")
+
+            validator = VisualTargetValidator(
+                config={
+                    "baseline_dir": str(baseline_dir),
+                    "current_dir": str(current_dir),
+                    "diff_dir": str(diff_dir),
+                    "threshold": 0.99,
+                }
+            )
+
+            result = await validator.validate()
+            assert diff_dir.exists()
+
+        assert result.passed is True
 
     @pytest.mark.asyncio
     @pytest.mark.skipif(not SKIMAGE_AVAILABLE, reason="scikit-image not installed")

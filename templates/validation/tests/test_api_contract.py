@@ -13,9 +13,9 @@ import pytest
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from validators.api_contract.oasdiff_runner import (
-    OasdiffRunner,
-    OasdiffResult,
     BreakingChange,
+    OasdiffResult,
+    OasdiffRunner,
 )
 from validators.api_contract.spec_discovery import SpecDiscovery
 from validators.api_contract.validator import APIContractValidator
@@ -423,6 +423,196 @@ class TestAPIContractValidator:
         """Test validator attributes."""
         validator = APIContractValidator()
         assert validator.dimension == "api_contract"
+        assert validator.agent is None
+
+    def test_default_config(self):
+        """Test default config merging."""
+        validator = APIContractValidator({"oasdiff_timeout": 60})
+        assert validator.config["oasdiff_timeout"] == 60
+        assert validator.config["oasdiff_binary"] == "oasdiff"
+
+    @pytest.mark.asyncio
+    async def test_validate_no_specs(self):
+        """Test validate when no specs found."""
+        validator = APIContractValidator()
+        validator.discovery = MagicMock()
+        validator.discovery.find_specs.return_value = []
+        validator.runner = MagicMock()
+        validator.runner.is_available.return_value = False
+
+        result = await validator.validate()
+        assert result.passed is True
+        assert "No OpenAPI specs found" in result.message
+        assert result.details["specs_found"] == 0
+
+    @pytest.mark.asyncio
+    async def test_validate_specs_but_no_oasdiff(self):
+        """Test validate with specs but oasdiff not installed."""
+        validator = APIContractValidator()
+        validator.discovery = MagicMock()
+        validator.discovery.find_specs.return_value = [Path("openapi.yaml")]
+        validator.runner = MagicMock()
+        validator.runner.is_available.return_value = False
+
+        result = await validator.validate()
+        assert result.passed is True
+        assert "oasdiff not installed" in result.message
+        assert result.details["specs_found"] == 1
+        assert result.details["oasdiff_available"] is False
+
+    @pytest.mark.asyncio
+    async def test_validate_no_baseline(self):
+        """Test validate with specs and oasdiff but no baseline."""
+        validator = APIContractValidator()
+        validator.discovery = MagicMock()
+        validator.discovery.find_specs.return_value = [Path("openapi.yaml")]
+        validator.discovery.find_baseline.return_value = None
+        validator.runner = MagicMock()
+        validator.runner.is_available.return_value = True
+
+        result = await validator.validate()
+        assert result.passed is True
+        assert "no baseline configured" in result.message
+        assert result.details["baseline_configured"] is False
+
+    @pytest.mark.asyncio
+    async def test_validate_oasdiff_error(self):
+        """Test validate when oasdiff returns error."""
+        validator = APIContractValidator()
+        validator.discovery = MagicMock()
+        validator.discovery.find_specs.return_value = [Path("openapi.yaml")]
+        validator.discovery.find_baseline.return_value = Path("baseline.yaml")
+        validator.runner = MagicMock()
+        validator.runner.is_available.return_value = True
+        validator.runner.breaking_changes.return_value = OasdiffResult(
+            success=False,
+            has_breaking_changes=False,
+            error="parse error",
+            oasdiff_available=True,
+        )
+
+        result = await validator.validate()
+        assert result.passed is True
+        assert "oasdiff error" in result.message
+        assert result.details["error"] == "parse error"
+
+    @pytest.mark.asyncio
+    async def test_validate_no_breaking_changes(self):
+        """Test validate with no breaking changes."""
+        validator = APIContractValidator()
+        validator.discovery = MagicMock()
+        validator.discovery.find_specs.return_value = [Path("a.yaml"), Path("b.yaml")]
+        validator.discovery.find_baseline.return_value = Path("baseline.yaml")
+        validator.runner = MagicMock()
+        validator.runner.is_available.return_value = True
+        validator.runner.breaking_changes.return_value = OasdiffResult(
+            success=True,
+            has_breaking_changes=False,
+        )
+
+        result = await validator.validate()
+        assert result.passed is True
+        assert "No breaking changes" in result.message
+        assert result.details["breaking_changes_count"] == 0
+        assert result.details["specs_found"] == 2
+
+    @pytest.mark.asyncio
+    async def test_validate_with_breaking_changes(self):
+        """Test validate with breaking changes detected."""
+        changes = [
+            BreakingChange(
+                level="ERR", code="PATH_DELETED", path="/api/users", message="deleted"
+            ),
+            BreakingChange(
+                level="ERR", code="METHOD_REMOVED", path="/api/items", message="removed"
+            ),
+            BreakingChange(
+                level="WARN",
+                code="PARAM_CHANGED",
+                path="/api/orders",
+                message="changed",
+            ),
+        ]
+        validator = APIContractValidator()
+        validator.discovery = MagicMock()
+        validator.discovery.find_specs.return_value = [Path("openapi.yaml")]
+        validator.discovery.find_baseline.return_value = Path("baseline.yaml")
+        validator.runner = MagicMock()
+        validator.runner.is_available.return_value = True
+        validator.runner.breaking_changes.return_value = OasdiffResult(
+            success=True,
+            has_breaking_changes=True,
+            changes=changes,
+        )
+
+        result = await validator.validate()
+        assert result.passed is True  # Tier 3 never blocks
+        assert "3 breaking changes" in result.message
+        assert result.details["by_level"] == {"ERR": 2, "WARN": 1}
+        assert len(result.details["breaking_changes"]) == 3
+        assert result.fix_suggestion is not None
+        assert "PATH_DELETED" in result.fix_suggestion
+
+    @pytest.mark.asyncio
+    async def test_validate_breaking_changes_limited_to_20(self):
+        """Test that breaking changes details are limited to 20."""
+        changes = [
+            BreakingChange(
+                level="ERR", code=f"CODE_{i}", path=f"/api/{i}", message=f"msg {i}"
+            )
+            for i in range(25)
+        ]
+        validator = APIContractValidator()
+        validator.discovery = MagicMock()
+        validator.discovery.find_specs.return_value = [Path("openapi.yaml")]
+        validator.discovery.find_baseline.return_value = Path("baseline.yaml")
+        validator.runner = MagicMock()
+        validator.runner.is_available.return_value = True
+        validator.runner.breaking_changes.return_value = OasdiffResult(
+            success=True,
+            has_breaking_changes=True,
+            changes=changes,
+        )
+
+        result = await validator.validate()
+        assert result.details["breaking_changes_count"] == 25
+        assert len(result.details["breaking_changes"]) == 20
+
+    @pytest.mark.asyncio
+    async def test_validate_fix_suggestion_limited_to_3(self):
+        """Test fix_suggestion only includes first 3 codes."""
+        changes = [
+            BreakingChange(level="ERR", code=f"CODE_{i}", path=f"/api/{i}")
+            for i in range(5)
+        ]
+        validator = APIContractValidator()
+        validator.discovery = MagicMock()
+        validator.discovery.find_specs.return_value = [Path("openapi.yaml")]
+        validator.discovery.find_baseline.return_value = Path("baseline.yaml")
+        validator.runner = MagicMock()
+        validator.runner.is_available.return_value = True
+        validator.runner.breaking_changes.return_value = OasdiffResult(
+            success=True,
+            has_breaking_changes=True,
+            changes=changes,
+        )
+
+        result = await validator.validate()
+        assert "CODE_0" in result.fix_suggestion
+        assert "CODE_2" in result.fix_suggestion
+        assert "CODE_4" not in result.fix_suggestion
+
+    @pytest.mark.asyncio
+    async def test_validate_duration_ms(self):
+        """Test that duration_ms is set."""
+        validator = APIContractValidator()
+        validator.discovery = MagicMock()
+        validator.discovery.find_specs.return_value = []
+        validator.runner = MagicMock()
+        validator.runner.is_available.return_value = False
+
+        result = await validator.validate()
+        assert result.duration_ms >= 0
 
 
 if __name__ == "__main__":

@@ -11,15 +11,8 @@ import pytest
 # Import path setup
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from validators.mathematical.cas_client import (
-    CASClient,
-    CASResponse,
-    HTTPX_AVAILABLE,
-)
-from validators.mathematical.formula_extractor import (
-    FormulaExtractor,
-    ExtractedFormula,
-)
+from validators.mathematical.cas_client import HTTPX_AVAILABLE, CASClient, CASResponse
+from validators.mathematical.formula_extractor import ExtractedFormula, FormulaExtractor
 from validators.mathematical.validator import MathematicalValidator
 
 
@@ -467,6 +460,277 @@ class TestMathematicalValidator:
         """Test validator attributes."""
         validator = MathematicalValidator()
         assert validator.dimension == "mathematical"
+        assert validator.agent is None
+
+    def test_default_config(self):
+        """Test default config merging."""
+        validator = MathematicalValidator({"cas_timeout": 60.0})
+        assert validator.config["cas_timeout"] == 60.0
+        assert validator.config["cas_url"] == "http://localhost:8769"
+        assert validator.config["scan_patterns"] == ["**/*.py"]
+
+    @pytest.mark.asyncio
+    async def test_validate_no_formulas(self):
+        """Test validate when no formulas found."""
+        validator = MathematicalValidator()
+        validator.extractor = MagicMock()
+        validator.extractor.extract_from_directory.return_value = []
+        validator.cas_client = MagicMock()
+        validator.cas_client.is_available.return_value = False
+
+        result = await validator.validate()
+        assert result.passed is True
+        assert "No formulas found" in result.message
+        assert result.details["formulas_found"] == 0
+
+    @pytest.mark.asyncio
+    async def test_validate_formulas_cas_unavailable(self):
+        """Test validate with formulas but CAS unavailable."""
+        formulas = [
+            ExtractedFormula(
+                latex="x^2",
+                file=Path("a.py"),
+                line=1,
+                context="func",
+                source="rst_math",
+            ),
+            ExtractedFormula(
+                latex="y^2",
+                file=Path("b.py"),
+                line=5,
+                context="func2",
+                source="single_dollar",
+            ),
+        ]
+        validator = MathematicalValidator()
+        validator.extractor = MagicMock()
+        validator.extractor.extract_from_directory.return_value = formulas
+        validator.cas_client = MagicMock()
+        validator.cas_client.is_available.return_value = False
+
+        result = await validator.validate()
+        assert result.passed is True
+        assert "CAS unavailable" in result.message
+        assert result.details["formulas_found"] == 2
+        assert result.details["cas_available"] is False
+        assert len(result.details["formulas"]) == 2
+
+    @pytest.mark.asyncio
+    async def test_validate_formulas_limited_to_20_when_cas_unavailable(self):
+        """Test formulas list limited to 20 when CAS unavailable."""
+        formulas = [
+            ExtractedFormula(
+                latex=f"x_{i}",
+                file=Path(f"f{i}.py"),
+                line=i,
+                context="f",
+                source="rst_math",
+            )
+            for i in range(25)
+        ]
+        validator = MathematicalValidator()
+        validator.extractor = MagicMock()
+        validator.extractor.extract_from_directory.return_value = formulas
+        validator.cas_client = MagicMock()
+        validator.cas_client.is_available.return_value = False
+
+        result = await validator.validate()
+        assert result.details["formulas_found"] == 25
+        assert len(result.details["formulas"]) == 20
+
+    @pytest.mark.asyncio
+    async def test_validate_all_pass(self):
+        """Test validate with CAS available, all formulas pass."""
+        formulas = [
+            ExtractedFormula(
+                latex="x^2",
+                file=Path("a.py"),
+                line=1,
+                context="func",
+                source="rst_math",
+            ),
+        ]
+        validator = MathematicalValidator()
+        validator.extractor = MagicMock()
+        validator.extractor.extract_from_directory.return_value = formulas
+        validator.cas_client = MagicMock()
+        validator.cas_client.is_available.return_value = True
+        validator.cas_client.validate.return_value = CASResponse(
+            success=True,
+            cas="maxima",
+            input_latex="x^2",
+            simplified="x^2",
+        )
+
+        result = await validator.validate()
+        assert result.passed is True
+        assert "1/1 formulas validated" in result.message
+        assert result.details["validated"] == 1
+        assert result.details["errors"] == 0
+        assert result.details["cas_available"] is True
+        assert result.fix_suggestion is None
+
+    @pytest.mark.asyncio
+    async def test_validate_mixed_pass_fail(self):
+        """Test validate with some formulas failing."""
+        formulas = [
+            ExtractedFormula(
+                latex="x^2", file=Path("a.py"), line=1, context="f1", source="rst_math"
+            ),
+            ExtractedFormula(
+                latex="bad formula",
+                file=Path("b.py"),
+                line=5,
+                context="f2",
+                source="rst_math",
+            ),
+            ExtractedFormula(
+                latex="y+z", file=Path("c.py"), line=10, context="f3", source="rst_math"
+            ),
+        ]
+        validator = MathematicalValidator()
+        validator.extractor = MagicMock()
+        validator.extractor.extract_from_directory.return_value = formulas
+        validator.cas_client = MagicMock()
+        validator.cas_client.is_available.return_value = True
+        validator.cas_client.validate.side_effect = [
+            CASResponse(success=True, cas="maxima", input_latex="x^2"),
+            CASResponse(
+                success=False,
+                cas="maxima",
+                input_latex="bad formula",
+                error="Parse error",
+            ),
+            CASResponse(success=True, cas="maxima", input_latex="y+z"),
+        ]
+
+        result = await validator.validate()
+        assert result.passed is True  # Tier 3 never blocks
+        assert "1 formula errors" in result.message
+        assert result.details["validated"] == 2
+        assert result.details["errors"] == 1
+        assert result.details["cas_engine"] == "maxima"
+        assert len(result.details["error_details"]) == 1
+        assert result.details["error_details"][0]["latex"] == "bad formula"
+        assert result.fix_suggestion is not None
+        assert "bad formula" in result.fix_suggestion
+
+    @pytest.mark.asyncio
+    async def test_validate_error_details_limited_to_10(self):
+        """Test error_details limited to 10."""
+        formulas = [
+            ExtractedFormula(
+                latex=f"bad_{i}",
+                file=Path(f"f{i}.py"),
+                line=i,
+                context="f",
+                source="rst_math",
+            )
+            for i in range(15)
+        ]
+        validator = MathematicalValidator()
+        validator.extractor = MagicMock()
+        validator.extractor.extract_from_directory.return_value = formulas
+        validator.cas_client = MagicMock()
+        validator.cas_client.is_available.return_value = True
+        validator.cas_client.validate.return_value = CASResponse(
+            success=False,
+            cas="maxima",
+            input_latex="bad",
+            error="err",
+        )
+
+        result = await validator.validate()
+        assert result.details["errors"] == 15
+        assert len(result.details["error_details"]) == 10
+
+    @pytest.mark.asyncio
+    async def test_validate_fix_suggestion_limited_to_3(self):
+        """Test fix_suggestion only includes first 3 error formulas."""
+        formulas = [
+            ExtractedFormula(
+                latex=f"bad_{i}",
+                file=Path(f"f{i}.py"),
+                line=i,
+                context="f",
+                source="rst_math",
+            )
+            for i in range(5)
+        ]
+        validator = MathematicalValidator()
+        validator.extractor = MagicMock()
+        validator.extractor.extract_from_directory.return_value = formulas
+        validator.cas_client = MagicMock()
+        validator.cas_client.is_available.return_value = True
+        validator.cas_client.validate.return_value = CASResponse(
+            success=False,
+            cas="maxima",
+            input_latex="bad",
+            error="err",
+        )
+
+        result = await validator.validate()
+        assert "bad_0" in result.fix_suggestion
+        assert "bad_2" in result.fix_suggestion
+        assert "bad_4" not in result.fix_suggestion
+
+    @pytest.mark.asyncio
+    async def test_validate_multiple_scan_patterns(self):
+        """Test validate iterates over multiple scan patterns."""
+        formulas_py = [
+            ExtractedFormula(
+                latex="x^2", file=Path("a.py"), line=1, context="f", source="rst_math"
+            )
+        ]
+        formulas_md = [
+            ExtractedFormula(
+                latex="y^2", file=Path("b.md"), line=1, context="f", source="rst_math"
+            )
+        ]
+        validator = MathematicalValidator({"scan_patterns": ["**/*.py", "**/*.md"]})
+        validator.extractor = MagicMock()
+        validator.extractor.extract_from_directory.side_effect = [
+            formulas_py,
+            formulas_md,
+        ]
+        validator.cas_client = MagicMock()
+        validator.cas_client.is_available.return_value = True
+        validator.cas_client.validate.return_value = CASResponse(
+            success=True,
+            cas="maxima",
+            input_latex="x",
+        )
+
+        result = await validator.validate()
+        assert result.details["formulas_found"] == 2
+        assert validator.extractor.extract_from_directory.call_count == 2
+
+    def test_close(self):
+        """Test close delegates to cas_client."""
+        validator = MathematicalValidator()
+        validator.cas_client = MagicMock()
+        validator.close()
+        validator.cas_client.close.assert_called_once()
+
+    def test_context_manager(self):
+        """Test __enter__ and __exit__."""
+        validator = MathematicalValidator()
+        validator.cas_client = MagicMock()
+        with validator as v:
+            assert v is validator
+        validator.cas_client.close.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_validate_duration_ms(self):
+        """Test that duration_ms is set."""
+        validator = MathematicalValidator()
+        validator.extractor = MagicMock()
+        validator.extractor.extract_from_directory.return_value = []
+        validator.cas_client = MagicMock()
+        validator.cas_client.is_available.return_value = False
+
+        result = await validator.validate()
+        assert result.duration_ms >= 0
 
 
 class TestHTTPXAvailability:

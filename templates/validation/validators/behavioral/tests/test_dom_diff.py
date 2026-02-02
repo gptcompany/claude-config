@@ -12,16 +12,17 @@ Tests cover:
 - Empty HTML handling
 """
 
-import pytest
 from unittest.mock import patch
 
+import pytest
+
 from validators.behavioral.dom_diff import (
+    ZSS_AVAILABLE,
+    ComparisonResult,
     DOMComparator,
     DOMNode,
-    ComparisonResult,
-    parse_html,
     count_nodes,
-    ZSS_AVAILABLE,
+    parse_html,
 )
 
 
@@ -487,6 +488,49 @@ def collect_all_tags(node: DOMNode) -> set[str]:
 
 
 # Fixtures
+
+
+class TestDOMTreeBuilderError:
+    """Tests for DOMTreeBuilder.error() and parse exception paths."""
+
+    def test_error_method_is_noop(self):
+        """DOMTreeBuilder.error() should silently pass."""
+        from validators.behavioral.dom_diff import DOMTreeBuilder
+
+        builder = DOMTreeBuilder()
+        # Should not raise
+        builder.error("some parse error")
+
+    def test_parse_html_exception_returns_none(self):
+        """parse_html should return None when parser.feed raises."""
+        with patch(
+            "validators.behavioral.dom_diff.DOMTreeBuilder.feed",
+            side_effect=Exception("boom"),
+        ):
+            result = parse_html("<div>valid</div>")
+            assert result is None
+
+
+class TestZSSImportFallback:
+    """Test the ZSS_AVAILABLE=False import path."""
+
+    def test_zss_unavailable_fallback_full_flow(self):
+        """Full compare flow with ZSS_AVAILABLE=False uses fallback."""
+        with patch("validators.behavioral.dom_diff.ZSS_AVAILABLE", False):
+            comparator = DOMComparator()
+            result = comparator.compare(
+                "<div><p>A</p></div>", "<div><p>A</p><span>B</span></div>"
+            )
+            assert result.zss_available is False
+            assert result.similarity_score >= 0.0
+            assert any(op["type"] == "fallback" for op in result.operations)
+
+    def test_fallback_zero_tags_union(self):
+        """Fallback with identical single-tag trees gives similarity 1.0."""
+        with patch("validators.behavioral.dom_diff.ZSS_AVAILABLE", False):
+            comparator = DOMComparator()
+            result = comparator.compare("<div></div>", "<div></div>")
+            assert result.similarity_score == 1.0
 
 
 @pytest.fixture

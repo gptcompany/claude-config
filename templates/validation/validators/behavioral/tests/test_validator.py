@@ -15,8 +15,8 @@ Tests cover:
 import pytest
 
 from validators.behavioral.validator import (
-    BehavioralValidator,
     BehavioralConfig,
+    BehavioralValidator,
     ValidationResult,
     ValidationTier,
 )
@@ -338,6 +338,20 @@ class TestConfigFromDict:
         assert validator.config.similarity_threshold == 0.90
         assert validator.config.ignore_attributes == ["id", "class", "style"]
         assert validator.config.focus_selectors is None
+
+
+class TestBaseValidator:
+    """Tests for BaseValidator default implementation."""
+
+    @pytest.mark.asyncio
+    async def test_base_validator_default(self):
+        """BaseValidator.validate() returns default result."""
+        from validators.behavioral.validator import BaseValidator
+
+        base = BaseValidator()
+        result = await base.validate()
+        assert result.passed is True
+        assert result.message == "No validation implemented"
 
 
 class TestMessageFormatting:

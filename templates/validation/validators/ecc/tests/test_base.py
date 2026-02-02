@@ -5,7 +5,9 @@ Tests the base class helpers used by all ECC validators.
 """
 
 import subprocess
-from unittest.mock import patch, MagicMock
+from unittest.mock import MagicMock, patch
+
+import pytest
 
 from ..base import ECCValidatorBase, ValidationResult, ValidationTier
 
@@ -135,3 +137,55 @@ class TestECCValidatorBaseErrorResult:
         assert result.details["error"] == "Connection failed"
         assert result.duration_ms == 150
         assert result.agent == "test-agent"
+
+
+class TestECCValidatorBaseErrorResultNoAgent:
+    """Test _error_result with no agent."""
+
+    def test_error_result_no_agent(self):
+        """Error result has no agent when agent is empty."""
+        validator = ConcreteValidator()
+        validator.agent = ""
+        result = validator._error_result("fail")
+        assert result.agent is None
+
+
+class TestECCValidatorBaseRunTool:
+    """Test _run_tool method."""
+
+    @pytest.mark.asyncio
+    async def test_run_tool_executes_command(self):
+        """_run_tool runs subprocess and returns CompletedProcess."""
+        validator = ConcreteValidator()
+        result = await validator._run_tool(["echo", "hello"])
+        assert result.returncode == 0
+        assert "hello" in result.stdout
+
+    @pytest.mark.asyncio
+    async def test_run_tool_with_custom_timeout(self):
+        """_run_tool uses custom timeout."""
+        validator = ConcreteValidator()
+        result = await validator._run_tool(["echo", "test"], timeout=10)
+        assert result.returncode == 0
+
+    @pytest.mark.asyncio
+    async def test_run_tool_captures_stderr(self):
+        """_run_tool captures stderr."""
+        validator = ConcreteValidator()
+        result = await validator._run_tool(
+            ["python3", "-c", "import sys; sys.stderr.write('err')"]
+        )
+        assert "err" in result.stderr
+
+
+class TestECCValidatorBaseFormatDuration:
+    """Test _format_duration method."""
+
+    def test_format_duration_returns_int(self):
+        from datetime import datetime
+
+        validator = ConcreteValidator()
+        start = datetime.now()
+        result = validator._format_duration(start)
+        assert isinstance(result, int)
+        assert result >= 0

@@ -5,13 +5,14 @@ Tests the Playwright E2E validation logic with mocked subprocess calls.
 Does NOT require Playwright to be installed - all tests use mocks.
 """
 
+import json
 import subprocess
 from unittest.mock import MagicMock, patch
-import json
+
 import pytest
 
-from ..e2e_validator import E2EValidator
 from ..base import ValidationTier
+from ..e2e_validator import E2EValidator
 
 
 class TestE2EValidatorBasics:
@@ -207,3 +208,107 @@ class TestE2EValidatorFailure:
 
         assert result.passed is False
         assert result.fix_suggestion is not None
+
+    @pytest.mark.asyncio
+    async def test_non_json_output_success(self, tmp_path):
+        """Pass when exit code 0 but no JSON output."""
+        (tmp_path / "playwright.config.ts").write_text("export default {}")
+
+        validator = E2EValidator(project_path=tmp_path)
+
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = "All tests passed!"
+        mock_result.stderr = ""
+
+        async def mock_run_tool(*args, **kwargs):
+            return mock_result
+
+        with patch.object(validator, "_run_tool", side_effect=mock_run_tool):
+            result = await validator.validate()
+
+        assert result.passed is True
+        assert "no JSON output" in result.message
+
+    @pytest.mark.asyncio
+    async def test_generic_exception(self, tmp_path):
+        """Error result on unexpected exception."""
+        (tmp_path / "playwright.config.ts").write_text("export default {}")
+
+        validator = E2EValidator(project_path=tmp_path)
+
+        async def mock_run_tool(*args, **kwargs):
+            raise RuntimeError("unexpected failure")
+
+        with patch.object(validator, "_run_tool", side_effect=mock_run_tool):
+            result = await validator.validate()
+
+        assert result.passed is False
+        assert "unexpected failure" in result.message
+
+    @pytest.mark.asyncio
+    async def test_js_config_detected(self, tmp_path):
+        """Detect playwright.config.js."""
+        (tmp_path / "playwright.config.js").write_text("module.exports = {}")
+
+        validator = E2EValidator(project_path=tmp_path)
+
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = json.dumps(
+            {"stats": {"expected": 1, "unexpected": 0, "flaky": 0, "skipped": 0}}
+        )
+        mock_result.stderr = ""
+
+        async def mock_run_tool(*args, **kwargs):
+            return mock_result
+
+        with patch.object(validator, "_run_tool", side_effect=mock_run_tool):
+            result = await validator.validate()
+
+        assert result.passed is True
+
+    @pytest.mark.asyncio
+    async def test_mjs_config_detected(self, tmp_path):
+        """Detect playwright.config.mjs."""
+        (tmp_path / "playwright.config.mjs").write_text("export default {}")
+
+        validator = E2EValidator(project_path=tmp_path)
+
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = json.dumps(
+            {"stats": {"expected": 1, "unexpected": 0, "flaky": 0, "skipped": 0}}
+        )
+        mock_result.stderr = ""
+
+        async def mock_run_tool(*args, **kwargs):
+            return mock_result
+
+        with patch.object(validator, "_run_tool", side_effect=mock_run_tool):
+            result = await validator.validate()
+
+        assert result.passed is True
+
+    @pytest.mark.asyncio
+    async def test_stats_missing_duration(self, tmp_path):
+        """Handle missing duration in stats."""
+        (tmp_path / "playwright.config.ts").write_text("export default {}")
+
+        validator = E2EValidator(project_path=tmp_path)
+
+        mock_result = MagicMock()
+        mock_result.returncode = 0
+        mock_result.stdout = json.dumps(
+            {"stats": {"expected": 5, "unexpected": 0, "flaky": 0, "skipped": 0}}
+        )
+        mock_result.stderr = ""
+
+        async def mock_run_tool(*args, **kwargs):
+            return mock_result
+
+        with patch.object(validator, "_run_tool", side_effect=mock_run_tool):
+            result = await validator.validate()
+
+        assert result.passed is True
+        assert result.details["duration_s"] == 0

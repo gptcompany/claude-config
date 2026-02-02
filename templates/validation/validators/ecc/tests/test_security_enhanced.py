@@ -5,10 +5,11 @@ Tests the OWASP pattern checking logic with mocked grep calls.
 """
 
 from unittest.mock import patch
+
 import pytest
 
-from ..security_enhanced import SecurityEnhancedValidator
 from ..base import ValidationTier
+from ..security_enhanced import SecurityEnhancedValidator
 
 
 class TestSecurityEnhancedValidatorBasics:
@@ -408,3 +409,86 @@ class TestSecurityEnhancedValidatorEdgeCases:
         assert len(result.details) >= 2
         assert result.fix_suggestion is not None
         assert result.agent == "security-reviewer"
+
+
+class TestSecurityEnhancedValidatorRunGrepSuccess:
+    """Test _run_grep successful path returning stdout."""
+
+    @pytest.mark.asyncio
+    async def test_run_grep_returns_stdout(self, tmp_path):
+        """_run_grep returns stdout from successful grep."""
+        from unittest.mock import MagicMock
+
+        validator = SecurityEnhancedValidator(project_path=tmp_path)
+
+        mock_result = MagicMock()
+        mock_result.stdout = "file.py:1: matched line"
+
+        async def mock_run_tool(cmd, timeout=None):
+            return mock_result
+
+        with patch.object(validator, "_run_tool", side_effect=mock_run_tool):
+            result = await validator._run_grep("pattern", tmp_path, include="*.py")
+
+        assert result == "file.py:1: matched line"
+
+
+class TestSecurityEnhancedValidatorNoSrcDir:
+    """Test scanning without src/ directory."""
+
+    @pytest.mark.asyncio
+    async def test_scans_project_root_when_no_src(self, tmp_path):
+        """Scan project root when src/ doesn't exist."""
+        validator = SecurityEnhancedValidator(project_path=tmp_path)
+
+        async def mock_run_grep(pattern, path, include="*"):
+            return ""
+
+        with patch.object(validator, "_run_grep", side_effect=mock_run_grep):
+            result = await validator.validate()
+
+        assert result.passed is True
+        assert result.details.get("scanned_path") == str(tmp_path)
+
+
+class TestSecurityEnhancedValidatorA09FewExcepts:
+    """Test A09 with few except blocks (<=3)."""
+
+    @pytest.mark.asyncio
+    async def test_few_excepts_without_logging_passes(self, tmp_path):
+        """Pass when <=3 except blocks even without logging."""
+        (tmp_path / "src").mkdir()
+
+        validator = SecurityEnhancedValidator(project_path=tmp_path)
+
+        async def mock_run_grep(pattern, path, include="*"):
+            if "except:" in pattern:
+                return "a.py:1: except:\nb.py:2: except:\nc.py:3: except:"
+            if "import logging" in pattern or "logger" in pattern:
+                return ""
+            return ""
+
+        with patch.object(validator, "_run_grep", side_effect=mock_run_grep):
+            result = await validator.validate()
+
+        # 3 except blocks <= 3 threshold, so A09 should not trigger
+        assert "A09" not in str(result.details)
+
+
+class TestSecurityEnhancedValidatorA09NoExcepts:
+    """Test A09 with no except blocks."""
+
+    @pytest.mark.asyncio
+    async def test_no_excepts_passes(self, tmp_path):
+        """Pass when no except: blocks found."""
+        (tmp_path / "src").mkdir()
+
+        validator = SecurityEnhancedValidator(project_path=tmp_path)
+
+        async def mock_run_grep(pattern, path, include="*"):
+            return ""
+
+        with patch.object(validator, "_run_grep", side_effect=mock_run_grep):
+            result = await validator.validate()
+
+        assert result.passed is True

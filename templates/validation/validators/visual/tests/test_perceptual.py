@@ -416,3 +416,126 @@ class TestPerceptualComparatorMocked:
         assert result.match is False
         assert result.ssim_score == 0.0
         assert "failed" in result.error.lower()
+
+    @patch("validators.visual.perceptual.SKIMAGE_AVAILABLE", True)
+    @patch("validators.visual.perceptual.Image")
+    @patch("validators.visual.perceptual.ssim")
+    @patch("validators.visual.perceptual.np")
+    def test_center_crop_3d_array(self, mock_np, mock_ssim, mock_image):
+        """Test _center_crop with 3D (multichannel) arrays."""
+        import numpy as real_np
+
+        comparator = PerceptualComparator(multichannel=True)
+        # 3D array (h=20, w=30, channels=3)
+        img = real_np.zeros((20, 30, 3), dtype=real_np.uint8)
+        cropped = comparator._center_crop(img, 10, 10)
+        assert cropped.shape == (10, 10, 3)
+
+    @patch("validators.visual.perceptual.SKIMAGE_AVAILABLE", True)
+    @patch("validators.visual.perceptual.Image")
+    @patch("validators.visual.perceptual.ssim")
+    @patch("validators.visual.perceptual.np")
+    def test_center_crop_2d_array(self, mock_np, mock_ssim, mock_image):
+        """Test _center_crop with 2D (grayscale) arrays."""
+        import numpy as real_np
+
+        comparator = PerceptualComparator()
+        img = real_np.zeros((20, 30), dtype=real_np.uint8)
+        cropped = comparator._center_crop(img, 10, 10)
+        assert cropped.shape == (10, 10)
+
+    @patch("validators.visual.perceptual.SKIMAGE_AVAILABLE", True)
+    @patch("validators.visual.perceptual.Image")
+    @patch("validators.visual.perceptual.ssim")
+    @patch("validators.visual.perceptual.np")
+    def test_even_win_size_adjusted(self, mock_np, mock_ssim, mock_image):
+        """Test that even window size is adjusted to odd."""
+        import numpy as real_np
+
+        # Setup mocks to reach win_size adjustment code
+        mock_img = MagicMock()
+        mock_img.convert.return_value = mock_img
+        mock_image.open.return_value = mock_img
+        mock_np.array.return_value = real_np.zeros((8, 8), dtype=real_np.uint8)
+
+        mock_ssim.return_value = (0.99, real_np.zeros((8, 8)))
+
+        comparator = PerceptualComparator(win_size=8)  # even
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            baseline = Path(tmpdir) / "baseline.png"
+            current = Path(tmpdir) / "current.png"
+            baseline.touch()
+            current.touch()
+
+            result = comparator.compare(str(baseline), str(current))
+
+        assert result.error is None
+        # win_size=8 -> 7 (odd), min(7, 8)=7
+        mock_ssim.assert_called_once()
+
+    @patch("validators.visual.perceptual.SKIMAGE_AVAILABLE", True)
+    @patch("validators.visual.perceptual.Image")
+    @patch("validators.visual.perceptual.ssim")
+    @patch("validators.visual.perceptual.np")
+    def test_diff_save_failure(self, mock_np, mock_ssim, mock_image):
+        """Test graceful handling when diff image save fails."""
+        import numpy as real_np
+
+        mock_img = MagicMock()
+        mock_img.convert.return_value = mock_img
+        mock_image.open.return_value = mock_img
+        mock_np.array.return_value = real_np.zeros((20, 20), dtype=real_np.uint8)
+        mock_np.uint8 = real_np.uint8
+
+        diff_img = real_np.zeros((20, 20))
+        mock_ssim.return_value = (0.5, diff_img)  # below threshold
+
+        # Make Image.fromarray raise
+        mock_image.fromarray.side_effect = OSError("Cannot save")
+
+        comparator = PerceptualComparator(threshold=0.95)
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            baseline = Path(tmpdir) / "baseline.png"
+            current = Path(tmpdir) / "current.png"
+            baseline.touch()
+            current.touch()
+
+            result = comparator.compare(
+                str(baseline),
+                str(current),
+                diff_output=str(Path(tmpdir) / "diff.png"),
+            )
+
+        assert result.ssim_score == 0.5
+        assert result.match is False
+        assert result.diff_image_path is None  # save failed
+
+    @patch("validators.visual.perceptual.SKIMAGE_AVAILABLE", False)
+    def test_load_image_skimage_not_available(self):
+        """Test _load_image returns error when skimage not available."""
+        comparator = PerceptualComparator()
+        arr, err = comparator._load_image("/some/path.png")
+        assert arr is None
+        assert "not installed" in err.lower()
+
+    @pytest.mark.skipif(not SKIMAGE_AVAILABLE, reason="scikit-image not installed")
+    def test_compare_current_load_error(self):
+        """Test compare when current image fails to load (corrupt file)."""
+        from PIL import Image
+
+        comparator = PerceptualComparator()
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            baseline = Path(tmpdir) / "baseline.png"
+            img = Image.new("RGB", (10, 10), color="red")
+            img.save(baseline)
+
+            current = Path(tmpdir) / "current.png"
+            current.write_bytes(b"not an image")
+
+            result = comparator.compare(str(baseline), str(current))
+
+        assert result.match is False
+        assert result.error is not None

@@ -6,8 +6,8 @@ Tests TDD compliance checking with file system operations.
 
 import pytest
 
-from ..tdd_validator import TDDValidator
 from ..base import ValidationTier
+from ..tdd_validator import TDDValidator
 
 
 class TestTDDValidatorBasics:
@@ -207,6 +207,181 @@ class TestTDDValidatorFiltering:
         tests_dir.mkdir()
         # test file contains source name
         (tests_dir / "test_auth_handler_login.py").write_text("")
+
+        validator = TDDValidator(project_path=tmp_path)
+        result = await validator.validate()
+
+        assert result.details["coverage_ratio"] == 1.0
+
+
+class TestTDDValidatorFixSuggestionTruncation:
+    """Test fix_suggestion truncation for >5 missing files."""
+
+    @pytest.mark.asyncio
+    async def test_fix_suggestion_truncated(self, tmp_path):
+        """Fix suggestion truncated when >5 files missing tests."""
+        src_dir = tmp_path / "src"
+        src_dir.mkdir()
+
+        for i in range(10):
+            (src_dir / f"mod{i}.py").write_text(f"# mod {i}")
+
+        validator = TDDValidator(project_path=tmp_path)
+        result = await validator.validate()
+
+        assert result.passed is False
+        assert result.fix_suggestion is not None
+        assert result.fix_suggestion.endswith("...")
+
+
+class TestTDDValidatorPycacheExclusion:
+    """Test __pycache__ exclusion in test file finding."""
+
+    @pytest.mark.asyncio
+    async def test_pycache_test_files_excluded(self, tmp_path):
+        """Exclude test files in __pycache__ directories."""
+        src_dir = tmp_path / "src"
+        src_dir.mkdir()
+        (src_dir / "app.py").write_text("# app")
+
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+        (tests_dir / "test_app.py").write_text("def test(): pass")
+        pycache = tests_dir / "__pycache__"
+        pycache.mkdir()
+        (pycache / "test_app.py").write_text("# cached")
+
+        validator = TDDValidator(project_path=tmp_path)
+        result = await validator.validate()
+
+        assert result.details["coverage_ratio"] == 1.0
+
+
+class TestTDDValidatorTestSuffix:
+    """Test _test.py suffix pattern matching."""
+
+    @pytest.mark.asyncio
+    async def test_suffix_test_pattern(self, tmp_path):
+        """Match source files with _test.py suffix tests."""
+        src_dir = tmp_path / "src"
+        src_dir.mkdir()
+        (src_dir / "handler.py").write_text("# handler")
+
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+        (tests_dir / "handler_test.py").write_text("def test(): pass")
+
+        validator = TDDValidator(project_path=tmp_path)
+        result = await validator.validate()
+
+        assert result.details["coverage_ratio"] == 1.0
+
+
+class TestTDDValidatorLibDir:
+    """Test source discovery in lib/ directory."""
+
+    @pytest.mark.asyncio
+    async def test_lib_dir_source_files(self, tmp_path):
+        """Find source files in lib/ when src/ doesn't exist."""
+        lib_dir = tmp_path / "lib"
+        lib_dir.mkdir()
+        (lib_dir / "utils.py").write_text("# utils")
+
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+        (tests_dir / "test_utils.py").write_text("def test(): pass")
+
+        validator = TDDValidator(project_path=tmp_path)
+        result = await validator.validate()
+
+        assert result.details["source_files"] == 1
+        assert result.details["coverage_ratio"] == 1.0
+
+
+class TestTDDValidatorConftest:
+    """Test conftest.py exclusion."""
+
+    @pytest.mark.asyncio
+    async def test_conftest_excluded(self, tmp_path):
+        """Exclude conftest.py from source files."""
+        src_dir = tmp_path / "src"
+        src_dir.mkdir()
+        (src_dir / "conftest.py").write_text("# conftest")
+        (src_dir / "app.py").write_text("# app")
+
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+        (tests_dir / "test_app.py").write_text("def test(): pass")
+
+        validator = TDDValidator(project_path=tmp_path)
+        result = await validator.validate()
+
+        assert result.details["source_files"] == 1
+
+
+class TestTDDValidatorSourceInTestsDir:
+    """Test files in tests/ subdirectory of src/ excluded as source."""
+
+    @pytest.mark.asyncio
+    async def test_source_in_tests_subdir_excluded(self, tmp_path):
+        """Exclude non-test .py files found inside tests/ subdir."""
+        src_dir = tmp_path / "src"
+        src_dir.mkdir()
+        (src_dir / "app.py").write_text("# app")
+
+        # A .py file in src/tests/ that doesn't start with test_
+        src_tests = src_dir / "tests"
+        src_tests.mkdir()
+        (src_tests / "helpers.py").write_text("# helper")
+
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+        (tests_dir / "test_app.py").write_text("def test(): pass")
+
+        validator = TDDValidator(project_path=tmp_path)
+        result = await validator.validate()
+
+        # helpers.py in tests/ should be excluded
+        assert result.details["source_files"] == 1
+
+
+class TestTDDValidatorHiddenDirs:
+    """Test hidden directory exclusion."""
+
+    @pytest.mark.asyncio
+    async def test_hidden_dir_excluded(self, tmp_path):
+        """Exclude files in hidden directories."""
+        src_dir = tmp_path / "src"
+        src_dir.mkdir()
+        (src_dir / "app.py").write_text("# app")
+
+        hidden = src_dir / ".hidden"
+        hidden.mkdir()
+        (hidden / "secret.py").write_text("# hidden")
+
+        tests_dir = tmp_path / "tests"
+        tests_dir.mkdir()
+        (tests_dir / "test_app.py").write_text("def test(): pass")
+
+        validator = TDDValidator(project_path=tmp_path)
+        result = await validator.validate()
+
+        assert result.details["source_files"] == 1
+
+
+class TestTDDValidatorTestInSrc:
+    """Test finding tests inside src/tests/."""
+
+    @pytest.mark.asyncio
+    async def test_tests_in_src_dir(self, tmp_path):
+        """Find test files in src/tests/ directory."""
+        src_dir = tmp_path / "src"
+        src_dir.mkdir()
+        (src_dir / "app.py").write_text("# app")
+
+        src_tests = src_dir / "tests"
+        src_tests.mkdir()
+        (src_tests / "test_app.py").write_text("def test(): pass")
 
         validator = TDDValidator(project_path=tmp_path)
         result = await validator.validate()

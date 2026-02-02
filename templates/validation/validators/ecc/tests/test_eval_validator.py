@@ -5,10 +5,11 @@ Tests eval metrics extraction from JSON result files.
 """
 
 import json
+
 import pytest
 
-from ..eval_validator import EvalValidator
 from ..base import ValidationTier
+from ..eval_validator import EvalValidator
 
 
 class TestEvalValidatorBasics:
@@ -224,3 +225,148 @@ class TestEvalValidatorAlwaysPasses:
         result = await validator.validate()
 
         assert result.passed is True
+
+
+class TestEvalValidatorPassAtKEdgeCases:
+    """Test pass@k extraction edge cases."""
+
+    @pytest.mark.asyncio
+    async def test_pass_at_k_raw_count_with_total(self, tmp_path):
+        """Extract pass@k when value > 1 using total for normalization."""
+        evals_dir = tmp_path / ".claude" / "evals"
+        evals_dir.mkdir(parents=True)
+
+        (evals_dir / "results.json").write_text(
+            json.dumps({"pass_at_1": 85, "total": 100})
+        )
+
+        validator = EvalValidator(project_path=tmp_path)
+        result = await validator.validate()
+
+        assert result.passed is True
+        assert result.details.get("pass_at_1") == 0.85
+
+    @pytest.mark.asyncio
+    async def test_pass_at_k_raw_count_with_n_samples(self, tmp_path):
+        """Extract pass@k when value > 1 using n_samples."""
+        evals_dir = tmp_path / ".claude" / "evals"
+        evals_dir.mkdir(parents=True)
+
+        (evals_dir / "results.json").write_text(
+            json.dumps({"pass_at_1": 9, "n_samples": 10})
+        )
+
+        validator = EvalValidator(project_path=tmp_path)
+        result = await validator.validate()
+
+        assert result.details.get("pass_at_1") == 0.9
+
+    @pytest.mark.asyncio
+    async def test_pass_at_k_non_numeric_value(self, tmp_path):
+        """Skip pass@k when value is not numeric."""
+        evals_dir = tmp_path / ".claude" / "evals"
+        evals_dir.mkdir(parents=True)
+
+        (evals_dir / "results.json").write_text(
+            json.dumps({"pass_at_1": "not_a_number"})
+        )
+
+        validator = EvalValidator(project_path=tmp_path)
+        result = await validator.validate()
+
+        assert result.details.get("pass_at_1") is None
+
+    @pytest.mark.asyncio
+    async def test_passed_total_with_zero_total(self, tmp_path):
+        """Skip passed/total when total is 0."""
+        evals_dir = tmp_path / ".claude" / "evals"
+        evals_dir.mkdir(parents=True)
+
+        (evals_dir / "results.json").write_text(json.dumps({"passed": 0, "total": 0}))
+
+        validator = EvalValidator(project_path=tmp_path)
+        result = await validator.validate()
+
+        assert result.details.get("pass_at_1") is None
+
+    @pytest.mark.asyncio
+    async def test_alternative_field_pass_at_sign(self, tmp_path):
+        """Test pass@1 field name pattern."""
+        evals_dir = tmp_path / ".claude" / "evals"
+        evals_dir.mkdir(parents=True)
+
+        (evals_dir / "results.json").write_text(json.dumps({"pass@1": 0.7}))
+
+        validator = EvalValidator(project_path=tmp_path)
+        result = await validator.validate()
+
+        assert result.details.get("pass_at_1") == 0.7
+
+    @pytest.mark.asyncio
+    async def test_alternative_field_passAtK(self, tmp_path):
+        """Test passAt1 camelCase field name pattern."""
+        evals_dir = tmp_path / ".claude" / "evals"
+        evals_dir.mkdir(parents=True)
+
+        (evals_dir / "results.json").write_text(json.dumps({"passAt1": 0.9}))
+
+        validator = EvalValidator(project_path=tmp_path)
+        result = await validator.validate()
+
+        assert result.details.get("pass_at_1") == 0.9
+
+    @pytest.mark.asyncio
+    async def test_format_metrics_no_pass_at_k(self, tmp_path):
+        """Message when no pass@k metrics."""
+        evals_dir = tmp_path / ".claude" / "evals"
+        evals_dir.mkdir(parents=True)
+
+        (evals_dir / "results.json").write_text(json.dumps({"other_metric": 42}))
+
+        validator = EvalValidator(project_path=tmp_path)
+        result = await validator.validate()
+
+        assert "Evals: 1 results" in result.message
+        assert "pass@1" not in result.message
+
+    @pytest.mark.asyncio
+    async def test_format_metrics_pass_at_5_10(self, tmp_path):
+        """Message includes pass@5 and pass@10."""
+        evals_dir = tmp_path / ".claude" / "evals"
+        evals_dir.mkdir(parents=True)
+
+        (evals_dir / "results.json").write_text(
+            json.dumps({"pass_at_5": 0.9, "pass_at_10": 0.95})
+        )
+
+        validator = EvalValidator(project_path=tmp_path)
+        result = await validator.validate()
+
+        assert "pass@5=90%" in result.message
+        assert "pass@10=95%" in result.message
+
+    @pytest.mark.asyncio
+    async def test_pass_at_k_raw_count_default_total_1(self, tmp_path):
+        """pass@k > 1 with no total/n_samples defaults to dividing by 1."""
+        evals_dir = tmp_path / ".claude" / "evals"
+        evals_dir.mkdir(parents=True)
+
+        (evals_dir / "results.json").write_text(json.dumps({"pass_at_1": 5}))
+
+        validator = EvalValidator(project_path=tmp_path)
+        result = await validator.validate()
+
+        assert result.details.get("pass_at_1") == 5.0
+
+    @pytest.mark.asyncio
+    async def test_pass_underscore_k_pattern(self, tmp_path):
+        """Test pass_1 field name pattern."""
+        evals_dir = tmp_path / ".claude" / "evals"
+        evals_dir.mkdir(parents=True)
+
+        (evals_dir / "results.json").write_text(json.dumps({"pass_1": 0.65}))
+
+        validator = EvalValidator(project_path=tmp_path)
+        result = await validator.validate()
+
+        assert result.details.get("pass_at_1") == 0.65
