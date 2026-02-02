@@ -104,7 +104,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 27-01: TBD
+- [x] 27-01: Autonomous loop controller deployed to agent workspace, E2E tested
 
 #### Phase 28: Usage Tracking & Budget
 **Goal**: Token tracking per-agent/per-task, cost monitoring, budget cap con hard stop, rate limiting
@@ -114,7 +114,7 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 28-01: TBD
+- [x] 28-01: OTEL diagnostics + budget enforcer + Prometheus metrics
 
 #### Phase 29: Monitoring & Dashboards
 **Goal**: Grafana dashboard OpenClaw (task success rate, token usage, quality scores), alerting Discord/Matrix
@@ -210,8 +210,8 @@ See [v4.0 Archive](milestones/v4.0-ROADMAP.md) for full details.
 | 24. Skills & LLM Task | v7.0 | 1/1 | ✅ Complete | 2026-02-02 |
 | 25. Gemini Cross-Review | v7.0 | 1/1 | ✅ Complete | 2026-02-02 |
 | 26. Quality Gates Integration | v7.0 | 1/1 | ✅ Complete | 2026-02-02 |
-| 27. Autonomous Loop (Piano C) | v7.0 | 0/? | Not started | - |
-| 28. Usage Tracking & Budget | v7.0 | 0/? | Not started | - |
+| 27. Autonomous Loop (Piano C) | v7.0 | 1/1 | ✅ Complete | 2026-02-02 |
+| 28. Usage Tracking & Budget | v7.0 | 1/1 | ✅ Complete | 2026-02-02 |
 | 29. Monitoring & Dashboards | v7.0 | 0/? | Not started | - |
 
 **Total:** 66 plans shipped (v1.0-v6.0), 9 phases planned (v7.0)

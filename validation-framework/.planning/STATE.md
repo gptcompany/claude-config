@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-01-26)
 
 ## Current Position
 
-Phase: 26 of 29 (Quality Gates Integration) — COMPLETE
-Plan: 26-01 complete (1/1)
-Status: Phase complete, UAT 5/5 passed, ready for next
-Last activity: 2026-02-02 - Phase 26 complete
+Phase: 28 of 29 (Usage Tracking & Budget) — COMPLETE
+Plan: 28-01 complete (1/1)
+Status: Phase complete, budget enforcer deployed, Prometheus metrics flowing
+Last activity: 2026-02-02 - Phase 28 complete
 
-Progress: ██████░░░░ 56%
+Progress: ████████░░ 78%
 
 ## Shipped Milestones
 
@@ -38,8 +38,8 @@ Progress: ██████░░░░ 56%
 | 24. Skills & LLM Task | Complete |
 | 25. Gemini Cross-Review | Complete |
 | 26. Quality Gates Integration | Complete |
-| 27. Autonomous Loop (Piano C) | Not started |
-| 28. Usage Tracking & Budget | Not started |
+| 27. Autonomous Loop (Piano C) | Complete |
+| 28. Usage Tracking & Budget | Complete |
 | 29. Monitoring & Dashboards | Not started |
 
 ## Roadmap Evolution
@@ -56,7 +56,7 @@ Progress: ██████░░░░ 56%
 ## Session Continuity
 
 Last session: 2026-02-02
-Stopped at: Phase 26 complete
+Stopped at: Phase 28 complete
 Resume file: None
 
 ## Pending Todos
