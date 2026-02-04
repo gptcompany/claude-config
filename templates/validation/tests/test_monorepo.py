@@ -338,8 +338,9 @@ class TestIsIgnoredGlobEndsWith:
         # Lines 110-113 handle pattern.endswith("*"), which is a prefix match.
         # We need a pattern like "prefix*" in IGNORE_DIRS to hit this.
         # Since there's no such pattern, let's test via patching.
-        from monorepo import is_ignored as _is_ignored
         from unittest.mock import patch
+
+        from monorepo import is_ignored as _is_ignored
 
         with patch("monorepo.IGNORE_DIRS", {"build*"}):
             assert _is_ignored(Path("build-output")) is True

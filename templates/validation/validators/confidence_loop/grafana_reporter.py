@@ -51,9 +51,7 @@ class GrafanaReporter:
                 url, data=body, headers=self._get_headers(), method=method
             )
 
-            with urllib.request.urlopen(
-                request, timeout=self.timeout
-            ) as response:  # nosec B310 - internal Grafana API, not user input
+            with urllib.request.urlopen(request, timeout=self.timeout) as response:  # nosec B310 - internal Grafana API, not user input
                 self._available = True
                 return True, response.read().decode("utf-8")
 
@@ -111,9 +109,7 @@ class GrafanaReporter:
                 method="POST",
             )
 
-            with urllib.request.urlopen(
-                request, timeout=self.timeout
-            ):  # nosec B310 - internal push gateway, not user input
+            with urllib.request.urlopen(request, timeout=self.timeout):  # nosec B310 - internal push gateway, not user input
                 return True
 
         except Exception as e:

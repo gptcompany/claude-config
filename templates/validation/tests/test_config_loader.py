@@ -821,6 +821,7 @@ class TestImportFallback:
     def test_import_without_jsonschema(self):
         """Test module works when jsonschema is not available (lines 48-51)."""
         import importlib
+
         import config_loader
 
         original_import = (

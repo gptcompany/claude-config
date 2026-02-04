@@ -404,6 +404,7 @@ class TestMetricsImportFallback:
     def test_import_without_prometheus(self):
         """Test module loads with fallbacks when prometheus_client missing (lines 31-37)."""
         import importlib
+
         from integrations import metrics
 
         original_import = __import__

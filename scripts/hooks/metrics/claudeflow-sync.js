@@ -20,7 +20,7 @@
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
-const { execSync } = require("child_process");
+const { execSync, spawn } = require("child_process");
 
 // Configuration
 const HOME_DIR = os.homedir();
@@ -433,7 +433,43 @@ function savePipelineCheckpoint(key, value) {
     checkpointFile,
     JSON.stringify({ key, value, timestamp: getTimestamp() }, null, 2),
   );
-  return { success: true, method: "file" };
+
+  // Fire-and-forget async MCP sync (non-blocking)
+  asyncMcpSync(key, value);
+
+  return { success: true, method: "file+mcp" };
+}
+
+/**
+ * Async MCP sync - fire and forget
+ * Spawns detached npx process that syncs to MCP memory in background
+ */
+function asyncMcpSync(key, value) {
+  try {
+    const valueJson = JSON.stringify(value).replace(/"/g, '\\"');
+    const child = spawn(
+      "npx",
+      [
+        "@claude-flow/cli@latest",
+        "memory",
+        "store",
+        "--key",
+        key,
+        "--value",
+        valueJson,
+        "--namespace",
+        "pipeline",
+      ],
+      {
+        detached: true,
+        stdio: "ignore",
+        shell: true,
+      },
+    );
+    child.unref(); // Don't wait for process to exit
+  } catch (err) {
+    // Fire-and-forget: ignore errors
+  }
 }
 
 /**

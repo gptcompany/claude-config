@@ -442,6 +442,7 @@ class TestSentryImportFallback:
     def test_import_without_sentry_sdk(self):
         """Test module loads with fallbacks when sentry_sdk missing (lines 24-30)."""
         import importlib
+
         from integrations import sentry_context
 
         original_import = __import__
