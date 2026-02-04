@@ -42,11 +42,34 @@ AskUserQuestion({
 "Opzioni:\nA) Continua\nB) Valida"
 ```
 
-### 2. CONFIDENCE GATE → CALL /confidence-gate SKILL
-**At plan and execute steps, MUST invoke the confidence-gate skill:**
-```javascript
-Skill({ skill: "confidence-gate", args: "--step plan --json" })
+### 2. CONFIDENCE GATE → CALL SCRIPT DIRECTLY
+**At plan and execute steps, MUST call the confidence gate script via Bash:**
+```bash
+# ✅ CORRECT - Calls real script with external verification
+GATE_RESULT=$(echo "$STEP_OUTPUT" | python3 ~/.claude/scripts/confidence_gate.py --step "plan" --json 2>&1)
 ```
+
+### 3. POST-PHASE → USE AskUserQuestion (NEVER just print ghost text)
+**After completing a phase, Claude MUST call AskUserQuestion to ask what to do next:**
+```javascript
+// ✅ CORRECT - Interactive menu at end of phase
+AskUserQuestion({
+  questions: [{
+    question: `Phase ${PHASE} completata. Cosa vuoi fare?`,
+    header: "Phase Done",
+    options: [
+      {label: `Continua Phase ${NEXT_PHASE}`, description: "Procedi automaticamente"},
+      {label: "Pausa", description: "Salva checkpoint e fermati"},
+      {label: "Commit & Push", description: "Commit e push delle modifiche"}
+    ],
+    multiSelect: false
+  }]
+})
+
+// ❌ WRONG - Just printing ghost text and stopping
+echo "→ /pipeline:gsd $NEXT_PHASE"
+```
+**Claude MUST NOT stop with ghost text. MUST show interactive menu.**
 
 
 ## Usage
@@ -601,22 +624,67 @@ case $EXIT_CODE in
         # mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step8" value={"status":"done","pipeline":"complete"} namespace="pipeline"
         # mcp__claude-flow__memory_store key="gsd:{project}:{phase}:complete" value={"timestamp":"{now}","success":true} namespace="pipeline"
         # mcp__claude-flow__session_save sessionId="gsd-{phase}-complete"
-        # Suggerisci prossima fase
         NEXT_PHASE=$((PHASE + 1))
-        echo ""
-        echo "→ /pipeline:gsd $NEXT_PHASE"
+
+        # >>> MANDATORY: Use AskUserQuestion for next action <<<
+        # Claude MUST call AskUserQuestion here, NOT just print ghost text
         ;;
     1)
         echo "🔄 Implementation needs iteration - see feedback"
         # mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step8" value={"status":"iterate","feedback":"see_gate_result"} namespace="pipeline"
-        echo ""
-        echo "→ /pipeline:gsd $PHASE"
+
+        # >>> MANDATORY: Use AskUserQuestion for iteration choice <<<
         ;;
     2)
         echo "⏸️ Human review required"
         # mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step8" value={"status":"blocked","reason":"human_review"} namespace="pipeline"
         ;;
 esac
+
+# >>> POST-PHASE: Claude MUST use AskUserQuestion <<<
+```
+
+**🚨 MANDATORY: After phase completion, Claude MUST call AskUserQuestion:**
+
+```javascript
+// Exit code 0: Phase completed
+AskUserQuestion({
+  questions: [{
+    question: `Phase ${PHASE} completata. Cosa vuoi fare?`,
+    header: "Phase Done",
+    options: [
+      {label: `Continua Phase ${NEXT_PHASE}`, description: "Procedi automaticamente alla prossima fase"},
+      {label: "Pausa", description: "Salva checkpoint e fermati qui"},
+      {label: "Review", description: "Revisione manuale prima di continuare"},
+      {label: "Commit & Push", description: "Commit le modifiche e push"}
+    ],
+    multiSelect: false
+  }]
+})
+
+// Exit code 1: Iteration needed
+AskUserQuestion({
+  questions: [{
+    question: "Iterazione necessaria. Come procedere?",
+    header: "Iterate",
+    options: [
+      {label: "Riprova automatico", description: "Re-esegui la fase con le correzioni"},
+      {label: "Fix manuale", description: "Voglio correggere manualmente"},
+      {label: "Ignora e continua", description: "Procedi comunque alla prossima fase"}
+    ],
+    multiSelect: false
+  }]
+})
+```
+
+**Based on user choice:**
+- `Continua Phase N`: Execute `/pipeline:gsd {NEXT_PHASE}` automatically
+- `Pausa`: Save checkpoint and stop
+- `Review`: Show summary and wait
+- `Commit & Push`: Run git commit and push
+- `Riprova automatico`: Re-run current phase
+- `Fix manuale`: Stop and let user fix
+- `Ignora e continua`: Execute next phase anyway
 ```
 
 ## Ghost Text Pattern
