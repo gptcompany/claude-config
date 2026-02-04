@@ -33,6 +33,41 @@
 - Non over-engineerare
 - Preferisci modifiche minimali e incrementali
 
+## Comunicazione con l'Utente (MANDATORY)
+
+**L'utente NON può eseguire comandi manuali durante la chat.**
+
+L'utente spesso non legge i messaggi intermedi, specialmente quando:
+- La chat viene compattata/riassunta
+- Ci sono molti output di comandi
+- La sessione è lunga
+
+**Regole:**
+
+1. **MAI chiedere all'utente di eseguire comandi manuali** a meno che non sia assolutamente impossibile automatizzare
+2. **Se un safety hook blocca**, crea uno script ed eseguilo invece di chiedere comandi manuali
+3. **Se servono permessi sudo**, crea uno script completo che l'utente può eseguire UNA SOLA VOLTA
+4. **SEMPRE fornire un RAPPORTO FINALE** alla fine del task con:
+   - ✅ Cosa è stato completato automaticamente
+   - ⚠️ Cosa richiede azione manuale (se inevitabile)
+   - 📋 Comandi esatti da copiare-incollare (se necessari)
+   - 🔄 Stato attuale del sistema
+
+**Anti-pattern:**
+```
+❌ "Esegui tu: sudo mkdir -p /path && ..."
+❌ "Il safety hook blocca, copia questo comando"
+❌ Messaggi con comandi sparsi nella conversazione
+```
+
+**Pattern corretto:**
+```
+✅ Creare script in /tmp o nel progetto
+✅ Eseguire lo script automaticamente
+✅ Se impossibile, fornire UN SOLO blocco di comandi alla fine
+✅ Rapporto finale strutturato
+```
+
 ## Anti-Superficialità (MANDATORY)
 
 **Spingere per dettagli rivela la verità.**
@@ -78,7 +113,37 @@ Quando analizzi codice, valuti progressi, o riporti status:
 **MAI esporre secrets nell'output della chat:**
 
 1. **Verifica silenziosa**: `dotenvx get KEY -f /media/sam/1TB/.env 2>/dev/null | grep -q . && echo "Exists"`
-2. **MAI** `cut -d= -f2`, `awk '{print $2}'` o simili per estrarre valori di secret.
+
+2. **⚠️ CRITICAL: MAI usare `dotenvx get KEY` direttamente in chat**
+   - I session logs (`.jsonl`) catturano TUTTO l'output dei comandi Bash
+   - Anche `2>/dev/null` non basta: il valore appare nella risposta
+   - **Questo ha causato leak di 7+ API keys nel Gennaio 2026**
+
+3. **Pattern SICURI per leggere secrets:**
+   ```bash
+   # ✅ Solo verifica esistenza (output booleano)
+   dotenvx get KEY -f /media/sam/1TB/.env 2>/dev/null | grep -q . && echo "Exists"
+
+   # ✅ Iniettare in comando (secret mai visibile)
+   dotenvx run -f /media/sam/1TB/.env -- ./my-script.sh
+
+   # ✅ Script separato con output soppresso
+   ~/.claude/scripts/rotate-key.sh KEY_NAME 2>&1 | grep -v 'sk-\|ghp_\|xoxb-'
+   ```
+
+4. **Pattern PERICOLOSI (MAI usare):**
+   ```bash
+   # ❌ Output diretto del secret
+   dotenvx get OPENAI_API_KEY -f /media/sam/1TB/.env
+
+   # ❌ Estrazione con cut/awk
+   grep KEY .env | cut -d= -f2
+
+   # ❌ Base64 encode visibile
+   echo "$SECRET" | base64
+   ```
+
+5. **MAI** `cut -d= -f2`, `awk '{print $2}'` o simili per estrarre valori di secret.
    **MAI** fare base64 encode/decode di credenziali in comandi bash visibili in chat.
    Se serve processare secret, fallo in script separato con output soppresso.
 
@@ -100,11 +165,11 @@ Quando analizzi codice, valuti progressi, o riporti status:
 |-----------|---------|
 | Aggiungere secret | `secret-add KEY_NAME` (prompt sicuro, no echo) |
 | Editare tutti | `secret-add` (apre editor) |
-| Leggere singolo | `dotenvx get KEY -f /media/sam/1TB/.env` |
+| ~~Leggere singolo~~ | ⚠️ **DEPRECATO** - causa leak in session logs |
 | Verificare esistenza | `dotenvx get KEY -f /media/sam/1TB/.env 2>/dev/null \| grep -q . && echo "Exists"` |
 | Iniettare in comando | `dotenvx run -f /media/sam/1TB/.env -- cmd` |
-| Ruotare chiavi | `dotenvx rotate -f /media/sam/1TB/.env` |
-| Contare keys | `dotenvx decrypt -f /media/sam/1TB/.env --stdout \| grep -c '='` |
+| Ruotare chiavi | `~/.claude/scripts/rotate-keys.sh [KEY_NAME]` |
+| Contare keys | `dotenvx decrypt -f /media/sam/1TB/.env --stdout 2>/dev/null \| grep -c '='` |
 
 | Key | Usage |
 |-----|-------|
@@ -115,6 +180,8 @@ Quando analizzi codice, valuti progressi, o riporti status:
 | `SENTRY_AUTH_TOKEN` | Sentry MCP |
 | `OPENAI_API_KEY` | OpenAI API |
 | `GEMINI_API_KEY` | Vertex AI |
+| `OPENROUTER_API_KEY` | OpenRouter (OpenClaw cronjob/devops) |
+| `OPENROUTER_API_KEY2` | OpenRouter (confidence-gate pipeline) |
 | `N8N_API_KEY` | N8N MCP |
 | `DISCORD_TOKEN` | Discord bot |
 | `DISCORD_WEBHOOK_URL` | Pipeline alerts |
