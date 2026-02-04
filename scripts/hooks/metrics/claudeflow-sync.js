@@ -17,25 +17,25 @@
  * Writes to QuestDB for time-series analysis
  */
 
-const fs = require('fs');
-const path = require('path');
-const os = require('os');
-const { execSync } = require('child_process');
+const fs = require("fs");
+const path = require("path");
+const os = require("os");
+const { execSync } = require("child_process");
 
 // Configuration
 const HOME_DIR = os.homedir();
-const MCP_DATA_DIR = path.join(HOME_DIR, '.claude-flow');
-const SYNC_STATE_FILE = path.join(MCP_DATA_DIR, 'sync_state.json');
-const GLOBAL_DB = path.join(HOME_DIR, '.claude', 'hive-mind', 'hive-mind.db');
+const MCP_DATA_DIR = path.join(HOME_DIR, ".claude-flow");
+const SYNC_STATE_FILE = path.join(MCP_DATA_DIR, "sync_state.json");
+const GLOBAL_DB = path.join(HOME_DIR, ".claude", "hive-mind", "hive-mind.db");
 
 // Try to load libraries
 let metricsLib = null;
 let mcpClient = null;
 try {
-  metricsLib = require('../../lib/metrics.js');
+  metricsLib = require("../../lib/metrics.js");
 } catch (err) {}
 try {
-  mcpClient = require('../../lib/mcp-client.js');
+  mcpClient = require("../../lib/mcp-client.js");
 } catch (err) {}
 
 /**
@@ -62,10 +62,10 @@ function getProjectName() {
     return mcpClient.getProjectName();
   }
   try {
-    const result = execSync('git rev-parse --show-toplevel', {
-      encoding: 'utf8',
+    const result = execSync("git rev-parse --show-toplevel", {
+      encoding: "utf8",
       timeout: 5000,
-      stdio: ['pipe', 'pipe', 'pipe']
+      stdio: ["pipe", "pipe", "pipe"],
     });
     return path.basename(result.trim());
   } catch (err) {
@@ -87,7 +87,7 @@ function loadSyncState() {
   ensureDir(MCP_DATA_DIR);
   if (fs.existsSync(SYNC_STATE_FILE)) {
     try {
-      return JSON.parse(fs.readFileSync(SYNC_STATE_FILE, 'utf8'));
+      return JSON.parse(fs.readFileSync(SYNC_STATE_FILE, "utf8"));
     } catch (err) {
       // Ignore parse errors
     }
@@ -97,7 +97,7 @@ function loadSyncState() {
     syncCount: 0,
     agentSpawns: [],
     taskProgress: {},
-    errors: []
+    errors: [],
   };
 }
 
@@ -116,17 +116,17 @@ function saveSyncState(state) {
  */
 function syncToMemory(key, value) {
   if (mcpClient) {
-    return mcpClient.memoryStore(key, value, 'claudeflow');
+    return mcpClient.memoryStore(key, value, "claudeflow");
   }
 
   // Fallback: store in local file
-  const memoryFile = path.join(MCP_DATA_DIR, 'memory', 'store.json');
+  const memoryFile = path.join(MCP_DATA_DIR, "memory", "store.json");
   ensureDir(path.dirname(memoryFile));
 
   let store = { entries: {} };
   if (fs.existsSync(memoryFile)) {
     try {
-      store = JSON.parse(fs.readFileSync(memoryFile, 'utf8'));
+      store = JSON.parse(fs.readFileSync(memoryFile, "utf8"));
     } catch (err) {}
   }
 
@@ -134,7 +134,7 @@ function syncToMemory(key, value) {
     key: `claudeflow:${key}`,
     value,
     storedAt: getTimestamp(),
-    accessCount: 0
+    accessCount: 0,
   };
 
   fs.writeFileSync(memoryFile, JSON.stringify(store, null, 2));
@@ -154,7 +154,7 @@ function trackAgentSpawn(agentType, description, agentId) {
     agentType,
     description,
     spawnedAt: now,
-    status: 'running'
+    status: "running",
   });
 
   // Keep only last 50 spawns
@@ -170,7 +170,7 @@ function trackAgentSpawn(agentType, description, agentId) {
     description,
     spawnedAt: now,
     project: getProjectName(),
-    sessionId: getSessionId()
+    sessionId: getSessionId(),
   });
 
   return state;
@@ -187,7 +187,7 @@ function updateTaskProgress(taskId, status, progress = null) {
   state.taskProgress[taskId] = {
     status,
     progress,
-    updatedAt: now
+    updatedAt: now,
   };
 
   saveSyncState(state);
@@ -198,7 +198,7 @@ function updateTaskProgress(taskId, status, progress = null) {
     progress,
     updatedAt: now,
     project: getProjectName(),
-    sessionId: getSessionId()
+    sessionId: getSessionId(),
   });
 
   return state;
@@ -209,34 +209,34 @@ function updateTaskProgress(taskId, status, progress = null) {
  */
 function syncAgentsProfiles() {
   const lines = [];
-  const profilesFile = path.join(MCP_DATA_DIR, 'agents-profiles.json');
+  const profilesFile = path.join(MCP_DATA_DIR, "agents-profiles.json");
 
   if (!fs.existsSync(profilesFile)) {
     return lines;
   }
 
   try {
-    const data = JSON.parse(fs.readFileSync(profilesFile, 'utf8'));
+    const data = JSON.parse(fs.readFileSync(profilesFile, "utf8"));
     const project = getProjectName();
     const now = Date.now();
 
     for (const [strategy, metrics] of Object.entries(data)) {
-      if (typeof metrics !== 'object') continue;
+      if (typeof metrics !== "object") continue;
 
       const successRate = metrics.successRate || 0;
       const avgScore = metrics.avgScore || 0;
       const avgExec = metrics.avgExecutionTime || 0;
       const uses = metrics.uses || 0;
       const realExec = metrics.realExecutions || 0;
-      const improving = metrics.improving ? 't' : 'f';
+      const improving = metrics.improving ? "t" : "f";
 
       let impRate = 0;
       try {
-        impRate = parseFloat(metrics.improvementRate || '0');
+        impRate = parseFloat(metrics.improvementRate || "0");
       } catch (e) {}
 
       lines.push({
-        table: 'claude_strategy_metrics',
+        table: "claude_strategy_metrics",
         tags: { project, strategy },
         values: {
           success_rate: successRate,
@@ -245,8 +245,8 @@ function syncAgentsProfiles() {
           uses,
           real_executions: realExec,
           improving,
-          improvement_rate: impRate
-        }
+          improvement_rate: impRate,
+        },
       });
     }
   } catch (err) {
@@ -263,58 +263,58 @@ function syncMCPData() {
   const lines = [];
 
   // Sync agents
-  const agentsFile = path.join(MCP_DATA_DIR, 'agents', 'store.json');
+  const agentsFile = path.join(MCP_DATA_DIR, "agents", "store.json");
   if (fs.existsSync(agentsFile)) {
     try {
-      const data = JSON.parse(fs.readFileSync(agentsFile, 'utf8'));
+      const data = JSON.parse(fs.readFileSync(agentsFile, "utf8"));
       for (const agent of Object.values(data.agents || {})) {
         lines.push({
-          table: 'claude_mcp_agents',
+          table: "claude_mcp_agents",
           tags: {
-            agent_type: agent.agentType || 'unknown',
-            status: agent.status || 'unknown',
-            model: agent.model || 'unknown'
+            agent_type: agent.agentType || "unknown",
+            status: agent.status || "unknown",
+            model: agent.model || "unknown",
           },
           values: {
             health: agent.health || 0,
-            task_count: agent.taskCount || 0
-          }
+            task_count: agent.taskCount || 0,
+          },
         });
       }
     } catch (err) {}
   }
 
   // Sync tasks
-  const tasksFile = path.join(MCP_DATA_DIR, 'tasks', 'store.json');
+  const tasksFile = path.join(MCP_DATA_DIR, "tasks", "store.json");
   if (fs.existsSync(tasksFile)) {
     try {
-      const data = JSON.parse(fs.readFileSync(tasksFile, 'utf8'));
+      const data = JSON.parse(fs.readFileSync(tasksFile, "utf8"));
       for (const task of Object.values(data.tasks || {})) {
         lines.push({
-          table: 'claude_mcp_tasks',
+          table: "claude_mcp_tasks",
           tags: {
-            task_type: task.type || 'unknown',
-            status: task.status || 'unknown',
-            priority: task.priority || 'normal'
+            task_type: task.type || "unknown",
+            status: task.status || "unknown",
+            priority: task.priority || "normal",
           },
           values: {
-            progress: task.progress || 0
-          }
+            progress: task.progress || 0,
+          },
         });
       }
     } catch (err) {}
   }
 
   // Sync system metrics
-  const systemFile = path.join(MCP_DATA_DIR, 'system', 'metrics.json');
+  const systemFile = path.join(MCP_DATA_DIR, "system", "metrics.json");
   if (fs.existsSync(systemFile)) {
     try {
-      const data = JSON.parse(fs.readFileSync(systemFile, 'utf8'));
+      const data = JSON.parse(fs.readFileSync(systemFile, "utf8"));
       const mem = data.memory || {};
-      const memPct = mem.total > 0 ? (mem.used / mem.total * 100) : 0;
+      const memPct = mem.total > 0 ? (mem.used / mem.total) * 100 : 0;
 
       lines.push({
-        table: 'claude_mcp_system',
+        table: "claude_mcp_system",
         tags: {},
         values: {
           health: data.health || 0,
@@ -324,8 +324,8 @@ function syncMCPData() {
           agents_total: data.agents?.total || 0,
           tasks_pending: data.tasks?.pending || 0,
           tasks_completed: data.tasks?.completed || 0,
-          tasks_failed: data.tasks?.failed || 0
-        }
+          tasks_failed: data.tasks?.failed || 0,
+        },
       });
     } catch (err) {}
   }
@@ -344,14 +344,14 @@ async function syncAll() {
   const mcpLines = syncMCPData();
   if (mcpLines.length > 0) {
     allLines.push(...mcpLines);
-    syncedSources.push('mcp:global');
+    syncedSources.push("mcp:global");
   }
 
   // Sync agents profiles
   const profileLines = syncAgentsProfiles();
   if (profileLines.length > 0) {
     allLines.push(...profileLines);
-    syncedSources.push('profiles');
+    syncedSources.push("profiles");
   }
 
   // Export to QuestDB if available
@@ -370,7 +370,7 @@ async function syncAll() {
   return {
     syncedSources,
     linesSent: sentCount,
-    timestamp: getTimestamp()
+    timestamp: getTimestamp(),
   };
 }
 
@@ -389,57 +389,51 @@ function parsePipelineCommand(skillName, args) {
 
   let framework = null;
   let step = null;
-  let target = args ? args.split(/\s+/)[0] : 'auto';
+  let target = args ? args.split(/\s+/)[0] : "auto";
 
   // Pattern 1: pipeline:framework (e.g., pipeline:speckit, pipeline.gsd)
-  if (skillName.includes('pipeline')) {
-    framework = skillName.replace('pipeline:', '').replace('pipeline.', '');
-    if (!['gsd', 'speckit', 'status'].includes(framework)) return null;
+  if (skillName.includes("pipeline")) {
+    framework = skillName.replace("pipeline:", "").replace("pipeline.", "");
+    if (!["gsd", "speckit", "status"].includes(framework)) return null;
     step = null; // pipeline command runs full pipeline
   }
   // Pattern 2: speckit.step (e.g., speckit.specify, speckit.clarify)
-  else if (skillName.startsWith('speckit.')) {
-    framework = 'speckit';
-    step = skillName.replace('speckit.', '');
+  else if (skillName.startsWith("speckit.")) {
+    framework = "speckit";
+    step = skillName.replace("speckit.", "");
   }
   // Pattern 3: gsd:step (e.g., gsd:plan-phase, gsd:execute-phase)
-  else if (skillName.startsWith('gsd:')) {
-    framework = 'gsd';
-    step = skillName.replace('gsd:', '');
-  }
-  else {
+  else if (skillName.startsWith("gsd:")) {
+    framework = "gsd";
+    step = skillName.replace("gsd:", "");
+  } else {
     return null;
   }
 
   // Clean target - remove quotes if present
   if (target) {
-    target = target.replace(/^["']|["']$/g, '');
+    target = target.replace(/^["']|["']$/g, "");
   }
 
-  return { framework, target: target || 'auto', step };
+  return { framework, target: target || "auto", step };
 }
 
 /**
- * Save pipeline checkpoint via CLI
+ * Save pipeline checkpoint to local file (fast, no npx)
  */
 function savePipelineCheckpoint(key, value) {
-  const valueJson = JSON.stringify(value).replace(/'/g, "'\\''");
+  const checkpointDir = path.join(MCP_DATA_DIR, "checkpoints");
+  ensureDir(checkpointDir);
 
-  try {
-    execSync(
-      `npx @claude-flow/cli@latest memory store --key "${key}" --value '${valueJson}' --namespace pipeline`,
-      { encoding: 'utf8', timeout: 15000, stdio: ['pipe', 'pipe', 'pipe'] }
-    );
-    return { success: true, method: 'cli' };
-  } catch (err) {
-    // Fallback: local file
-    const checkpointDir = path.join(MCP_DATA_DIR, 'checkpoints');
-    ensureDir(checkpointDir);
-
-    const checkpointFile = path.join(checkpointDir, `${key.replace(/:/g, '_')}.json`);
-    fs.writeFileSync(checkpointFile, JSON.stringify({ key, value, timestamp: getTimestamp() }, null, 2));
-    return { success: true, method: 'file' };
-  }
+  const checkpointFile = path.join(
+    checkpointDir,
+    `${key.replace(/:/g, "_")}.json`,
+  );
+  fs.writeFileSync(
+    checkpointFile,
+    JSON.stringify({ key, value, timestamp: getTimestamp() }, null, 2),
+  );
+  return { success: true, method: "file" };
 }
 
 /**
@@ -450,7 +444,13 @@ function savePipelineCheckpoint(key, value) {
  * @param {string|null} step - sub-step (specify, clarify, plan-phase, etc.)
  * @param {string|null} error - error message if any
  */
-function trackPipelineExecution(framework, target, status, step = null, error = null) {
+function trackPipelineExecution(
+  framework,
+  target,
+  status,
+  step = null,
+  error = null,
+) {
   const project = getProjectName();
   // Key format: framework:project:target[:step]
   const key = step
@@ -465,7 +465,7 @@ function trackPipelineExecution(framework, target, status, step = null, error = 
     project,
     timestamp: getTimestamp(),
     sessionId: getSessionId(),
-    error: error ? error.slice(0, 500) : null
+    error: error ? error.slice(0, 500) : null,
   };
 
   const result = savePipelineCheckpoint(key, value);
@@ -487,14 +487,14 @@ function trackPipelineExecution(framework, target, status, step = null, error = 
  */
 async function main() {
   // Read input from stdin
-  let input = '';
+  let input = "";
 
   if (!process.stdin.isTTY) {
     const chunks = [];
     for await (const chunk of process.stdin) {
       chunks.push(chunk);
     }
-    input = Buffer.concat(chunks).toString('utf8');
+    input = Buffer.concat(chunks).toString("utf8");
   }
 
   let inputData = {};
@@ -505,76 +505,87 @@ async function main() {
     process.exit(0);
   }
 
-  const toolName = inputData.tool_name || '';
+  const toolName = inputData.tool_name || "";
   const toolInput = inputData.tool_input || {};
   const toolResponse = inputData.tool_response || {};
   // Detect hook type: PRE hooks don't have tool_response, POST hooks do
   // PreToolUse: { tool_name, tool_input }
   // PostToolUse: { tool_name, tool_input, tool_response }
-  const hasResponse = inputData.hasOwnProperty('tool_response') && Object.keys(toolResponse).length > 0;
-  const hookType = hasResponse ? 'post' : 'pre';
+  const hasResponse =
+    inputData.hasOwnProperty("tool_response") &&
+    Object.keys(toolResponse).length > 0;
+  const hookType = hasResponse ? "post" : "pre";
 
   // Track agent spawns
-  if (toolName === 'Task') {
-    const agentType = toolInput.subagent_type || 'explore';
-    const description = (toolInput.description || '').slice(0, 200);
+  if (toolName === "Task") {
+    const agentType = toolInput.subagent_type || "explore";
+    const description = (toolInput.description || "").slice(0, 200);
     const agentId = `agent_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 
     trackAgentSpawn(agentType, description, agentId);
   }
 
   // Track todo/task progress
-  if (toolName === 'TodoWrite') {
+  if (toolName === "TodoWrite") {
     const todos = toolInput.todos || [];
     for (const todo of todos) {
-      const taskId = (todo.content || '').slice(0, 50);
-      const status = todo.status || 'pending';
+      const taskId = (todo.content || "").slice(0, 50);
+      const status = todo.status || "pending";
       updateTaskProgress(taskId, status);
     }
   }
 
   // === PIPELINE CHECKPOINT ===
   // Intercepts: pipeline:*, speckit.*, gsd:*
-  if (toolName === 'Skill') {
-    const skillName = toolInput.skill || '';
-    const skillArgs = toolInput.args || '';
+  if (toolName === "Skill") {
+    const skillName = toolInput.skill || "";
+    const skillArgs = toolInput.args || "";
     const parsed = parsePipelineCommand(skillName, skillArgs);
 
     if (parsed) {
       const { framework, target, step } = parsed;
 
-      let status, error = null;
+      let status,
+        error = null;
 
-      if (hookType === 'pre') {
+      if (hookType === "pre") {
         // PRE-hook: save "starting" checkpoint BEFORE execution
-        status = 'starting';
+        status = "starting";
       } else {
         // POST-hook: save "done" or "error" checkpoint AFTER execution
         const isError = toolResponse.is_error === true;
-        status = isError ? 'error' : 'done';
-        error = isError ? (toolResponse.content || 'unknown') : null;
+        status = isError ? "error" : "done";
+        error = isError ? toolResponse.content || "unknown" : null;
       }
 
-      const result = trackPipelineExecution(framework, target, status, step, error);
-
-      // Output pipeline-specific result
-      console.log(JSON.stringify({
-        synced: true,
-        pipeline: true,
-        hookType,
-        key: result.key,
-        status,
-        method: result.method,
+      const result = trackPipelineExecution(
         framework,
         target,
-        step
-      }));
+        status,
+        step,
+        error,
+      );
+
+      // Output pipeline-specific result
+      console.log(
+        JSON.stringify({
+          synced: true,
+          pipeline: true,
+          hookType,
+          key: result.key,
+          status,
+          method: result.method,
+          framework,
+          target,
+          step,
+        }),
+      );
       process.exit(0);
     }
   }
 
   // Sync session state on certain tools
-  const syncTriggers = ['Task', 'TodoWrite', 'Skill'];
+  const syncTriggers = ["Task", "TodoWrite", "Skill"];
   if (syncTriggers.includes(toolName)) {
     const sessionId = getSessionId();
     const project = getProjectName();
@@ -584,7 +595,7 @@ async function main() {
       project,
       lastTool: toolName,
       lastActivity: getTimestamp(),
-      state: loadSyncState()
+      state: loadSyncState(),
     });
   }
 
@@ -595,12 +606,14 @@ async function main() {
   }
 
   // Output result
-  console.log(JSON.stringify({
-    synced: true,
-    syncCount: state.syncCount || 0,
-    agentSpawns: (state.agentSpawns || []).length,
-    taskProgress: Object.keys(state.taskProgress || {}).length
-  }));
+  console.log(
+    JSON.stringify({
+      synced: true,
+      syncCount: state.syncCount || 0,
+      agentSpawns: (state.agentSpawns || []).length,
+      taskProgress: Object.keys(state.taskProgress || {}).length,
+    }),
+  );
 
   process.exit(0);
 }
@@ -619,12 +632,12 @@ module.exports = {
   getSessionId,
   MCP_DATA_DIR,
   SYNC_STATE_FILE,
-  GLOBAL_DB
+  GLOBAL_DB,
 };
 
 // Run if executed directly
 if (require.main === module) {
-  main().catch(err => {
+  main().catch((err) => {
     console.error(err);
     console.log(JSON.stringify({}));
     process.exit(0);
