@@ -369,6 +369,7 @@ function persistMetrics(
 /**
  * Read pre-generated claude-flow statusline from cache file
  * Cache is updated by: ~/.claude/scripts/statusline/update-cf-status.sh (runs via cron or daemon)
+ * Returns ONLY first line to avoid TUI rendering issues
  */
 function getClaudeFlowStatus() {
   const cacheFile = path.join(os.homedir(), '.claude-flow', 'statusline-cache.txt');
@@ -379,7 +380,10 @@ function getClaudeFlowStatus() {
       const stats = fs.statSync(cacheFile);
       const ageMs = Date.now() - stats.mtimeMs;
       if (ageMs < 60000) {
-        return fs.readFileSync(cacheFile, 'utf8').trim();
+        const content = fs.readFileSync(cacheFile, 'utf8').trim();
+        // Return ONLY first line to avoid multi-line TUI issues
+        const firstLine = content.split('\n')[0];
+        return firstLine || null;
       }
     }
     return null;
