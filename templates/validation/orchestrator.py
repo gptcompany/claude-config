@@ -357,7 +357,7 @@ class CodeQualityValidator(BaseValidator):
         try:
             # Use JSON output format for accurate error counting
             result = subprocess.run(
-                ["ruff", "check", ".", "--output-format=json"],
+                ["ruff", "check", ".", "--no-cache", "--output-format=json"],
                 capture_output=True,
                 text=True,
                 timeout=60,
@@ -565,9 +565,7 @@ class CoverageValidator(BaseValidator):
         try:
             import xml.etree.ElementTree as ET
 
-            tree = ET.parse(
-                coverage_file
-            )  # nosec B314 - internal coverage XML, no user input
+            tree = ET.parse(coverage_file)  # nosec B314 - internal coverage XML, no user input
             line_rate = float(tree.getroot().get("line-rate", 0)) * 100
 
             passed = line_rate >= self.min_coverage
@@ -630,12 +628,8 @@ except ImportError:
 
 # ECC Validators (from everything-claude-code integration)
 try:
-    from validators.ecc import (
-        E2EValidator,  # type: ignore[import-not-found]
-        EvalValidator,
-        SecurityEnhancedValidator,
-        TDDValidator,
-    )
+    from validators.ecc import E2EValidator  # type: ignore[import-not-found]
+    from validators.ecc import EvalValidator, SecurityEnhancedValidator, TDDValidator
 
     ECC_VALIDATORS_AVAILABLE = True
 except ImportError:
@@ -1019,7 +1013,7 @@ async def check_complexity_and_simplify(modified_files: list[str]) -> bool:
     return False
 
 
-def spawn_agent(agent_type: str, task_description: str, context: dict) -> bool:
+def spawn_agent(agent_type: str, task_description: str, context: dict, inject_context: bool = True) -> bool:
     """
     Spawn a Claude Code agent to fix validation issues.
 
@@ -1027,6 +1021,7 @@ def spawn_agent(agent_type: str, task_description: str, context: dict) -> bool:
         agent_type: Agent type (e.g., 'code-simplifier', 'security-reviewer')
         task_description: What the agent should do
         context: Additional context (file paths, error details)
+        inject_context: If True, inject CONTEXT.md and REQUIREMENTS.md content
 
     Returns:
         True if spawn successful, False otherwise
@@ -1036,14 +1031,30 @@ def spawn_agent(agent_type: str, task_description: str, context: dict) -> bool:
         return False
 
     try:
-        # Build the claude command for spawning agent
-        # Uses claude code CLI to spawn task
+        # Inject project context files if available
+        context_files = []
+        if inject_context:
+            for ctx_file in [".planning/CONTEXT.md", ".planning/REQUIREMENTS.md"]:
+                ctx_path = Path(ctx_file)
+                if ctx_path.exists():
+                    try:
+                        content = ctx_path.read_text()[:3000]  # Limit to 3KB
+                        context_files.append(f"## {ctx_file}\n{content}")
+                    except Exception:
+                        pass
+
+        # Build enriched prompt with context
         context_str = json.dumps(context)
+        prompt_parts = []
+        if context_files:
+            prompt_parts.append("## Project Context\n" + "\n\n".join(context_files))
+        prompt_parts.append(f"## Task\nSpawn agent '{agent_type}' to: {task_description}. Context: {context_str}")
+        full_prompt = "\n\n".join(prompt_parts)
 
         cmd = [
             "claude",
             "--print",  # Non-interactive mode
-            f"Spawn agent '{agent_type}' to: {task_description}. Context: {context_str}",
+            full_prompt,
         ]
 
         # Fire and forget (non-blocking spawn)

@@ -1,0 +1,96 @@
+# Claude Flow V3 Runtime Configuration
+# Generated: 2026-02-03T14:21:06.890Z
+
+version: "3.0.0"
+
+swarm:
+  topology: hierarchical-mesh
+  maxAgents: 15
+  autoScale: true
+  coordinationStrategy: consensus
+  consensusAlgorithm: raft  # Anti-drift: leader maintains state
+  driftDetection: true
+  healthCheckInterval: 30000
+
+memory:
+  backend: hybrid
+  enableHNSW: true
+  persistPath: .claude-flow/data
+  cacheSize: 200  # Increased for better performance
+  vectorDimensions: 384
+  searchTopK: 10
+
+neural:
+  enabled: true
+  modelPath: .claude-flow/neural
+
+hooks:
+  enabled: true
+  autoExecute: true
+
+mcp:
+  autoStart: false
+  port: 3000
+
+# Multi-Provider Configuration for Confidence Verification
+providers:
+  # Primary: Claude (for main work)
+  anthropic:
+    enabled: true
+    models:
+      - claude-sonnet-4-20250514
+      - claude-3-5-haiku-20241022
+    default: claude-sonnet-4-20250514
+
+  # Secondary: Gemini 3 via OpenRouter (Gemini API key leaked, use OR)
+  google:
+    enabled: true
+    apiKeyEnv: OPENROUTER_API_KEY  # Use OpenRouter for Gemini
+    models:
+      - google/gemini-3-flash-preview  # Latest Gemini 3 Flash
+      - google/gemini-3-pro-preview    # Pro for complex verification
+    default: google/gemini-3-flash-preview
+    baseUrl: https://openrouter.ai/api/v1
+
+  # Tertiary: OpenRouter (fallback with Kimi K2.5)
+  openrouter:
+    enabled: true
+    apiKeyEnv: OPENROUTER_API_KEY
+    models:
+      - moonshotai/kimi-k2.5          # Kimi K2.5
+      - moonshotai/kimi-k2-thinking   # Kimi with reasoning
+    default: moonshotai/kimi-k2.5
+    baseUrl: https://openrouter.ai/api/v1
+
+# Confidence Gate Configuration
+confidenceGate:
+  enabled: true
+  thresholds:
+    autoApprove: 85      # Score >= 85: proceed automatically
+    crossVerify: 60      # Score 60-84: verify with secondary model
+    humanReview: 0       # Score < 60: require human approval
+
+  verificationChain:
+    - provider: google
+      model: google/gemini-3-flash-preview
+      timeout: 30000
+      retries: 2
+    - provider: openrouter
+      model: moonshotai/kimi-k2.5
+      timeout: 45000
+      retries: 1
+
+  # Consensus: require N/M verifiers to agree
+  consensus:
+    required: 1          # At least 1 verifier must approve
+    total: 2             # Out of 2 verifiers
+
+  # Auto-iterate if cross-verify finds issues
+  autoIterate:
+    enabled: true
+    maxIterations: 3
+    feedbackPrompt: |
+      Previous output had these issues:
+      {issues}
+
+      Please address them and regenerate.

@@ -51,10 +51,44 @@ User is the visionary, you are the builder:
 - DON'T interrogate about constraints they didn't mention
 </process>
 
-<success_criteria>
+<round_tracking>
+**After each question round, output a JSON summary:**
 
+```json
+{
+  "round": 1,
+  "questions_asked": 3,
+  "clarifications_received": 2,
+  "confidence_delta": 0.15,
+  "blockers": [],
+  "decision": "continue|proceed_plan|human_review"
+}
+```
+
+**Confidence Gate:**
+- If confidence < 60% after 3 rounds → set decision: "human_review"
+- If confidence >= 80% → set decision: "proceed_plan"
+- Otherwise → continue with more focused questions
+
+**Round Output Format:**
+```
+## Discussion Round {n} Summary
+
+| Metric | Value |
+|--------|-------|
+| Questions Asked | {q_count} |
+| Clarifications Needed | {clarify} |
+| Confidence Delta | {delta:+.0%} |
+| Blockers Found | {blockers} |
+
+**Decision**: {next_action}
+```
+</round_tracking>
+
+<success_criteria>
 - Phase validated against roadmap
 - Vision gathered through collaborative thinking (not interrogation)
 - CONTEXT.md captures: how it works, what's essential
 - User knows next steps (research or plan the phase)
+- Round summaries tracked with confidence scores
 </success_criteria>
