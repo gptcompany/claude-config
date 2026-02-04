@@ -103,6 +103,16 @@
   "hooks": {
     "PreToolUse": [
       {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/suggest-compact.js\"",
+            "timeout": 2
+          }
+        ]
+      },
+      {
         "matcher": "Bash",
         "hooks": [
           {
@@ -144,16 +154,6 @@
             "type": "command",
             "command": "node \"$HOME/.claude/scripts/hooks/quality/plan-validator.js\"",
             "timeout": 3
-          }
-        ]
-      },
-      {
-        "matcher": "Skill",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/metrics/claudeflow-sync.js\"",
-            "timeout": 10
           }
         ]
       }
@@ -266,6 +266,11 @@
       {
         "matcher": "",
         "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/ux/context-warning.js\"",
+            "timeout": 3
+          },
           {
             "type": "command",
             "command": "node \"$HOME/.claude/scripts/hooks/ux/tips-injector.js\"",

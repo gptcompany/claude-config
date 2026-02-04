@@ -25,7 +25,7 @@
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
-const { execSync } = require("child_process");
+const { execSync, spawn } = require("child_process");
 const net = require("net");
 
 const {
@@ -42,6 +42,37 @@ const {
 const STATS_DIR = path.join(os.homedir(), ".claude", "stats");
 const METRICS_FILE = path.join(STATS_DIR, "session_metrics.jsonl");
 const CONTEXT_WINDOW = 200000; // Assume 200k for Claude
+const CONTEXT_WARNING_THRESHOLD = 70; // Warn when context > 70%
+
+// ============= Async MCP Sync (fire-and-forget) =============
+
+function asyncMcpSync(key, value) {
+  try {
+    const valueJson = JSON.stringify(value).replace(/"/g, '\\"');
+    const child = spawn(
+      "npx",
+      [
+        "@claude-flow/cli@latest",
+        "memory",
+        "store",
+        "--key",
+        key,
+        "--value",
+        valueJson,
+        "--namespace",
+        "context-autosave",
+      ],
+      {
+        detached: true,
+        stdio: "ignore",
+        shell: true,
+      },
+    );
+    child.unref();
+  } catch {
+    // Fire-and-forget: ignore errors
+  }
+}
 
 // QuestDB settings
 const QUESTDB_HOST = process.env.QUESTDB_HOST || "localhost";
@@ -390,7 +421,7 @@ function getClaudeFlowStatus() {
 
 // ============= Status Line Display =============
 
-function buildStatusLine(modelName, workspace, contextInfo, costData) {
+function buildStatusLine(modelName, workspace, contextInfo, costData, sessionId) {
   const parts = [];
 
   // Model badge with context-aware color
@@ -410,6 +441,33 @@ function buildStatusLine(modelName, workspace, contextInfo, costData) {
   if (contextInfo) {
     // Note: tokens shown in sessionMetrics, not here (avoid duplicate)
     parts.push(`${ctxLabel}${contextUsage(contextInfo.percent)}`);
+
+    // WARNING: Context high - suggest /context-action skill
+    if (contextInfo.percent > CONTEXT_WARNING_THRESHOLD) {
+      parts.push(`${COLORS.brightYellow}⚠️ /context-action${COLORS.reset}`);
+
+      // Auto-save checkpoint to claude-flow memory (fire-and-forget)
+      asyncMcpSync(`session:${sessionId}:autosave`, {
+        timestamp: new Date().toISOString(),
+        contextPercent: Math.round(contextInfo.percent),
+        tokens: contextInfo.tokens || 0,
+        project: getProjectName(),
+        branch: branch,
+      });
+
+      // Write flag file for UserPromptSubmit hook to trigger AskUserQuestion
+      const flagFile = path.join(STATS_DIR, "context-high-flag.json");
+      fs.writeFileSync(flagFile, JSON.stringify({
+        percent: Math.round(contextInfo.percent),
+        timestamp: new Date().toISOString(),
+      }));
+    } else {
+      // Remove flag if context is OK
+      const flagFile = path.join(STATS_DIR, "context-high-flag.json");
+      if (fs.existsSync(flagFile)) {
+        fs.unlinkSync(flagFile);
+      }
+    }
   } else {
     parts.push(`${ctxLabel}${COLORS.blue}???${COLORS.reset}`);
   }
@@ -462,6 +520,7 @@ async function main() {
       workspace,
       contextInfo,
       costData,
+      sessionId,
     );
 
     // Add reset at the beginning to override Claude Code's dim setting (like ccstatusline)
