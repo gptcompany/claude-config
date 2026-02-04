@@ -42,11 +42,17 @@ AskUserQuestion({
 "Opzioni:\nA) Continua\nB) Valida"
 ```
 
-### 2. CONFIDENCE GATE → CALL /confidence-gate SKILL
-**At steps 4, 7, 10 - MUST invoke the confidence-gate skill:**
-```javascript
-Skill({ skill: "confidence-gate", args: "--step plan --json" })
+### 2. CONFIDENCE GATE → CALL BASH SCRIPT DIRECTLY
+**At steps 4, 7, 10 - MUST call the confidence gate script via Bash:**
+```bash
+# ✅ CORRECT - Calls real script with external verification
+GATE_RESULT=$(echo "$STEP_OUTPUT" | python3 ~/.claude/scripts/confidence_gate.py --step "plan" --json 2>&1)
+echo "$GATE_RESULT"
+
+# ❌ WRONG - Never generate inline Python heredocs for cross-verification
+# cat << 'SCRIPT_EOF' | python3 ...  # This will fail with heredoc errors
 ```
+**NEVER improvise inline Python code for confidence gate. ALWAYS use the script.**
 
 ### 3. PIPELINE FLAG → DISABILITA CONTEXT WARNING
 **All'inizio della pipeline, crea flag per evitare interruzioni:**
@@ -382,11 +388,13 @@ PLAN_OUTPUT=$(/speckit.plan)
 
 ### Step 4: Confidence Gate (Plan)
 
-**🚨 Claude MUST call the confidence-gate skill here:**
+**🚨 Claude MUST call the confidence gate script via Bash:**
 
-```javascript
-// MANDATORY: Call confidence-gate skill
-Skill({ skill: "confidence-gate", args: "--step plan --json" })
+```bash
+# MANDATORY: Call real script (external verification with Gemini/Kimi)
+GATE_RESULT=$(echo "$PLAN_OUTPUT" | python3 ~/.claude/scripts/confidence_gate.py --step "plan" --detect-evolve --json 2>&1)
+echo "$GATE_RESULT"
+EXIT_CODE=$(echo "$GATE_RESULT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(0 if d.get('final_approved') else (1 if d.get('should_iterate') else 2))" 2>/dev/null || echo 3)
 ```
 
 After getting the gate result, use AskUserQuestion if human review needed:
