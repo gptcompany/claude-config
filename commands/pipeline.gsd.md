@@ -49,7 +49,7 @@ AskUserQuestion({
 GATE_RESULT=$(echo "$STEP_OUTPUT" | python3 ~/.claude/scripts/confidence_gate.py --step "plan" --json 2>&1)
 ```
 
-### 3. POST-PHASE → USE AskUserQuestion (NEVER just print ghost text)
+### 3. POST-PHASE → USE AskUserQuestion (NEVER just stop)
 **After completing a phase, Claude MUST call AskUserQuestion to ask what to do next:**
 ```javascript
 // ✅ CORRECT - Interactive menu at end of phase
@@ -66,10 +66,10 @@ AskUserQuestion({
   }]
 })
 
-// ❌ WRONG - Just printing ghost text and stopping
-echo "→ /pipeline:gsd $NEXT_PHASE"
+// ❌ WRONG - Just printing text and stopping
+echo "→ /pipeline:gsd $NEXT_PHASE quando sei pronto..."
 ```
-**Claude MUST NOT stop with ghost text. MUST show interactive menu.**
+**Claude MUST NOT stop and wait. MUST show interactive menu.**
 
 
 ## Usage
@@ -627,7 +627,7 @@ case $EXIT_CODE in
         NEXT_PHASE=$((PHASE + 1))
 
         # >>> MANDATORY: Use AskUserQuestion for next action <<<
-        # Claude MUST call AskUserQuestion here, NOT just print ghost text
+        # Claude MUST call AskUserQuestion here, NOT just stop
         ;;
     1)
         echo "🔄 Implementation needs iteration - see feedback"
@@ -686,14 +686,6 @@ AskUserQuestion({
 - `Fix manuale`: Stop and let user fix
 - `Ignora e continua`: Execute next phase anyway
 ```
-
-## Ghost Text Pattern
-
-Per attivare il suggerimento automatico Tab, ogni step termina con:
-```
-→ /pipeline:gsd {next}
-```
-Claude Code riconosce questo pattern e lo propone come ghost text.
 
 ## Options
 
