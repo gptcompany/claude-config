@@ -364,6 +364,30 @@ function persistMetrics(
   }
 }
 
+// ============= Claude Flow V3 Integration =============
+
+/**
+ * Read pre-generated claude-flow statusline from cache file
+ * Cache is updated by: ~/.claude/scripts/statusline/update-cf-status.sh (runs via cron or daemon)
+ */
+function getClaudeFlowStatus() {
+  const cacheFile = path.join(os.homedir(), '.claude-flow', 'statusline-cache.txt');
+
+  try {
+    if (fs.existsSync(cacheFile)) {
+      // Check if cache is fresh (less than 60 seconds old)
+      const stats = fs.statSync(cacheFile);
+      const ageMs = Date.now() - stats.mtimeMs;
+      if (ageMs < 60000) {
+        return fs.readFileSync(cacheFile, 'utf8').trim();
+      }
+    }
+    return null;
+  } catch (err) {
+    return null;
+  }
+}
+
 // ============= Status Line Display =============
 
 function buildStatusLine(modelName, workspace, contextInfo, costData) {
@@ -442,6 +466,12 @@ async function main() {
 
     // Add reset at the beginning to override Claude Code's dim setting (like ccstatusline)
     console.log("\x1b[0m" + statusLine);
+
+    // Add Claude Flow V3 status (second line)
+    const cfStatus = getClaudeFlowStatus();
+    if (cfStatus) {
+      console.log("\x1b[0m" + cfStatus);
+    }
   } catch (err) {
     // Fallback display on any error
     const cwd = path.basename(process.cwd());

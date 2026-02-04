@@ -146,6 +146,16 @@
             "timeout": 3
           }
         ]
+      },
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/metrics/claudeflow-sync.js\"",
+            "timeout": 10
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -195,6 +205,16 @@
           {
             "type": "command",
             "command": "node \"$HOME/.claude/scripts/hooks/quality/readme-generator.js\"",
+            "timeout": 10
+          }
+        ]
+      },
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/metrics/claudeflow-sync.js\"",
             "timeout": 10
           }
         ]
