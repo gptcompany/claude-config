@@ -273,28 +273,33 @@ def should_gate(step_name: str, output: str, context: dict) -> bool:
 
 ## Claude-Flow Integration (MANDATORY)
 
-**Ogni step DEVE essere wrappato con checkpoint claude-flow.**
+**Claude Code DEVE eseguire checkpoint per ogni step.**
 
-Prima di eseguire QUALSIASI step, Claude Code invoca:
-```
-mcp__claude-flow__session_save sessionId="gsd-{phase}-step{N}-pre"
-mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step{N}" value={"status":"starting","timestamp":"{now}"} namespace="pipeline"
-```
+### Pattern Checkpoint (IMPERATIVE)
 
-Dopo OGNI step completato:
-```
-mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step{N}" value={"status":"done","output":"{summary}","timestamp":"{now}"} namespace="pipeline"
-mcp__claude-flow__session_save sessionId="gsd-{phase}-step{N}-done"
+**PRE-STEP** - Claude Code esegue via Bash:
+```bash
+npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:stepN" --value '{"status":"starting"}' --namespace pipeline
 ```
 
-### Resume Protocol
-
-All'avvio, Claude Code verifica stato precedente:
-```
-mcp__claude-flow__memory_search query="gsd:{project}:{phase}:*" namespace="pipeline"
+**POST-STEP** - Claude Code esegue via Bash:
+```bash
+npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:stepN" --value '{"status":"done"}' --namespace pipeline
 ```
 
-Se trova step incompleto (status != "done"), offre:
+**SESSION SAVE** - Solo in momenti critici (pre-implement, blocchi):
+```bash
+npx @claude-flow/cli@latest session save --name "gsd-PHASE-stepN"
+```
+
+### Resume Protocol (IMPERATIVE)
+
+**ALL'AVVIO** Claude Code DEVE eseguire:
+```bash
+npx @claude-flow/cli@latest memory search --query "gsd:*:PHASE:*" --namespace pipeline
+```
+
+Se trova step incompleto (status != "done"), chiede all'utente:
 - **Resume**: continua da ultimo step completato
 - **Restart**: ricomincia da step 1
 
@@ -304,345 +309,140 @@ When invoked with `/pipeline:gsd {phase}`:
 
 ### Step 0: Initialize & Check Resume
 
-```python
-# Claude Code MCP calls:
-# mcp__claude-flow__memory_search query="gsd:*:{phase}:*" namespace="pipeline"
-
-previous_state = search_memory(f"gsd:*:{PHASE}:*")
-if previous_state and not all_done(previous_state):
-    last_completed = find_last_completed_step(previous_state)
-    print(f"⏸️ Found incomplete run. Last completed: Step {last_completed}")
-    print(f"→ Resume from Step {last_completed + 1}? (or --restart)")
-    # Se resume, salta a step appropriato
+**Claude Code DEVE eseguire:**
+```bash
+npx @claude-flow/cli@latest memory search --query "gsd:*:PHASE:*" --namespace pipeline
 ```
+
+Se trova step incompleto, usa AskUserQuestion per chiedere Resume/Restart.
 
 ### Step 1: Parse and Detect Complexity
 
-```python
-# PRE-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step1" value={"status":"starting"} namespace="pipeline"
+**CHECKPOINT PRE:** `npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:step1" --value '{"status":"starting"}' --namespace pipeline`
 
-PHASE = "$ARGUMENTS"  # e.g., "05"
+Claude Code legge PROJECT.md e ROADMAP.md, estrae la descrizione della fase richiesta, e determina se serve research cercando keywords:
+- 3d, webgl, threejs, shader, glsl
+- ml, machine learning, neural, tensorflow
+- audio, dsp, synthesis, midi
+- blockchain, web3, solidity
+- realtime, websocket, streaming
+- cryptography, distributed, consensus
+- compiler, parser, graphics, ray tracing
 
-# Research keywords for niche domains
-RESEARCH_KEYWORDS = [
-    "3d", "webgl", "threejs", "shader", "glsl",
-    "ml", "machine learning", "neural", "tensorflow",
-    "audio", "dsp", "synthesis", "midi",
-    "blockchain", "web3", "solidity",
-    "realtime", "websocket", "streaming",
-    "cryptography", "distributed", "consensus",
-    "compiler", "parser", "graphics", "ray tracing"
-]
-
-# Read PROJECT.md and ROADMAP.md for context
-project_context = read_file(".planning/PROJECT.md")
-roadmap_context = read_file(".planning/ROADMAP.md")
-phase_description = extract_phase_description(roadmap_context, PHASE)
-
-needs_research = any(kw in phase_description.lower() for kw in RESEARCH_KEYWORDS)
-
-# POST-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step1" value={"status":"done","needs_research":needs_research} namespace="pipeline"
-```
+**CHECKPOINT POST:** `npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:step1" --value '{"status":"done"}' --namespace pipeline`
 
 ### Step 2: Research (if needed)
 
-```bash
-# PRE-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step2" value={"status":"starting"} namespace="pipeline"
+**CHECKPOINT PRE:** `npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:step2" --value '{"status":"starting"}' --namespace pipeline`
 
-if [ "$NEEDS_RESEARCH" = "true" ] && [ "$NO_RESEARCH" != "true" ]; then
-    echo "🔬 Research phase detected - gathering domain knowledge..."
-    /gsd:research-phase $PHASE
-fi
+Se NEEDS_RESEARCH=true e NO_RESEARCH!=true:
+1. `/research "$PHASE_DESCRIPTION"` - CoAT iterativo con triangolazione
+2. Se descrizione contiene keywords accademiche (model, algorithm, formula, paper, study, methodology, heston, volatility, pricing):
+   - `/research-papers "$PHASE_DESCRIPTION"` - Query RAG per papers esistenti
+3. `/gsd:research-phase $PHASE` - Struttura findings in RESEARCH.md
 
-# POST-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step2" value={"status":"done","research_ran":$NEEDS_RESEARCH} namespace="pipeline"
-```
+**CHECKPOINT POST:** `npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:step2" --value '{"status":"done"}' --namespace pipeline`
 
 ### Step 3: Discuss Phase
 
-```bash
-# PRE-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step3" value={"status":"starting"} namespace="pipeline"
+**CHECKPOINT PRE:** `npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:step3" --value '{"status":"starting"}' --namespace pipeline`
 
-if [ "$NO_DISCUSS" != "true" ]; then
-    echo "💬 Gathering phase context..."
-    /gsd:discuss-phase $PHASE
-fi
+Se NO_DISCUSS!=true:
+- `/gsd:discuss-phase $PHASE` - Raccoglie contesto fase → CONTEXT.md
 
-# POST-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step3" value={"status":"done","artifact":"CONTEXT.md"} namespace="pipeline"
-```
+**CHECKPOINT POST:** `npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:step3" --value '{"status":"done"}' --namespace pipeline`
 
 ### Step 3b: Context Confidence Gate (Autonomous)
 
-**Valuta CONTEXT.md con confidence gate - NO interazione utente:**
+**CHECKPOINT PRE:** `npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:step3b" --value '{"status":"starting"}' --namespace pipeline`
 
-```bash
-# PRE-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step3b" value={"status":"starting","type":"confidence_gate"} namespace="pipeline"
+Valuta CONTEXT.md con `/confidence-gate --step "context-PHASE" --input CONTEXT_FILE --json`:
+- Exit 0: ✅ Approved
+- Exit 1: ⚠️ Auto-enrich con Task agent researcher se AUTODISCUSS=true
+- Exit 2: 🛑 Human review - AskUserQuestion
 
-CONTEXT_FILE=$(ls .planning/phases/$PHASE*/*-CONTEXT.md 2>/dev/null | head -1)
-
-if [ -z "$CONTEXT_FILE" ]; then
-    echo "⚠️ No CONTEXT.md found - skipping context validation"
-    # mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step3b" value={"status":"skipped","reason":"no_context"} namespace="pipeline"
-    # Procedi comunque - plan-phase può funzionare senza CONTEXT.md
-else
-    echo "🔒 Evaluating context completeness via confidence gate..."
-
-    CONTEXT_OUTPUT=$(cat "$CONTEXT_FILE")
-
-    # Confidence gate valuta automaticamente:
-    # - Sezioni compilate vs vuote
-    # - Specificity del linguaggio
-    # - Presenza di TBD/TODO/unclear markers
-    GATE_RESULT=$(/confidence-gate --step "context-$PHASE" --input "$CONTEXT_FILE" --json 2>/dev/null)
-    EXIT_CODE=$?
-    CONFIDENCE=$(echo "$GATE_RESULT" | jq -r '.confidence' 2>/dev/null || echo 75)
-
-    echo "📊 Context confidence: $CONFIDENCE%"
-
-    case $EXIT_CODE in
-        0)
-            echo "✅ Context approved (confidence >= $THRESHOLD%)"
-            # mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step3b" value={"status":"done","confidence":$CONFIDENCE,"approved":true} namespace="pipeline"
-            ;;
-        1)
-            echo "⚠️ Context needs enrichment (confidence $CONFIDENCE% < $THRESHOLD%)"
-            echo "   Gaps identified by confidence gate:"
-            echo "$GATE_RESULT" | jq -r '.issues[]' 2>/dev/null | head -5
-
-            # AUTO-ENRICH: Usa Task agent per arricchire context (NO user interaction)
-            if [ "$AUTODISCUSS" = "true" ]; then
-                echo "🤖 Auto-enriching context via Task agent..."
-                # Task({
-                #   subagent_type: "researcher",
-                #   prompt: "Enrich this CONTEXT.md by filling gaps. Issues: $GATE_RESULT. File: $CONTEXT_FILE",
-                #   run_in_background: false
-                # })
-
-                # Re-evaluate dopo enrichment
-                GATE_RESULT=$(/confidence-gate --step "context-$PHASE-v2" --input "$CONTEXT_FILE" --json 2>/dev/null)
-                CONFIDENCE=$(echo "$GATE_RESULT" | jq -r '.confidence' 2>/dev/null || echo 75)
-                echo "📊 Post-enrichment confidence: $CONFIDENCE%"
-            fi
-
-            # mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step3b" value={"status":"done","confidence":$CONFIDENCE,"enriched":true} namespace="pipeline"
-            ;;
-        2)
-            echo "🛑 Context critically incomplete - human review required"
-            echo "$GATE_RESULT" | jq -r '.critical_issues[]' 2>/dev/null
-
-            # UNICA interazione: chiedi se procedere comunque
-            # AskUserQuestion: "Context incompleto. Procedere comunque?" → Sì/No
-            # mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step3b" value={"status":"blocked","reason":"critical_gaps"} namespace="pipeline"
-            ;;
-    esac
-fi
-
-# POST-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step3b" value={"status":"done"} namespace="pipeline"
-```
+**CHECKPOINT POST:** `npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:step3b" --value '{"status":"done"}' --namespace pipeline`
 
 ### Step 4: Plan Phase
 
-```bash
-# PRE-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step4" value={"status":"starting"} namespace="pipeline"
+**CHECKPOINT PRE:** `npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:step4" --value '{"status":"starting"}' --namespace pipeline`
 
-echo "📋 Creating execution plan..."
-PLAN_OUTPUT=$(/gsd:plan-phase $PHASE)
+- `/gsd:plan-phase $PHASE` → PLAN.md
 
-# POST-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step4" value={"status":"done","artifact":"PLAN.md"} namespace="pipeline"
-```
+**CHECKPOINT POST:** `npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:step4" --value '{"status":"done"}' --namespace pipeline`
 
 ### Step 5: Confidence Gate (Plan)
 
-```bash
-# PRE-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step5" value={"status":"starting","type":"gate"} namespace="pipeline"
+**CHECKPOINT PRE:** `npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:step5" --value '{"status":"starting"}' --namespace pipeline`
 
-echo "🔒 Evaluating plan confidence..."
-GATE_RESULT=$(echo "$PLAN_OUTPUT" | /confidence-gate --step "plan-$PHASE" --detect-evolve --json)
-EXIT_CODE=$?
+Valuta PLAN con `/confidence-gate --step "plan-PHASE" --detect-evolve --json`:
+- Exit 0: ✅ Plan approved
+- Exit 1: 🔄 Iterate (max 3x) con re-plan
+- Exit 2: ⏸️ Human review
 
-case $EXIT_CODE in
-    0)
-        echo "✅ Plan approved"
-        # mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step5" value={"status":"done","gate":"approved"} namespace="pipeline"
-        ;;
-    1)
-        echo "🔄 Iterating on plan..."
-        # mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step5" value={"status":"iterating"} namespace="pipeline"
-        for i in 1 2 3; do
-            PLAN_OUTPUT=$(/gsd:plan-phase $PHASE)  # Re-plan with feedback context
-            GATE_RESULT=$(echo "$PLAN_OUTPUT" | /confidence-gate --step "plan-$PHASE-v$i" --json)
-            [ $? -eq 0 ] && break
-        done
-        # mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step5" value={"status":"done","iterations":$i} namespace="pipeline"
-        ;;
-    2)
-        echo "⏸️ Human review required for plan"
-        # mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step5" value={"status":"blocked","reason":"human_review"} namespace="pipeline"
-        # mcp__claude-flow__session_save sessionId="gsd-{phase}-blocked-step5"
-        exit 2
-        ;;
-esac
-```
+**CHECKPOINT POST:** `npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:step5" --value '{"status":"done"}' --namespace pipeline`
 
 ### Step 6: Execute
 
+**CHECKPOINT PRE (CRITICAL):**
 ```bash
-# PRE-STEP CHECKPOINT (CRITICAL - saves full context before execution):
-# mcp__claude-flow__session_save sessionId="gsd-{phase}-pre-execute"
-# mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step6" value={"status":"starting","critical":true} namespace="pipeline"
+npx @claude-flow/cli@latest session save --name "gsd-PHASE-pre-execute"
+npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:step6" --value '{"status":"starting"}' --namespace pipeline
+```
 
-echo "🚀 Executing phase..."
-/gsd:execute-phase-sync $PHASE
+- `/gsd:execute-phase-sync $PHASE`
 
-# POST-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step6" value={"status":"done","executed":true} namespace="pipeline"
-# mcp__claude-flow__session_save sessionId="gsd-{phase}-post-execute"
+**CHECKPOINT POST:**
+```bash
+npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:step6" --value '{"status":"done"}' --namespace pipeline
+npx @claude-flow/cli@latest session save --name "gsd-PHASE-post-execute"
 ```
 
 ### Step 6b: Automated Verification (Pre-UAT)
 
-**Usa il verification-runner di /gsd:verify-work:**
+**CHECKPOINT PRE:** `npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:step6b" --value '{"status":"starting"}' --namespace pipeline`
 
-```bash
-# PRE-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step6b" value={"status":"starting"} namespace="pipeline"
+Esegue verification-runner (Build, Type, Lint, Tests, Security):
+- Tier 1 fail (Build/Type/Tests): blocca
+- Tier 2 warn (Lint/Security): continua con warning
 
-echo "🔬 Running automated verification (6-phase)..."
-
-# Usa lo stesso verification runner di /gsd:verify-work
-VERIFY_OUTPUT=$(node ~/.claude/scripts/hooks/skills/verification/verification-runner.js 2>&1)
-VERIFY_EXIT=$?
-
-echo "$VERIFY_OUTPUT"
-
-# Parse risultati
-BUILD_PASS=$(echo "$VERIFY_OUTPUT" | grep -c "Build.*✓" || echo 0)
-TYPE_PASS=$(echo "$VERIFY_OUTPUT" | grep -c "Type.*✓" || echo 0)
-LINT_PASS=$(echo "$VERIFY_OUTPUT" | grep -c "Lint.*✓" || echo 0)
-TEST_PASS=$(echo "$VERIFY_OUTPUT" | grep -c "Test.*✓" || echo 0)
-SECURITY_PASS=$(echo "$VERIFY_OUTPUT" | grep -c "Security.*✓" || echo 0)
-
-# Tier 1 (fail-fast): Build, Type Check, Tests
-TIER1_FAIL=0
-if [ "$BUILD_PASS" -eq 0 ] || [ "$TYPE_PASS" -eq 0 ] || [ "$TEST_PASS" -eq 0 ]; then
-    TIER1_FAIL=1
-    echo "❌ Tier 1 verification failed (build/type/tests)"
-fi
-
-# Tier 2 (warnings): Lint, Security
-TIER2_WARN=0
-if [ "$LINT_PASS" -eq 0 ] || [ "$SECURITY_PASS" -eq 0 ]; then
-    TIER2_WARN=1
-    echo "⚠️ Tier 2 warnings (lint/security)"
-fi
-
-# POST-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step6b" value={"status":"done","tier1_fail":$TIER1_FAIL,"tier2_warn":$TIER2_WARN} namespace="pipeline"
-```
+**CHECKPOINT POST:** `npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:step6b" --value '{"status":"done"}' --namespace pipeline`
 
 ### Step 6c: Plan Fix (if verification failed)
 
-**Usa /gsd:plan-fix per issues strutturati (non sed inline):**
+**CHECKPOINT PRE:** `npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:step6c" --value '{"status":"starting"}' --namespace pipeline`
 
-```bash
-# PRE-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step6c" value={"status":"starting"} namespace="pipeline"
+Se TIER1_FAIL:
+- Se UAT.md esiste: `/gsd:plan-fix $PHASE`
+- Altrimenti: Task agent coder per fix immediato
 
-if [ "$TIER1_FAIL" -eq 1 ]; then
-    echo "🔧 Verification failed - creating fix plan..."
+Se TIER2_WARN e AUTOFIX=true: auto-fix lint
 
-    # Opzione 1: Se UAT.md esiste (post verify-work), usa plan-fix
-    UAT_FILE=".planning/phases/$PHASE*/*-UAT.md"
-    if ls $UAT_FILE 1>/dev/null 2>&1; then
-        echo "  → Using /gsd:plan-fix for structured fix"
-        /gsd:plan-fix $PHASE
-    else
-        # Opzione 2: Se no UAT, delega a coder agent per fix immediato
-        echo "  → Delegating to coder agent for immediate fix"
-        # Task({ subagent_type: "coder", prompt: "Fix verification failures in phase $PHASE. Errors: $VERIFY_OUTPUT" })
-
-        # Re-run verification
-        VERIFY_OUTPUT=$(node ~/.claude/scripts/hooks/skills/verification/verification-runner.js 2>&1)
-        VERIFY_EXIT=$?
-    fi
-
-    # mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step6c" value={"status":"done","fix_ran":true} namespace="pipeline"
-elif [ "$TIER2_WARN" -eq 1 ] && [ "$AUTOFIX" = "true" ]; then
-    echo "🔧 Tier 2 warnings detected - auto-fixing lint/security..."
-
-    # Quick lint fix (se disponibile)
-    if [ -f "package.json" ]; then
-        npm run lint:fix 2>/dev/null || npx eslint --fix . 2>/dev/null || true
-    elif [ -f "pyproject.toml" ] || [ -f "setup.py" ]; then
-        ruff check --fix . 2>/dev/null || black . 2>/dev/null || true
-    fi
-
-    # mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step6c" value={"status":"done","lint_fixed":true} namespace="pipeline"
-else
-    echo "✅ Verification passed - no fix needed"
-    # mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step6c" value={"status":"done","fix_needed":false} namespace="pipeline"
-fi
-```
+**CHECKPOINT POST:** `npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:step6c" --value '{"status":"done"}' --namespace pipeline`
 
 ### Step 7: Validate
 
-```bash
-# PRE-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step7" value={"status":"starting"} namespace="pipeline"
+**CHECKPOINT PRE:** `npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:step7" --value '{"status":"starting"}' --namespace pipeline`
 
-echo "✔️ Running validation..."
-VALIDATE_OUTPUT=$(/validate)
+- `/validate` → 14-dimension ValidationOrchestrator
 
-# POST-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step7" value={"status":"done","validation_ran":true} namespace="pipeline"
-```
+**CHECKPOINT POST:** `npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:step7" --value '{"status":"done"}' --namespace pipeline`
 
 ### Step 8: Confidence Gate (Implementation)
 
-```bash
-# PRE-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step8" value={"status":"starting","type":"gate"} namespace="pipeline"
+**CHECKPOINT PRE:** `npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:step8" --value '{"status":"starting"}' --namespace pipeline`
 
-echo "🔒 Evaluating implementation confidence..."
-GATE_RESULT=$(echo "$VALIDATE_OUTPUT" | /confidence-gate --step "impl-$PHASE" --detect-evolve --json)
-EXIT_CODE=$?
+Valuta VALIDATE_OUTPUT con `/confidence-gate --step "impl-PHASE" --detect-evolve --json`:
+- Exit 0: ✅ Phase complete
+  ```bash
+  npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:complete" --value '{"status":"success"}' --namespace pipeline
+  npx @claude-flow/cli@latest session save --name "gsd-PHASE-complete"
+  ```
+- Exit 1: 🔄 Iterate
+- Exit 2: ⏸️ Human review
 
-case $EXIT_CODE in
-    0)
-        echo "✅ Phase $PHASE completed successfully"
-        # FINAL CHECKPOINT - mark phase complete:
-        # mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step8" value={"status":"done","pipeline":"complete"} namespace="pipeline"
-        # mcp__claude-flow__memory_store key="gsd:{project}:{phase}:complete" value={"timestamp":"{now}","success":true} namespace="pipeline"
-        # mcp__claude-flow__session_save sessionId="gsd-{phase}-complete"
-        NEXT_PHASE=$((PHASE + 1))
+**CHECKPOINT POST:** `npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:step8" --value '{"status":"done"}' --namespace pipeline`
 
-        # >>> MANDATORY: Use AskUserQuestion for next action <<<
-        # Claude MUST call AskUserQuestion here, NOT just stop
-        ;;
-    1)
-        echo "🔄 Implementation needs iteration - see feedback"
-        # mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step8" value={"status":"iterate","feedback":"see_gate_result"} namespace="pipeline"
-
-        # >>> MANDATORY: Use AskUserQuestion for iteration choice <<<
-        ;;
-    2)
-        echo "⏸️ Human review required"
-        # mcp__claude-flow__memory_store key="gsd:{project}:{phase}:step8" value={"status":"blocked","reason":"human_review"} namespace="pipeline"
-        ;;
-esac
-
-# >>> POST-PHASE: Claude MUST use AskUserQuestion <<<
-```
 
 **🚨 MANDATORY: After phase completion, Claude MUST call AskUserQuestion:**
 

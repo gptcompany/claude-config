@@ -220,20 +220,27 @@ def calculate_complexity(output: str) -> float:
 └─────────────────┬───────────────────────────┘
                   ↓
 ┌─────────────────────────────────────────────┐
-│ 2. CLARIFY                                  │
+│ 2. RESEARCH (if complex domain)             │
+│    /research "{spec_description}"           │
+│    /research-papers "{spec_description}"    │
+│    Gathers domain knowledge before plan     │
+└─────────────────┬───────────────────────────┘
+                  ↓
+┌─────────────────────────────────────────────┐
+│ 3. CLARIFY                                  │
 │    /speckit.clarify                         │
 │    Identifies underspecified areas          │
 │    Resolves [NEEDS CLARIFICATION] markers   │
 └─────────────────┬───────────────────────────┘
                   ↓
 ┌─────────────────────────────────────────────┐
-│ 3. PLAN                                     │
+│ 4. PLAN                                     │
 │    /speckit.plan                            │
 │    Creates plan.md with [P]/[E] markers     │
 └─────────────────┬───────────────────────────┘
                   ↓
 ┌─────────────────────────────────────────────┐
-│ 4. CONFIDENCE GATE (Plan)                   │
+│ 5. CONFIDENCE GATE (Plan)                   │
 │    /confidence-gate --step plan             │
 │    exit 0 → continue                        │
 │    exit 1 → iterate (max 3x)                │
@@ -241,13 +248,13 @@ def calculate_complexity(output: str) -> float:
 └─────────────────┬───────────────────────────┘
                   ↓
 ┌─────────────────────────────────────────────┐
-│ 5. TASKS                                    │
+│ 6. TASKS                                    │
 │    /speckit.tasks                           │
 │    Generates tasks.md from plan             │
 └─────────────────┬───────────────────────────┘
                   ↓
 ┌─────────────────────────────────────────────┐
-│ 6. ANALYZE (pre-implement)                  │
+│ 7. ANALYZE (pre-implement)                  │
 │    /speckit.analyze                         │
 │    Cross-artifact consistency check         │
 │    Coverage gaps, constitution alignment    │
@@ -255,26 +262,26 @@ def calculate_complexity(output: str) -> float:
 └─────────────────┬───────────────────────────┘
                   ↓
 ┌─────────────────────────────────────────────┐
-│ 7. CONFIDENCE GATE (Pre-Implement)          │
+│ 8. CONFIDENCE GATE (Pre-Implement)          │
 │    /confidence-gate --step analyze          │
 │    Verify artifacts ready for implement     │
 └─────────────────┬───────────────────────────┘
                   ↓
 ┌─────────────────────────────────────────────┐
-│ 8. IMPLEMENT                                │
+│ 9. IMPLEMENT                                │
 │    /speckit.implement-sync                  │
 │    With Ralph debug loop for errors         │
 │    Respects [P] parallel, [E] evolve        │
 └─────────────────┬───────────────────────────┘
                   ↓
 ┌─────────────────────────────────────────────┐
-│ 9. VALIDATE                                 │
-│    /validate                                │
-│    14-dimension ValidationOrchestrator      │
+│ 10. VALIDATE                                │
+│     /validate                               │
+│     14-dimension ValidationOrchestrator     │
 └─────────────────┬───────────────────────────┘
                   ↓
 ┌─────────────────────────────────────────────┐
-│ 10. CONFIDENCE GATE (Post-Implement)        │
+│ 11. CONFIDENCE GATE (Post-Implement)        │
 │     /confidence-gate --step implement       │
 │     Detect [E] markers for evolution loop   │
 └─────────────────┬───────────────────────────┘
@@ -284,28 +291,33 @@ def calculate_complexity(output: str) -> float:
 
 ## Claude-Flow Integration (MANDATORY)
 
-**Ogni step DEVE essere wrappato con checkpoint claude-flow.**
+**Claude Code DEVE eseguire checkpoint per ogni step.**
 
-Prima di eseguire QUALSIASI step, Claude Code invoca:
-```
-mcp__claude-flow__session_save sessionId="speckit-{spec}-step{N}-pre"
-mcp__claude-flow__memory_store key="speckit:{spec}:step{N}" value={"status":"starting","timestamp":"{now}"} namespace="pipeline"
-```
+### Pattern Checkpoint (IMPERATIVE)
 
-Dopo OGNI step completato:
-```
-mcp__claude-flow__memory_store key="speckit:{spec}:step{N}" value={"status":"done","output":"{summary}","timestamp":"{now}"} namespace="pipeline"
-mcp__claude-flow__session_save sessionId="speckit-{spec}-step{N}-done"
+**PRE-STEP** - Claude Code esegue via Bash:
+```bash
+npx @claude-flow/cli@latest memory store --key "speckit:SPEC:stepN" --value '{"status":"starting"}' --namespace pipeline
 ```
 
-### Resume Protocol
-
-All'avvio, Claude Code verifica stato precedente:
-```
-mcp__claude-flow__memory_search query="speckit:{spec}:*" namespace="pipeline"
+**POST-STEP** - Claude Code esegue via Bash:
+```bash
+npx @claude-flow/cli@latest memory store --key "speckit:SPEC:stepN" --value '{"status":"done"}' --namespace pipeline
 ```
 
-Se trova step incompleto (status != "done"), offre:
+**SESSION SAVE** - Solo in momenti critici (pre-implement, blocchi):
+```bash
+npx @claude-flow/cli@latest session save --name "speckit-SPEC-stepN"
+```
+
+### Resume Protocol (IMPERATIVE)
+
+**ALL'AVVIO** Claude Code DEVE eseguire:
+```bash
+npx @claude-flow/cli@latest memory search --query "speckit:*:*" --namespace pipeline
+```
+
+Se trova step incompleto (status != "done"), chiede all'utente:
 - **Resume**: continua da ultimo step completato
 - **Restart**: ricomincia da step 1
 
@@ -335,262 +347,119 @@ AskUserQuestion({
 
 ### Step 1: Specify (if new feature)
 
-```bash
-# PRE-STEP CHECKPOINT (Claude Code invoca):
-# mcp__claude-flow__session_save sessionId="speckit-{spec}-step1-pre"
-# mcp__claude-flow__memory_store key="speckit:{spec}:step1" value={"status":"starting"} namespace="pipeline"
+**CHECKPOINT PRE:** `npx @claude-flow/cli@latest memory store --key "speckit:SPEC:step1" --value '{"status":"starting"}' --namespace pipeline`
 
-FEATURE="$ARGUMENTS"
+Se FEATURE non vuota:
+- `/speckit.specify "$FEATURE"` → spec.md
 
-if [ -n "$FEATURE" ]; then
-    echo "📝 Creating specification..."
-    /speckit.specify "$FEATURE"
-fi
+**CHECKPOINT POST:** `npx @claude-flow/cli@latest memory store --key "speckit:SPEC:step1" --value '{"status":"done"}' --namespace pipeline`
 
-# POST-STEP CHECKPOINT (Claude Code invoca):
-# mcp__claude-flow__memory_store key="speckit:{spec}:step1" value={"status":"done","artifact":"spec.md"} namespace="pipeline"
-# mcp__claude-flow__session_save sessionId="speckit-{spec}-step1-done"
-```
+### Step 1b: Research (if complex domain)
+
+**CHECKPOINT PRE:** `npx @claude-flow/cli@latest memory store --key "speckit:SPEC:step1b" --value '{"status":"starting"}' --namespace pipeline`
+
+Se spec contiene keywords (model, algorithm, ml, neural, 3d, audio, blockchain, realtime, cryptography):
+1. `/research "$FEATURE"` - CoAT con triangolazione
+2. `/research-papers "$FEATURE"` - Query RAG papers esistenti
+
+**CHECKPOINT POST:** `npx @claude-flow/cli@latest memory store --key "speckit:SPEC:step1b" --value '{"status":"done"}' --namespace pipeline`
 
 ### Step 2: Clarify
 
-```bash
-# PRE-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="speckit:{spec}:step2" value={"status":"starting"} namespace="pipeline"
+**CHECKPOINT PRE:** `npx @claude-flow/cli@latest memory store --key "speckit:SPEC:step2" --value '{"status":"starting"}' --namespace pipeline`
 
-if [ "$NO_CLARIFY" != "true" ]; then
-    echo "🔍 Identifying underspecified areas..."
-    /speckit.clarify
+Se NO_CLARIFY!=true:
+- `/speckit.clarify` - Risolve [NEEDS CLARIFICATION] markers
 
-    # Check for remaining [NEEDS CLARIFICATION] markers
-    if grep -q "\[NEEDS CLARIFICATION\]" specs/*/spec.md 2>/dev/null; then
-        echo "⚠️ Unresolved clarifications found - resolving..."
-        # Auto-resolve with reasonable defaults or pause for human input
-    fi
-fi
-
-# POST-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="speckit:{spec}:step2" value={"status":"done","clarifications_resolved":true} namespace="pipeline"
-```
+**CHECKPOINT POST:** `npx @claude-flow/cli@latest memory store --key "speckit:SPEC:step2" --value '{"status":"done"}' --namespace pipeline`
 
 ### Step 3: Plan
 
-```bash
-# PRE-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="speckit:{spec}:step3" value={"status":"starting"} namespace="pipeline"
+**CHECKPOINT PRE:** `npx @claude-flow/cli@latest memory store --key "speckit:SPEC:step3" --value '{"status":"starting"}' --namespace pipeline`
 
-echo "📋 Creating technical plan..."
-PLAN_OUTPUT=$(/speckit.plan)
+- `/speckit.plan` → plan.md
 
-# POST-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="speckit:{spec}:step3" value={"status":"done","artifact":"plan.md"} namespace="pipeline"
-```
+**CHECKPOINT POST:** `npx @claude-flow/cli@latest memory store --key "speckit:SPEC:step3" --value '{"status":"done"}' --namespace pipeline`
 
 ### Step 4: Confidence Gate (Plan)
 
-**🚨 Claude MUST call the confidence gate script via Bash:**
+**CHECKPOINT PRE:** `npx @claude-flow/cli@latest memory store --key "speckit:SPEC:step4" --value '{"status":"starting"}' --namespace pipeline`
 
-```bash
-# MANDATORY: Call real script (external verification with Gemini/Kimi)
-GATE_RESULT=$(echo "$PLAN_OUTPUT" | python3 ~/.claude/scripts/confidence_gate.py --step "plan" --detect-evolve --json 2>&1)
-echo "$GATE_RESULT"
-EXIT_CODE=$(echo "$GATE_RESULT" | python3 -c "import sys,json; d=json.load(sys.stdin); print(0 if d.get('final_approved') else (1 if d.get('should_iterate') else 2))" 2>/dev/null || echo 3)
-```
+Valuta PLAN con `python3 ~/.claude/scripts/confidence_gate.py --step "plan" --detect-evolve --json`:
+- Exit 0: ✅ Plan approved
+- Exit 1: 🔄 Iterate (max 3x) - re-clarify + re-plan
+- Exit 2: ⏸️ Human review
 
-After getting the gate result, use AskUserQuestion if human review needed:
-
-```bash
-# PRE-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="speckit:{spec}:step4" value={"status":"starting","type":"gate"} namespace="pipeline"
-
-echo "🔒 Evaluating plan confidence..."
-GATE_RESULT=$(echo "$PLAN_OUTPUT" | /confidence-gate --step "plan" --detect-evolve --json)
-EXIT_CODE=$?
-
-case $EXIT_CODE in
-    0)
-        echo "✅ Plan approved"
-        # mcp__claude-flow__memory_store key="speckit:{spec}:step4" value={"status":"done","gate":"approved"} namespace="pipeline"
-        ;;
-    1)
-        echo "🔄 Iterating on plan..."
-        # mcp__claude-flow__memory_store key="speckit:{spec}:step4" value={"status":"iterating"} namespace="pipeline"
-        for i in 1 2 3; do
-            /speckit.clarify  # Re-clarify
-            PLAN_OUTPUT=$(/speckit.plan)
-            GATE_RESULT=$(echo "$PLAN_OUTPUT" | /confidence-gate --step "plan-v$i" --json)
-            [ $? -eq 0 ] && break
-        done
-        # mcp__claude-flow__memory_store key="speckit:{spec}:step4" value={"status":"done","iterations":$i} namespace="pipeline"
-        ;;
-    2)
-        echo "⏸️ Human review required for plan"
-        # mcp__claude-flow__memory_store key="speckit:{spec}:step4" value={"status":"blocked","reason":"human_review"} namespace="pipeline"
-        # mcp__claude-flow__session_save sessionId="speckit-{spec}-blocked-step4"
-        exit 2
-        ;;
-esac
-```
+**CHECKPOINT POST:** `npx @claude-flow/cli@latest memory store --key "speckit:SPEC:step4" --value '{"status":"done"}' --namespace pipeline`
 
 ### Step 5: Tasks
 
-```bash
-# PRE-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="speckit:{spec}:step5" value={"status":"starting"} namespace="pipeline"
+**CHECKPOINT PRE:** `npx @claude-flow/cli@latest memory store --key "speckit:SPEC:step5" --value '{"status":"starting"}' --namespace pipeline`
 
-echo "📋 Generating tasks..."
-/speckit.tasks
+- `/speckit.tasks` → tasks.md
 
-# POST-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="speckit:{spec}:step5" value={"status":"done","artifact":"tasks.md"} namespace="pipeline"
-```
+**CHECKPOINT POST:** `npx @claude-flow/cli@latest memory store --key "speckit:SPEC:step5" --value '{"status":"done"}' --namespace pipeline`
 
 ### Step 6: Analyze (Pre-Implement)
 
-```bash
-# PRE-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="speckit:{spec}:step6" value={"status":"starting"} namespace="pipeline"
+**CHECKPOINT PRE:** `npx @claude-flow/cli@latest memory store --key "speckit:SPEC:step6" --value '{"status":"starting"}' --namespace pipeline`
 
-echo "🔬 Analyzing artifacts consistency..."
-ANALYZE_OUTPUT=$(/speckit.analyze)
+- `/speckit.analyze` - Cross-artifact consistency
+- Se CRITICAL: blocca, human review
+- Se HIGH/MEDIUM: `/speckit.autofix`
 
-# Check for CRITICAL issues - block implementation if found
-if echo "$ANALYZE_OUTPUT" | grep -q "CRITICAL"; then
-    echo "🚫 CRITICAL issues found - blocking implementation"
-    echo "$ANALYZE_OUTPUT" | grep -A2 "CRITICAL"
-    # mcp__claude-flow__memory_store key="speckit:{spec}:step6" value={"status":"blocked","reason":"critical_issues"} namespace="pipeline"
-    # mcp__claude-flow__session_save sessionId="speckit-{spec}-blocked-critical"
-    exit 2  # Human review required
-fi
-
-# Auto-fix HIGH/MEDIUM issues if found
-if echo "$ANALYZE_OUTPUT" | grep -qE "HIGH|MEDIUM"; then
-    echo "🔧 Auto-fixing issues..."
-    /speckit.autofix --threshold $THRESHOLD
-fi
-
-# POST-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="speckit:{spec}:step6" value={"status":"done","issues_fixed":true} namespace="pipeline"
-```
+**CHECKPOINT POST:** `npx @claude-flow/cli@latest memory store --key "speckit:SPEC:step6" --value '{"status":"done"}' --namespace pipeline`
 
 ### Step 7: Confidence Gate (Pre-Implement)
 
-**🚨 Claude MUST call the confidence-gate skill here:**
+**CHECKPOINT PRE:** `npx @claude-flow/cli@latest memory store --key "speckit:SPEC:step7" --value '{"status":"starting"}' --namespace pipeline`
 
-```javascript
-// MANDATORY: Call confidence-gate skill for pre-implement validation
-Skill({ skill: "confidence-gate", args: "--step analyze --json" })
-```
+- `/confidence-gate --step "analyze" --json`
+- Exit 0: ✅ Proceed
+- Exit 1: 🔄 Autofix again
+- Exit 2: ⏸️ Human review
 
-```bash
-# PRE-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="speckit:{spec}:step7" value={"status":"starting","type":"gate"} namespace="pipeline"
-
-echo "🔒 Verifying artifacts ready for implementation..."
-ANALYZE_OUTPUT=$(/speckit.analyze)  # Re-analyze after autofix
-GATE_RESULT=$(echo "$ANALYZE_OUTPUT" | /confidence-gate --step "analyze" --json)
-EXIT_CODE=$?
-
-case $EXIT_CODE in
-    0)
-        echo "✅ Artifacts verified - proceeding to implement"
-        # mcp__claude-flow__memory_store key="speckit:{spec}:step7" value={"status":"done","gate":"approved"} namespace="pipeline"
-        ;;
-    1)
-        echo "🔄 Artifacts still need refinement - running autofix again..."
-        /speckit.autofix --threshold $THRESHOLD --max-iterations 2
-        # mcp__claude-flow__memory_store key="speckit:{spec}:step7" value={"status":"done","autofix_ran":true} namespace="pipeline"
-        ;;
-    2)
-        echo "⏸️ Human review required before implementation"
-        # mcp__claude-flow__memory_store key="speckit:{spec}:step7" value={"status":"blocked","reason":"human_review"} namespace="pipeline"
-        exit 2
-        ;;
-esac
-```
+**CHECKPOINT POST:** `npx @claude-flow/cli@latest memory store --key "speckit:SPEC:step7" --value '{"status":"done"}' --namespace pipeline`
 
 ### Step 8: Implement
 
+**CHECKPOINT PRE (CRITICAL):**
 ```bash
-# PRE-STEP CHECKPOINT (CRITICAL - saves full context before implementation):
-# mcp__claude-flow__session_save sessionId="speckit-{spec}-pre-implement"
-# mcp__claude-flow__memory_store key="speckit:{spec}:step8" value={"status":"starting","critical":true} namespace="pipeline"
+npx @claude-flow/cli@latest session save --name "speckit-SPEC-pre-implement"
+npx @claude-flow/cli@latest memory store --key "speckit:SPEC:step8" --value '{"status":"starting"}' --namespace pipeline
+```
 
-echo "🚀 Implementing..."
-/speckit.implement-sync
+- `/speckit.implement-sync` (include Ralph debug loop)
 
-# implement-sync includes Ralph debug loop automatically
-# POST-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="speckit:{spec}:step8" value={"status":"done","implemented":true} namespace="pipeline"
-# mcp__claude-flow__session_save sessionId="speckit-{spec}-post-implement"
+**CHECKPOINT POST:**
+```bash
+npx @claude-flow/cli@latest memory store --key "speckit:SPEC:step8" --value '{"status":"done"}' --namespace pipeline
+npx @claude-flow/cli@latest session save --name "speckit-SPEC-post-implement"
 ```
 
 ### Step 9: Validate
 
-```bash
-# PRE-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="speckit:{spec}:step9" value={"status":"starting"} namespace="pipeline"
+**CHECKPOINT PRE:** `npx @claude-flow/cli@latest memory store --key "speckit:SPEC:step9" --value '{"status":"starting"}' --namespace pipeline`
 
-echo "✔️ Running validation..."
-VALIDATE_OUTPUT=$(/validate)
+- `/validate` → 14-dimension ValidationOrchestrator
 
-# POST-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="speckit:{spec}:step9" value={"status":"done","validation_ran":true} namespace="pipeline"
-```
+**CHECKPOINT POST:** `npx @claude-flow/cli@latest memory store --key "speckit:SPEC:step9" --value '{"status":"done"}' --namespace pipeline`
 
 ### Step 10: Confidence Gate (Post-Implement)
 
-**🚨 Claude MUST call the confidence-gate skill here:**
+**CHECKPOINT PRE:** `npx @claude-flow/cli@latest memory store --key "speckit:SPEC:step10" --value '{"status":"starting"}' --namespace pipeline`
 
-```javascript
-// MANDATORY: Call confidence-gate skill for final validation
-Skill({ skill: "confidence-gate", args: "--step implement --detect-evolve --json" })
-```
+Valuta VALIDATE_OUTPUT con `/confidence-gate --step "impl" --detect-evolve --json`:
+- Exit 0: ✅ Feature complete
+  ```bash
+  npx @claude-flow/cli@latest memory store --key "speckit:SPEC:complete" --value '{"status":"success"}' --namespace pipeline
+  npx @claude-flow/cli@latest session save --name "speckit-SPEC-complete"
+  ```
+  AskUserQuestion per next steps (Continua/Deploy/Review/Done)
+- Exit 1: 🔄 Iterate
+- Exit 2: ⏸️ Human review
 
-**After the gate, use AskUserQuestion for next action:**
-
-```javascript
-// MANDATORY: Show interactive menu for next steps
-AskUserQuestion({
-  questions: [{
-    question: "Pipeline completata. Cosa vuoi fare ora?",
-    header: "Pipeline",
-    options: [
-      {label: "Continua", description: "Procedi con la prossima spec/feature"},
-      {label: "Deploy", description: "Deploy/release della feature"},
-      {label: "Review", description: "Revisione manuale prima di procedere"},
-      {label: "Done", description: "Finito per ora"}
-    ],
-    multiSelect: false
-  }]
-})
-```
-
-```bash
-# PRE-STEP CHECKPOINT:
-# mcp__claude-flow__memory_store key="speckit:{spec}:step10" value={"status":"starting","type":"gate"} namespace="pipeline"
-
-echo "🔒 Evaluating implementation confidence..."
-GATE_RESULT=$(echo "$VALIDATE_OUTPUT" | /confidence-gate --step "impl" --detect-evolve --json)
-EXIT_CODE=$?
-
-case $EXIT_CODE in
-    0)
-        echo "✅ Feature implemented successfully"
-        # FINAL CHECKPOINT - mark pipeline complete:
-        # mcp__claude-flow__memory_store key="speckit:{spec}:step10" value={"status":"done","pipeline":"complete"} namespace="pipeline"
-        # mcp__claude-flow__memory_store key="speckit:{spec}:complete" value={"timestamp":"{now}","success":true} namespace="pipeline"
-        # mcp__claude-flow__session_save sessionId="speckit-{spec}-complete"
-        # >>> USE AskUserQuestion FOR NEXT STEPS <<<
-        ;;
-    1)
-        echo "🔄 Implementation needs iteration - see feedback"
-        # mcp__claude-flow__memory_store key="speckit:{spec}:step10" value={"status":"iterate","feedback":"see_gate_result"} namespace="pipeline"
-        # >>> USE AskUserQuestion TO ASK USER <<<
-        ;;
-    2)
-        echo "⏸️ Human review required"
-        # mcp__claude-flow__memory_store key="speckit:{spec}:step10" value={"status":"blocked","reason":"human_review"} namespace="pipeline"
+**CHECKPOINT POST:** `npx @claude-flow/cli@latest memory store --key "speckit:SPEC:step10" --value '{"status":"done"}' --namespace pipeline`
         ;;
 esac
 ```

@@ -84,11 +84,19 @@ OUTPUT DA VALUTARE:
         providers = {}
 
         # PRIMARY: Gemini diretto (FREE TIER)
+        # Modelli disponibili (priorità: Gemini 3 > 2.5):
+        # - gemini-3-flash-preview (PRIORITARIO - Gemini 3 Flash)
+        # - gemini-3-pro-preview (Gemini 3 Pro)
+        # - gemini-2.5-flash (Gemini 2.5 Flash stabile - FALLBACK)
+        # - gemini-2.5-pro (Gemini 2.5 Pro)
         gemini_key = self._get_env_key("GEMINI_API_KEY")
         if gemini_key:
+            # Default: Gemini 3 Flash (prioritario), con fallback a 2.5-flash
+            default_model = os.environ.get("GEMINI_MODEL", "gemini-3-flash-preview")
             providers["gemini"] = {
                 "api_key": gemini_key,
-                "model": "models/gemini-2.5-flash-lite",  # Lite = quota separata
+                "model": default_model,
+                "fallback_models": ["gemini-2.5-flash", "gemini-2.5-pro"],  # Fallback chain
                 "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
                 "is_direct": True,
             }
@@ -129,68 +137,81 @@ OUTPUT DA VALUTARE:
     def verify_with_gemini(
         self, output: str, timeout: int = 30
     ) -> Optional[VerificationResult]:
-        """Verifica con Gemini diretto (free tier) o via OpenRouter."""
+        """Verifica con Gemini diretto (free tier) con fallback chain."""
         if "gemini" not in self.providers:
             return None
 
         config = self.providers["gemini"]
         prompt = self.VERIFICATION_PROMPT.format(output=output[:8000])
 
-        start_time = time.time()
-        try:
-            import urllib.request
+        # Build models to try: primary + fallbacks
+        models_to_try = [config["model"]]
+        if "fallback_models" in config:
+            models_to_try.extend(config["fallback_models"])
 
-            # Headers diversi per API diretta vs OpenRouter
-            if config.get("is_direct"):
-                headers = {
-                    "Authorization": f"Bearer {config['api_key']}",
-                    "Content-Type": "application/json",
-                }
-            else:
-                headers = {
-                    "Authorization": f"Bearer {config['api_key']}",
-                    "Content-Type": "application/json",
-                    "HTTP-Referer": "https://claude-flow.local",
-                    "X-Title": "Claude Flow Confidence Gate - Gemini",
-                }
+        import urllib.request
+        import urllib.error
 
-            data = json.dumps({
-                "model": config["model"],
-                "messages": [{"role": "user", "content": prompt}],
-                "temperature": 0.1,
-                "max_tokens": 1000,
-            }).encode()
+        for model in models_to_try:
+            start_time = time.time()
+            try:
+                # Headers per API diretta
+                if config.get("is_direct"):
+                    headers = {
+                        "Authorization": f"Bearer {config['api_key']}",
+                        "Content-Type": "application/json",
+                    }
+                else:
+                    headers = {
+                        "Authorization": f"Bearer {config['api_key']}",
+                        "Content-Type": "application/json",
+                        "HTTP-Referer": "https://claude-flow.local",
+                        "X-Title": "Claude Flow Confidence Gate - Gemini",
+                    }
 
-            req = urllib.request.Request(
-                f"{config['base_url']}/chat/completions",
-                data=data,
-                headers=headers,
-                method="POST",
-            )
+                data = json.dumps({
+                    "model": model,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": 0.1,
+                    "max_tokens": 1000,
+                }).encode()
 
-            with urllib.request.urlopen(req, timeout=timeout) as response:
-                result = json.loads(response.read().decode())
-
-            latency = int((time.time() - start_time) * 1000)
-
-            content = result["choices"][0]["message"]["content"]
-            # Estrai JSON dalla risposta
-            json_start = content.find("{")
-            json_end = content.rfind("}") + 1
-            if json_start >= 0 and json_end > json_start:
-                parsed = json.loads(content[json_start:json_end])
-                return VerificationResult(
-                    approved=parsed.get("approved", False),
-                    confidence=parsed.get("confidence", 0),
-                    issues=parsed.get("issues", []),
-                    provider="gemini",
-                    model=config["model"],
-                    latency_ms=latency,
+                req = urllib.request.Request(
+                    f"{config['base_url']}/chat/completions",
+                    data=data,
+                    headers=headers,
+                    method="POST",
                 )
 
-        except Exception as e:
-            print(f"[WARN] Gemini verification failed: {e}", file=sys.stderr)
+                with urllib.request.urlopen(req, timeout=timeout) as response:
+                    result = json.loads(response.read().decode())
 
+                latency = int((time.time() - start_time) * 1000)
+
+                content = result["choices"][0]["message"]["content"]
+                # Estrai JSON dalla risposta
+                json_start = content.find("{")
+                json_end = content.rfind("}") + 1
+                if json_start >= 0 and json_end > json_start:
+                    parsed = json.loads(content[json_start:json_end])
+                    return VerificationResult(
+                        approved=parsed.get("approved", False),
+                        confidence=parsed.get("confidence", 0),
+                        issues=parsed.get("issues", []),
+                        provider="gemini",
+                        model=model,
+                        latency_ms=latency,
+                    )
+
+            except urllib.error.HTTPError as e:
+                # Rate limit (429) o model not found (404) → try fallback
+                print(f"[WARN] Gemini {model} failed: HTTP {e.code} - trying fallback...", file=sys.stderr)
+                continue
+            except Exception as e:
+                print(f"[WARN] Gemini {model} failed: {e} - trying fallback...", file=sys.stderr)
+                continue
+
+        print(f"[WARN] All Gemini models failed", file=sys.stderr)
         return None
 
     def verify_with_openrouter(
@@ -376,13 +397,18 @@ class ConfidenceGate:
                 for v in verifications:
                     all_issues.extend(v.issues)
 
+                # Calculate avg_confidence if not set
+                if verifications:
+                    avg_confidence = sum(v.confidence for v in verifications) / len(verifications)
+                else:
+                    avg_confidence = external_confidence
+
                 if all_issues:
-                    should_iterate = True
                     iteration_feedback = "\n".join(f"- {issue}" for issue in all_issues[:5])
                     print(f"[GATE] {step_name}: ITERATE suggested")
                     return GateResult(
                         decision=GateDecision.CROSS_VERIFY,
-                        confidence_score=int(avg_confidence) if verifications else external_confidence,
+                        confidence_score=int(avg_confidence),
                         verifications=verifications,
                         should_iterate=True,
                         iteration_feedback=iteration_feedback,
@@ -530,7 +556,16 @@ def main():
                         help="Max iterations for evolve loop (default: 3)")
     parser.add_argument("--detect-evolve", action="store_true",
                         help="Auto-detect [E] marker and enable evolve if found")
+    parser.add_argument("--gemini-model", "-g",
+                        choices=["gemini-3-flash-preview", "gemini-3-pro-preview",
+                                 "gemini-2.5-flash", "gemini-2.5-pro"],
+                        default=None,
+                        help="Gemini 3/2.5 model to use (free tier)")
     args = parser.parse_args()
+
+    # Set Gemini model if specified
+    if args.gemini_model:
+        os.environ["GEMINI_MODEL"] = args.gemini_model
 
     # Leggi output
     if args.output:
