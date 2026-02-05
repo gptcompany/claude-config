@@ -113,6 +113,16 @@
         ]
       },
       {
+        "matcher": "Task",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "npx @claude-flow/cli@latest hooks pre-task --coordinate-swarm 2>/dev/null || true",
+            "timeout": 8
+          }
+        ]
+      },
+      {
         "matcher": "Bash",
         "hooks": [
           {
@@ -181,6 +191,11 @@
             "type": "command",
             "command": "node \"$HOME/.claude/scripts/hooks/quality/validation-orchestrator.js\"",
             "timeout": 15
+          },
+          {
+            "type": "command",
+            "command": "npx @claude-flow/cli@latest hooks post-edit --train-neural true 2>/dev/null || true",
+            "timeout": 8
           }
         ]
       },
@@ -231,6 +246,11 @@
             "type": "command",
             "command": "node \"$HOME/.claude/scripts/hooks/metrics/claudeflow-sync.js\"",
             "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "npx @claude-flow/cli@latest hooks post-task --success true --store-results true 2>/dev/null || true",
+            "timeout": 10
           }
         ]
       }
