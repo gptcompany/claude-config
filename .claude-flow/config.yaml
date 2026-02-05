@@ -30,3 +30,26 @@ hooks:
 mcp:
   autoStart: false
   port: 3000
+
+# Enforcement domain (soft mode - warn, don't block)
+enforcement:
+  enabled: true
+  mode: warn  # warn | block | audit
+  gates:
+    destructive: true
+    irreversible: true
+  trustAccumulation: true
+
+# Security domain
+security:
+  enabled: true
+  cveTracking: true
+  promptInjectionDefense: true
+  memoryQuorum: false  # 2/3 consensus, disabilitato per single user
+
+# Intelligence domain
+intelligence:
+  enabled: true
+  autoLearn: true
+  patternPromotion: true
+  abTesting: false  # disabilitato per semplicità

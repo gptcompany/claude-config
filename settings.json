@@ -132,6 +132,11 @@
         "hooks": [
           {
             "type": "command",
+            "command": "npx @claude-flow/cli@latest hooks pre-command --cmd \"$CLAUDE_TOOL_INPUT\" --enforce warn 2>/dev/null || true",
+            "timeout": 5
+          },
+          {
+            "type": "command",
             "command": "node \"$HOME/.claude/scripts/hooks/safety/smart-safety-check.js\"",
             "timeout": 5
           },
@@ -158,6 +163,11 @@
           {
             "type": "command",
             "command": "node \"$HOME/.claude/scripts/hooks/productivity/tdd-guard.js\"",
+            "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "npx @claude-flow/cli@latest hooks pre-edit --file \"$CLAUDE_FILE_PATH\" --enforce warn 2>/dev/null || true",
             "timeout": 5
           }
         ]
@@ -207,6 +217,11 @@
       {
         "matcher": "Bash",
         "hooks": [
+          {
+            "type": "command",
+            "command": "npx @claude-flow/cli@latest hooks post-command --success \"$CLAUDE_EXIT_CODE\" --learn true 2>/dev/null || true",
+            "timeout": 5
+          },
           {
             "type": "command",
             "command": "node \"$HOME/.claude/scripts/hooks/metrics/quality-score.js\"",
