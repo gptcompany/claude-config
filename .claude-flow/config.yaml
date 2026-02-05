@@ -1,0 +1,32 @@
+# Claude Flow V3 Runtime Configuration
+# Generated: 2026-02-05T14:37:35.820Z
+
+version: "3.0.0"
+
+swarm:
+  topology: hierarchical-mesh
+  maxAgents: 15
+  autoScale: true
+  coordinationStrategy: consensus
+  consensusAlgorithm: raft
+  driftDetection: true
+  healthCheckInterval: 30000
+  strategy: specialized
+
+memory:
+  backend: hybrid
+  enableHNSW: true
+  persistPath: .claude-flow/data
+  cacheSize: 100
+
+neural:
+  enabled: true
+  modelPath: .claude-flow/neural
+
+hooks:
+  enabled: true
+  autoExecute: true
+
+mcp:
+  autoStart: false
+  port: 3000

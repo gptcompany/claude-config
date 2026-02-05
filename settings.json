@@ -117,8 +117,13 @@
         "hooks": [
           {
             "type": "command",
-            "command": "npx @claude-flow/cli@latest hooks pre-task --coordinate-swarm 2>/dev/null || true",
+            "command": "npx @claude-flow/cli@latest hooks pre-task --description \"$CLAUDE_TOOL_INPUT\" --coordinate-swarm 2>/dev/null || true",
             "timeout": 8
+          },
+          {
+            "type": "command",
+            "command": "npx @claude-flow/cli@latest hooks route --task \"$CLAUDE_TOOL_INPUT\" 2>/dev/null || true",
+            "timeout": 5
           }
         ]
       },
@@ -261,6 +266,11 @@
         "hooks": [
           {
             "type": "command",
+            "command": "npx @claude-flow/cli@latest hooks session-end --generate-summary true --persist-state true 2>/dev/null || true",
+            "timeout": 10
+          },
+          {
+            "type": "command",
             "command": "node \"$HOME/.claude/scripts/hooks/intelligence/session-analyzer.js\"",
             "timeout": 10
           },
@@ -286,6 +296,11 @@
       {
         "matcher": "",
         "hooks": [
+          {
+            "type": "command",
+            "command": "npx @claude-flow/cli@latest hooks session-start --auto-configure 2>/dev/null || true",
+            "timeout": 5
+          },
           {
             "type": "command",
             "command": "node \"$HOME/.claude/scripts/hooks/ux/context-warning.js\"",
