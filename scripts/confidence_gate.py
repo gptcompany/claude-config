@@ -13,6 +13,8 @@ import json
 import os
 import subprocess
 import sys
+import urllib.error
+import urllib.request
 from dataclasses import dataclass
 from enum import Enum
 from typing import Optional, List, Dict
@@ -475,8 +477,6 @@ OUTPUT TEST:
         if "fallback_models" in config:
             models_to_try.extend(config["fallback_models"])
 
-        import urllib.request
-        import urllib.error
 
         for model in models_to_try:
             start_time = time.time()
@@ -572,8 +572,7 @@ OUTPUT TEST:
 
         start_time = time.time()
         try:
-            import urllib.request
-            import urllib.error
+
 
             headers = {
                 "Authorization": f"Bearer {config['api_key']}",
@@ -649,8 +648,7 @@ OUTPUT TEST:
 
         start_time = time.time()
         try:
-            import urllib.request
-            import urllib.error
+
 
             headers = {
                 "Authorization": f"Bearer {config['api_key']}",
@@ -761,7 +759,6 @@ class ConfidenceGate:
     def _check_openrouter_credits(self) -> Optional[float]:
         """Check remaining OpenRouter credits. Returns remaining $ or None on failure."""
         try:
-            import urllib.request
             key = self.verifier._get_env_key("OPENROUTER_API_KEY2")
             if not key:
                 return None
