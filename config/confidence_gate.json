@@ -1,0 +1,52 @@
+{
+  "max_input_chars": 100000,
+  "gemini_cli_enabled": true,
+  "gemini_cli_preferred": true,
+  "gemini_cli_models": {
+    "primary": "gemini-3-flash-preview",
+    "cross_verify": "gemini-3-pro-preview",
+    "fallback": "gemini-2.5-flash"
+  },
+  "thresholds": {
+    "auto_approve": 85,
+    "cross_verify": 60
+  },
+  "credit_check": {
+    "enabled": true,
+    "warn_below": 0.01
+  },
+  "providers": [
+    {
+      "name": "gemini",
+      "enabled": true,
+      "env_key": "GEMINI_API_KEY",
+      "model": "gemini-3-flash-preview",
+      "fallback_models": ["gemini-2.5-flash"],
+      "base_url": "https://generativelanguage.googleapis.com/v1beta/openai",
+      "is_direct": true,
+      "timeout": 30,
+      "role": "primary"
+    },
+    {
+      "name": "openrouter_deepseek",
+      "enabled": true,
+      "env_key": "OPENROUTER_API_KEY2",
+      "model": "deepseek/deepseek-r1-0528",
+      "base_url": "https://openrouter.ai/api/v1",
+      "is_direct": false,
+      "timeout": 90,
+      "role": "cross_verify",
+      "reasoning_field": "reasoning"
+    },
+    {
+      "name": "openrouter_kimi",
+      "enabled": true,
+      "env_key": "OPENROUTER_API_KEY2",
+      "model": "moonshotai/kimi-k2-thinking",
+      "base_url": "https://openrouter.ai/api/v1",
+      "is_direct": false,
+      "timeout": 30,
+      "role": "last_resort"
+    }
+  ]
+}
