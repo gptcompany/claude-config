@@ -141,6 +141,48 @@ RISULTATI DI VERIFICA:
 ---
 {output}
 ---""",
+        "security-review": """Sei un security auditor. Valuta questo codice/output per vulnerabilità.
+
+Controlla:
+1. Injection: SQL, command, path traversal, XSS
+2. Auth: autenticazione/autorizzazione corretta?
+3. Secrets: credenziali o dati sensibili esposti?
+4. OWASP Top 10: altre vulnerabilità comuni?
+
+Rispondi SOLO con JSON valido (nessun altro testo):
+{{
+  "approved": true/false,
+  "confidence": 0-100,
+  "issues": ["issue1", "issue2"],
+  "strengths": ["strength1"],
+  "recommendation": "proceed/iterate/reject"
+}}
+
+CODICE DA VALUTARE:
+---
+{output}
+---""",
+        "test": """Sei un QA engineer. Valuta questo output di test.
+
+Controlla:
+1. Tutti i test passano? Ci sono fallimenti?
+2. Coverage: i test coprono i casi importanti?
+3. Qualità: i test sono significativi o superficiali?
+4. Edge cases: mancano test per casi limite critici?
+
+Rispondi SOLO con JSON valido (nessun altro testo):
+{{
+  "approved": true/false,
+  "confidence": 0-100,
+  "issues": ["issue1", "issue2"],
+  "strengths": ["strength1"],
+  "recommendation": "proceed/iterate/reject"
+}}
+
+OUTPUT TEST:
+---
+{output}
+---""",
     }
 
     @property
@@ -152,7 +194,7 @@ RISULTATI DI VERIFICA:
 
     # Default max input chars - Gemini Flash supports 1M tokens (~4M chars)
     # 100K chars is a safe default that covers most planning files
-    DEFAULT_MAX_INPUT_CHARS = 100000
+    DEFAULT_MAX_INPUT_CHARS = 500000
 
     def __init__(self):
         self.config = self._load_config()
@@ -321,15 +363,23 @@ RISULTATI DI VERIFICA:
             except Exception:
                 pass
 
+        # For short prompts: -p flag (fast, no stdin needed)
+        # For long prompts: pipe via stdin (Gemini CLI reads from stdin without -p)
+        use_stdin = len(prompt) > 4000
+
         if use_oauth:
-            cmd = [gemini_bin, "-m", model, "-p", prompt]
+            cmd = [gemini_bin, "-m", model]
+            if not use_stdin:
+                cmd.extend(["-p", prompt])
         else:
             dotenvx_bin = shutil.which("dotenvx")
             env_file = "/media/sam/1TB/.env"
             if dotenvx_bin and os.path.exists(env_file):
-                cmd = [dotenvx_bin, "run", "-f", env_file, "--", gemini_bin, "-m", model, "-p", prompt]
+                cmd = [dotenvx_bin, "run", "-f", env_file, "--", gemini_bin, "-m", model]
             else:
-                cmd = [gemini_bin, "-m", model, "-p", prompt]
+                cmd = [gemini_bin, "-m", model]
+            if not use_stdin:
+                cmd.extend(["-p", prompt])
 
         try:
             result = subprocess.run(
@@ -337,6 +387,7 @@ RISULTATI DI VERIFICA:
                 capture_output=True,
                 text=True,
                 timeout=timeout,
+                input=prompt if use_stdin else None,
                 env={**os.environ, "NO_COLOR": "1"},
             )
 
@@ -999,7 +1050,8 @@ def main():
     parser.add_argument(
         "--confidence", "-c", type=int, default=70, help="Internal confidence score"
     )
-    parser.add_argument("--step", "-s", default="test", help="Step name")
+    parser.add_argument("--step", "-s", default="unknown",
+                        help="Step name (plan|implement|verify|test|security-review)")
     parser.add_argument("--json", action="store_true", help="JSON output")
     parser.add_argument("--evolve", "-e", action="store_true",
                         help="Enable evolution loop (auto-iterate until convergence)")

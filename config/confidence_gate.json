@@ -1,5 +1,5 @@
 {
-  "max_input_chars": 100000,
+  "max_input_chars": 500000,
   "gemini_cli_enabled": true,
   "gemini_cli_preferred": true,
   "gemini_cli_models": {
