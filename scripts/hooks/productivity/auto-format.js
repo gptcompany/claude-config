@@ -10,10 +10,9 @@
  * Ported from: /media/sam/1TB/claude-hooks-shared/hooks/productivity/auto-format.py
  */
 
-const { execSync } = require('child_process');
+const { execSync, execFileSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const os = require('os');
 
 // Code file extensions to format
 const CODE_EXTENSIONS = new Set(['.js', '.ts', '.tsx', '.jsx', '.mjs', '.cjs']);
@@ -93,8 +92,10 @@ function formatFile(filePath) {
   let prettierRan = false;
   let eslintRan = false;
 
+  const hasNpx = commandExists('npx');
+
   // Try prettier
-  if (commandExists('npx')) {
+  if (hasNpx) {
     try {
       // Check if prettier is available in project or globally
       const prettierCheck = execSync('npx prettier --version', {
@@ -104,8 +105,8 @@ function formatFile(filePath) {
       });
 
       if (prettierCheck) {
-        // Run prettier
-        execSync(`npx prettier --write "${filePath}"`, {
+        // Run prettier (execFileSync prevents $() subshell injection)
+        execFileSync('npx', ['prettier', '--write', '--', filePath], {
           cwd,
           stdio: 'pipe',
           timeout: 10000,
@@ -118,7 +119,7 @@ function formatFile(filePath) {
   }
 
   // Try eslint --fix
-  if (commandExists('npx')) {
+  if (hasNpx) {
     try {
       // Check if eslint is available
       const eslintCheck = execSync('npx eslint --version', {
@@ -128,8 +129,8 @@ function formatFile(filePath) {
       });
 
       if (eslintCheck) {
-        // Run eslint --fix
-        execSync(`npx eslint --fix "${filePath}"`, {
+        // Run eslint --fix (execFileSync prevents $() subshell injection)
+        execFileSync('npx', ['eslint', '--fix', '--', filePath], {
           cwd,
           stdio: ['pipe', 'pipe', 'pipe'],
           timeout: 10000,

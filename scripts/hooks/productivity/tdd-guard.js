@@ -153,7 +153,7 @@ function findTestFile(filePath) {
   const ext = parsed.ext;
 
   // Determine test file extension based on source extension
-  const testExt = ['.js', '.ts', '.mjs'].includes(ext) ? ext : '.js';
+  const testExt = ext || '.js';
 
   // Common test file patterns
   const testPatterns = [
@@ -323,7 +323,7 @@ async function main() {
 
     const baseName = path.basename(filePath, path.extname(filePath));
     const ext = path.extname(filePath);
-    const testExt = ['.js', '.ts', '.mjs'].includes(ext) ? ext : '.js';
+    const testExt = ext || '.js';
 
     if (config.mode === 'strict') {
       // BLOCK the operation

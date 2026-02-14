@@ -12,7 +12,6 @@
 
 const path = require('path');
 const fs = require('fs');
-const os = require('os');
 const { readStdinJson, output, getHomeDir } = require(path.join(__dirname, '..', '..', 'lib', 'utils.js'));
 
 // Default configuration
@@ -25,7 +24,7 @@ const DEFAULT_CONFIG = {
 };
 
 // History file location
-const PUSH_HISTORY_FILE = path.join(os.tmpdir(), 'claude_push_history.json');
+const PUSH_HISTORY_FILE = path.join(getHomeDir(), '.claude', 'metrics', 'push_history.json');
 
 /**
  * Load configuration from ~/.claude/ci-config.json
@@ -73,6 +72,12 @@ function savePushHistory(history) {
     history.pushes = history.pushes.filter(ts => ts > oneHourAgo);
     history.forcePushes = history.forcePushes.filter(ts => ts > oneHourAgo);
 
+    // Ensure directory exists before writing
+    const dir = path.dirname(PUSH_HISTORY_FILE);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+
     fs.writeFileSync(PUSH_HISTORY_FILE, JSON.stringify(history), 'utf8');
   } catch (err) {
     console.error(`Warning: Could not save push history: ${err.message}`);
@@ -98,7 +103,7 @@ function isGitPush(command) {
  * Check if command is a force push
  */
 function isForcePush(command) {
-  return /git\s+push\s+.*(-f|--force)/.test(command);
+  return /git\s+push\s+.*\s(-f|--force)(\s|$)/.test(command);
 }
 
 /**

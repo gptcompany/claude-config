@@ -446,7 +446,7 @@ function savePipelineCheckpoint(key, value) {
  */
 function asyncMcpSync(key, value) {
   try {
-    const valueJson = JSON.stringify(value).replace(/"/g, '\\"');
+    const valueJson = JSON.stringify(value);
     const child = spawn(
       "npx",
       [
@@ -463,7 +463,7 @@ function asyncMcpSync(key, value) {
       {
         detached: true,
         stdio: "ignore",
-        shell: true,
+        shell: false,
       },
     );
     child.unref(); // Don't wait for process to exit

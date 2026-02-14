@@ -14,7 +14,7 @@
 
 const path = require('path');
 const fs = require('fs');
-const { readStdinJson, output, getHomeDir, runCommand } = require(path.join(__dirname, '..', '..', 'lib', 'utils.js'));
+const { readStdinJson, output, getHomeDir } = require(path.join(__dirname, '..', '..', 'lib', 'utils.js'));
 
 // Risk levels
 const RISK_CRITICAL = 'CRITICAL';
@@ -52,11 +52,11 @@ const CRITICAL_PATTERNS = [
   { pattern: /dd\s+if=\/dev\/(zero|random|urandom)\s+of=\//, reason: 'dd to critical path' },
   { pattern: /mkfs\.\w+\s+\/dev\//, reason: 'Filesystem formatting detected' },
   { pattern: />\s*\/dev\/(sda|nvme|vda)/, reason: 'Writing to disk device' },
-  { pattern: /rm\s+.*-[a-z]*r[a-z]*f[a-z]*\s+\/\s*$/, reason: 'rm -rf / detected' },
-  { pattern: /rm\s+.*-[a-z]*r[a-z]*f[a-z]*\s+\/\*/, reason: 'rm -rf /* detected' },
-  { pattern: /rm\s+.*-[a-z]*r[a-z]*f[a-z]*\s+~\s*$/, reason: 'rm -rf ~ detected' },
-  { pattern: /rm\s+.*-[a-z]*r[a-z]*f[a-z]*\s+\$HOME\s*$/, reason: 'rm -rf $HOME detected' },
-  { pattern: /chmod\s+.*-[a-z]*R[a-z]*\s+777\s+\//, reason: 'chmod -R 777 / detected' }
+  { pattern: /rm\s+.*-[a-z]*r[a-z]*f[a-z]*\s+["']?\/["']?(?:\s|$)/, reason: 'rm -rf / detected' },
+  { pattern: /rm\s+.*-[a-z]*r[a-z]*f[a-z]*\s+["']?\/\*["']?/, reason: 'rm -rf /* detected' },
+  { pattern: /rm\s+.*-[a-z]*r[a-z]*f[a-z]*\s+["']?~["']?(?:\s|$)/, reason: 'rm -rf ~ detected' },
+  { pattern: /rm\s+.*-[a-z]*r[a-z]*f[a-z]*\s+["']?\$HOME["']?(?:\s|$)/, reason: 'rm -rf $HOME detected' },
+  { pattern: /chmod\s+.*-[a-z]*R[a-z]*\s+777\s+["']?\//, reason: 'chmod -R 777 / detected' }
 ];
 
 // High-risk patterns - Warn strongly, suggest checkpoint
@@ -113,36 +113,44 @@ function checkSudoWhitelist(command, config) {
  * Categorize command risk level
  */
 function categorizeRisk(command, config) {
-  // Check critical patterns first
-  for (const { pattern, reason } of CRITICAL_PATTERNS) {
-    if (pattern.test(command)) {
-      return { level: RISK_CRITICAL, reason };
+  // Split chained commands and check each segment independently
+  const segments = command.split(/\s*(?:&&|\|\||;)\s*/);
+
+  for (const segment of segments) {
+    const trimmed = segment.trim();
+    if (!trimmed) continue;
+
+    // Check critical patterns
+    for (const { pattern, reason } of CRITICAL_PATTERNS) {
+      if (pattern.test(trimmed)) {
+        return { level: RISK_CRITICAL, reason };
+      }
     }
-  }
 
-  // Check for secrets in command
-  const secretFound = checkForSecrets(command, config);
-  if (secretFound) {
-    return { level: RISK_HIGH, reason: `Secret detected in command: ${secretFound}` };
-  }
-
-  // Check sudo whitelist
-  const sudoCheck = checkSudoWhitelist(command, config);
-  if (sudoCheck.hasSudo && !sudoCheck.isWhitelisted) {
-    return { level: RISK_HIGH, reason: `sudo with non-whitelisted command: ${sudoCheck.command}` };
-  }
-
-  // Check high-risk patterns
-  for (const { pattern, reason } of HIGH_RISK_PATTERNS) {
-    if (pattern.test(command)) {
-      return { level: RISK_HIGH, reason };
+    // Check for secrets
+    const secretFound = checkForSecrets(trimmed, config);
+    if (secretFound) {
+      return { level: RISK_HIGH, reason: `Secret detected in command: ${secretFound}` };
     }
-  }
 
-  // Check medium-risk patterns
-  for (const { pattern, reason } of MEDIUM_RISK_PATTERNS) {
-    if (pattern.test(command)) {
-      return { level: RISK_MEDIUM, reason };
+    // Check sudo whitelist
+    const sudoCheck = checkSudoWhitelist(trimmed, config);
+    if (sudoCheck.hasSudo && !sudoCheck.isWhitelisted) {
+      return { level: RISK_HIGH, reason: `sudo with non-whitelisted command: ${sudoCheck.command}` };
+    }
+
+    // Check high-risk patterns
+    for (const { pattern, reason } of HIGH_RISK_PATTERNS) {
+      if (pattern.test(trimmed)) {
+        return { level: RISK_HIGH, reason };
+      }
+    }
+
+    // Check medium-risk patterns
+    for (const { pattern, reason } of MEDIUM_RISK_PATTERNS) {
+      if (pattern.test(trimmed)) {
+        return { level: RISK_MEDIUM, reason };
+      }
     }
   }
 
@@ -150,21 +158,20 @@ function categorizeRisk(command, config) {
 }
 
 /**
- * Get current working directory
- */
-function getCwd() {
-  return process.cwd();
-}
-
-/**
  * Check if command operates on critical paths
  */
 function checkCriticalPaths(command, config) {
-  for (const critPath of config.criticalPaths) {
-    // Check if command targets critical path directly
-    const regex = new RegExp(`(rm|mv|cp|chmod|chown)\\s+.*${critPath.replace(/\//g, '\\/')}(?:\\/|\\s|$)`);
-    if (regex.test(command)) {
-      return critPath;
+  // Split chained commands and check each segment
+  const segments = command.split(/\s*(?:&&|\|\||;)\s*/);
+  for (const segment of segments) {
+    const normalized = segment.replace(/["']/g, '');
+    for (const critPath of config.criticalPaths) {
+      // Anchor path to space/start-of-arg to avoid matching sub-paths
+      const escapedPath = critPath.replace(/\//g, '\\/');
+      const regex = new RegExp(`(rm|mv|cp|chmod|chown)\\s+.*(?:\\s|^)${escapedPath}(?:\\/|\\s|[;)|&]|$)`);
+      if (regex.test(normalized)) {
+        return critPath;
+      }
     }
   }
   return null;
@@ -211,7 +218,7 @@ async function main() {
       process.exit(0);
     }
 
-    const cwd = getCwd();
+    const cwd = process.cwd();
 
     // Handle CRITICAL risk - BLOCK entirely
     if (risk.level === RISK_CRITICAL) {

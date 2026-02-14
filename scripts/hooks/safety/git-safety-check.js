@@ -35,30 +35,20 @@ function isProtectedBranch(branch) {
 }
 
 /**
- * Parse git command from bash command string
- */
-function parseGitCommand(command) {
-  // Handle chained commands (&&, ||, ;)
-  const parts = command.split(/&&|\|\||;/).map(p => p.trim());
-  const gitCommands = parts.filter(p => p.startsWith('git ') || p.match(/^\s*git\s/));
-  return gitCommands;
-}
-
-/**
  * Check for force push attempts
  */
 function checkForcePush(command) {
   // Patterns for force push
   const forcePushPatterns = [
     /git\s+push\s+.*--force/,
-    /git\s+push\s+.*-f(?:\s|$)/,
+    /git\s+push\s+.*\s-f(?:\s|$)/,
     /git\s+push\s+--force-with-lease/  // Safer but still risky
   ];
 
   for (const pattern of forcePushPatterns) {
     if (pattern.test(command)) {
       // Check if pushing to main/master specifically
-      if (/\s+(origin\s+)?(main|master)/.test(command)) {
+      if (/\s+(origin\s+)?(main|master)(\s|$)/.test(command)) {
         return { isForce: true, toProtected: true };
       }
       return { isForce: true, toProtected: false };
@@ -78,7 +68,7 @@ function checkHardReset(command) {
  * Check for git clean with force
  */
 function checkGitClean(command) {
-  return /git\s+clean\s+.*-[a-z]*f/.test(command);
+  return /git\s+clean\s+.*(--force|-[a-z]*f)/.test(command);
 }
 
 /**
@@ -92,14 +82,21 @@ function checkCheckoutDiscard(command) {
  * Check for force branch deletion
  */
 function checkBranchForceDelete(command) {
-  const match = command.match(/git\s+branch\s+.*-D\s+(\S+)/);
-  if (match) {
-    const branchName = match[1];
-    return {
-      isForceDelete: true,
-      isProtected: PROTECTED_BRANCHES.includes(branchName),
-      branchName
-    };
+  // Check ALL segments of chained commands
+  const segments = command.split(/\s*(?:&&|\|\||;)\s*/);
+  for (const segment of segments) {
+    const match = segment.trim().match(/git\s+branch\s+.*-D\s+(.+)/);
+    if (match) {
+      const branches = match[1].trim().split(/\s+/)
+        .map(b => b.replace(/["']/g, ''));
+      const protectedFound = branches.filter(b => PROTECTED_BRANCHES.includes(b));
+      return {
+        isForceDelete: true,
+        isProtected: protectedFound.length > 0,
+        branchName: branches.join(', '),
+        protectedBranches: protectedFound
+      };
+    }
   }
   return { isForceDelete: false };
 }
