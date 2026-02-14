@@ -9,6 +9,10 @@ allowed-tools:
   - AskUserQuestion
   - mcp__claude-flow__memory_store
   - mcp__claude-flow__memory_retrieve
+  - mcp__pal__review
+  - mcp__pal__consensus
+  - mcp__pal__clink
+  - mcp__pal__chat
 ---
 
 # /confidence-gate - Autonomous Verification Gate
@@ -19,7 +23,7 @@ Multi-model verification gate that decides whether to proceed automatically, ite
 
 **Eliminates time-wasting questions like "Il piano va bene?"** by:
 1. Calculating internal confidence score
-2. Cross-verifying with external models (Gemini 3, Kimi K2.5)
+2. Cross-verifying with external models (Gemini 3 Flash, Gemini 2.5 Pro)
 3. Auto-approving when confidence is high
 4. Suggesting iterations when issues found
 5. Requesting human review only when necessary
@@ -85,7 +89,7 @@ Tasks marked with `[E]` or `[evolve]` trigger automatic iteration:
 
 ## Decisions (Anti-Bias)
 
-**IMPORTANT: Confidence is calculated by EXTERNAL models (Gemini/Kimi), NOT by Claude.**
+**IMPORTANT: Confidence is calculated by EXTERNAL models (Gemini CLI), NOT by Claude.**
 This prevents Claude from biasing the score to auto-approve.
 
 | Decision | Trigger | Action |
@@ -98,11 +102,12 @@ This prevents Claude from biasing the score to auto-approve.
 ## Verification Chain
 
 ```
-1. Gemini 2.5 Flash Lite (direct API)
-2. Kimi K2.5 via OpenRouter (fallback)
+1. Gemini 3 Flash Preview (primary, via Gemini CLI + OAuth subscription)
+2. Gemini 2.5 Pro (cross-verify)
+3. Gemini 2.5 Flash (fallback)
 ```
 
-Gemini calculates the confidence score. Kimi provides cross-verification if needed.
+All models use Gemini CLI with Google AI Pro subscription (OAuth, no API keys).
 
 ## Output Format
 
@@ -177,40 +182,45 @@ fi
 
 ## Execution
 
-When invoked, execute:
+When invoked, use **PAL MCP** as primary path (via `mcp__pal__review`), with Gemini CLI Python script as fallback.
+
+### Path 1: PAL MCP (preferred, within Claude Code)
+
+Use `mcp__pal__review` for code review verification:
+
+```
+mcp__pal__review(
+  code="<STEP_OUTPUT>",
+  cli_name="gemini",
+  focus="completeness,correctness,security,risks"
+)
+```
+
+Or `mcp__pal__consensus` for multi-model agreement:
+
+```
+mcp__pal__consensus(
+  prompt="Valuta questo output. Rispondi con JSON: {approved, confidence, issues, recommendation}.\n\n<STEP_OUTPUT>",
+  cli_name="gemini"
+)
+```
+
+PAL MCP uses Gemini CLI with OAuth subscription (no API keys needed for `clink`/`review`).
+
+Parse the response and map to gate decisions:
+- confidence >= 85 + approved → `AUTO_APPROVE`
+- confidence 60-84 → `CROSS_VERIFY` (call again with different model)
+- confidence < 60 → `HUMAN_REVIEW`
+
+### Path 2: Python Script (fallback, for CLI/CI usage)
 
 ```bash
-# Get input
-if [ -n "$INPUT" ]; then
-  STEP_OUTPUT="$INPUT"
-else
-  STEP_OUTPUT=$(cat)  # Read from stdin
-fi
-
-# Calculate confidence if not provided
-if [ -z "$CONFIDENCE" ]; then
-  # Use validation framework metrics if available
-  CONFIDENCE=$(python3 -c "
-from pathlib import Path
-import json
-
-# Try to get from recent validation
-val_file = Path('.claude/validation/last-result.json')
-if val_file.exists():
-    data = json.loads(val_file.read_text())
-    score = data.get('overall_score', 70)
-    print(int(score))
-else:
-    print(70)  # Default
-" 2>/dev/null || echo 70)
-fi
-
-# Run confidence gate
 echo "$STEP_OUTPUT" | python3 ~/.claude/scripts/confidence_gate.py \
-  --confidence "$CONFIDENCE" \
   --step "$STEP_NAME" \
-  ${JSON_FLAG:+--json}
+  --json
 ```
+
+This runs Gemini CLI directly (subprocess), useful for standalone/hook/CI usage.
 
 ## Memory Persistence
 
@@ -236,18 +246,19 @@ This enables:
 
 ## Configuration
 
-Providers can be configured in `.claude-flow/config.yaml`:
+Models configured in `~/.claude/config/confidence_gate.json`:
 
-```yaml
-confidenceGate:
-  enabled: true
-  # Thresholds are internal to the script (anti-bias: Claude cannot see them)
-  verificationChain:
-    - provider: google
-      model: gemini-2.5-flash-lite
-    - provider: openrouter
-      model: moonshotai/kimi-k2.5
+```json
+{
+  "gemini_cli_models": {
+    "primary": "gemini-3-flash-preview",
+    "cross_verify": "gemini-2.5-pro",
+    "fallback": "gemini-2.5-flash"
+  }
+}
 ```
+
+Requires: Gemini CLI (`npm i -g @google/gemini-cli`) + Google AI Pro subscription (OAuth).
 
 **Note:** Thresholds are hardcoded in the script and NOT exposed to Claude to prevent gaming.
 
