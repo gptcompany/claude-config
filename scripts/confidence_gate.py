@@ -247,7 +247,7 @@ OUTPUT TEST:
 
     def verify_with_gemini_cli(
         self, output: str, timeout: int = 0, step_name: str = "unknown",
-        model: str = ""
+        model: str = "", include_dirs: Optional[List[str]] = None
     ) -> Optional[VerificationResult]:
         """Verifica usando Gemini CLI con OAuth subscription.
 
@@ -261,8 +261,10 @@ OUTPUT TEST:
         import shutil
 
         if not timeout:
-            # Gemini 3 preview models need 60-90s for thinking mode
-            timeout = min(300, 120 + len(output) // 1000)
+            # Gemini 3 preview models need 60-90s for thinking mode.
+            # --include-directories adds ~60s for directory scanning.
+            base = 180 if include_dirs else 120
+            timeout = min(300, base + len(output) // 1000)
 
         gemini_bin = shutil.which("gemini")
         if not gemini_bin:
@@ -273,19 +275,42 @@ OUTPUT TEST:
             cli_models = self.config.get("gemini_cli_models", {})
             model = cli_models.get("primary", "gemini-3-flash-preview")
 
-        prompt = self._get_prompt(output, step_name)
         start_time = time.time()
 
-        # -p triggers headless mode (avoids interactive directory scanning).
-        # For prompts < 1MB, pass everything via -p (most reliable).
-        # For very large prompts, split: stdin=content, -p=instruction.
-        if len(prompt) < 1_000_000:
-            cmd = [gemini_bin, "-m", model, "-p", prompt]
+        # When include_dirs is set, Gemini browses files natively via
+        # --include-directories.  The -p prompt carries only the review
+        # instruction (+ any extra textual context the caller provided).
+        if include_dirs:
+            template = self.get_prompt_for_step(step_name)
+            if output.strip():
+                instruction = template.replace(
+                    "{output}",
+                    "<<Esamina i file nelle directory incluse nel workspace. "
+                    "Contesto aggiuntivo:>>\n" + output[:self.max_input_chars],
+                )
+            else:
+                instruction = template.replace(
+                    "{output}",
+                    "<<Esamina i file nelle directory incluse nel workspace.>>",
+                )
+            instruction = instruction.replace("{{", "{").replace("}}", "}")
+            cmd = [gemini_bin, "-m", model, "-p", instruction]
+            for d in include_dirs:
+                cmd.extend(["--include-directories", d])
             stdin_data = None
         else:
-            content, instruction = self._get_prompt_parts(output, step_name)
-            cmd = [gemini_bin, "-m", model, "-p", instruction]
-            stdin_data = content
+            prompt = self._get_prompt(output, step_name)
+
+            # -p triggers headless mode (avoids interactive directory scanning).
+            # For prompts < 1MB, pass everything via -p (most reliable).
+            # For very large prompts, split: stdin=content, -p=instruction.
+            if len(prompt) < 1_000_000:
+                cmd = [gemini_bin, "-m", model, "-p", prompt]
+                stdin_data = None
+            else:
+                content, instruction = self._get_prompt_parts(output, step_name)
+                cmd = [gemini_bin, "-m", model, "-p", instruction]
+                stdin_data = content
 
         try:
             result = subprocess.run(
@@ -299,17 +324,17 @@ OUTPUT TEST:
 
             if result.returncode != 0:
                 stderr = result.stderr.strip()
-                stderr_lines = [l for l in stderr.split("\n")
-                                if not l.startswith("[dotenvx") and not l.startswith("Hook registry")]
+                stderr_lines = [line for line in stderr.split("\n")
+                                if not line.startswith("[dotenvx") and not line.startswith("Hook registry")]
                 stderr_clean = "\n".join(stderr_lines).strip()
                 if stderr_clean:
                     print(f"[WARN] Gemini CLI {model} failed (exit {result.returncode}): {stderr_clean[:200]}", file=sys.stderr)
                 return None
 
             latency = int((time.time() - start_time) * 1000)
-            content_lines = [l for l in result.stdout.split("\n")
-                             if not l.startswith("[dotenvx") and not l.startswith("Hook registry")
-                             and not l.startswith("Loaded cached")]
+            content_lines = [line for line in result.stdout.split("\n")
+                             if not line.startswith("[dotenvx") and not line.startswith("Hook registry")
+                             and not line.startswith("Loaded cached")]
             content = "\n".join(content_lines).strip()
 
             # Extract JSON - try last complete JSON object first
@@ -364,7 +389,10 @@ OUTPUT TEST:
 
         return None
 
-    def verify_chain(self, output: str, step_name: str = "unknown") -> List[VerificationResult]:
+    def verify_chain(
+        self, output: str, step_name: str = "unknown",
+        include_dirs: Optional[List[str]] = None,
+    ) -> List[VerificationResult]:
         """
         Catena di verifica via Gemini CLI (subscription OAuth):
         1. Flash (primario, veloce)
@@ -379,21 +407,24 @@ OUTPUT TEST:
         results = []
 
         # 1. Primary: Flash
-        flash_result = self.verify_with_gemini_cli(output, step_name=step_name, model=primary)
+        flash_result = self.verify_with_gemini_cli(
+            output, step_name=step_name, model=primary, include_dirs=include_dirs)
         if flash_result:
             results.append(flash_result)
             if flash_result.approved and flash_result.confidence >= 80:
                 return results
 
         # 2. Cross-verify: Pro
-        pro_result = self.verify_with_gemini_cli(output, step_name=step_name, model=cross)
+        pro_result = self.verify_with_gemini_cli(
+            output, step_name=step_name, model=cross, include_dirs=include_dirs)
         if pro_result:
             results.append(pro_result)
             return results
 
         # 3. Fallback: 2.5 Flash
         if not results:
-            fb_result = self.verify_with_gemini_cli(output, step_name=step_name, model=fallback)
+            fb_result = self.verify_with_gemini_cli(
+                output, step_name=step_name, model=fallback, include_dirs=include_dirs)
             if fb_result:
                 results.append(fb_result)
 
@@ -429,6 +460,7 @@ class ConfidenceGate:
         step_output: str,
         internal_confidence: int = 0,
         step_name: str = "unknown",
+        include_dirs: Optional[List[str]] = None,
     ) -> GateResult:
         """
         Valuta output usando Gemini CLI (anti-bias, subscription OAuth).
@@ -437,8 +469,12 @@ class ConfidenceGate:
             step_output: Output dello step da valutare
             internal_confidence: IGNORATO - confidence calcolata da Gemini
             step_name: Nome dello step per logging
+            include_dirs: Directory da includere nel workspace Gemini
         """
-        print(f"[GATE] {step_name}: Calculating confidence via Gemini CLI (anti-bias)...")
+        if include_dirs:
+            print(f"[GATE] {step_name}: Calculating confidence via Gemini CLI (anti-bias, dirs: {len(include_dirs)})...")
+        else:
+            print(f"[GATE] {step_name}: Calculating confidence via Gemini CLI (anti-bias)...")
 
         cli_models = self.verifier.config.get("gemini_cli_models", {})
         primary = cli_models.get("primary", "gemini-3-flash-preview")
@@ -446,7 +482,7 @@ class ConfidenceGate:
 
         # Step 1: Primary verification (Flash)
         flash_result = self.verifier.verify_with_gemini_cli(
-            step_output, step_name=step_name, model=primary
+            step_output, step_name=step_name, model=primary, include_dirs=include_dirs
         )
 
         if flash_result:
@@ -471,7 +507,7 @@ class ConfidenceGate:
             if ext_conf >= self.THRESHOLDS["cross_verify"]:
                 print(f"[GATE] {step_name}: Cross-verifying with {cross}...")
                 pro_result = self.verifier.verify_with_gemini_cli(
-                    step_output, step_name=step_name, model=cross
+                    step_output, step_name=step_name, model=cross, include_dirs=include_dirs
                 )
 
                 verifications = [flash_result]
@@ -529,7 +565,7 @@ class ConfidenceGate:
         fallback = cli_models.get("fallback", "gemini-2.5-flash")
         print(f"[GATE] {step_name}: Primary failed, trying {fallback}...")
         fb_result = self.verifier.verify_with_gemini_cli(
-            step_output, step_name=step_name, model=fallback
+            step_output, step_name=step_name, model=fallback, include_dirs=include_dirs
         )
 
         if fb_result:
@@ -560,7 +596,7 @@ class ConfidenceGate:
 
         # All models failed
         print(f"[GATE] {step_name}: All Gemini models failed - HUMAN_REVIEW required")
-        print(f"[GATE] Check: Gemini CLI installed, OAuth configured, network")
+        print("[GATE] Check: Gemini CLI installed, OAuth configured, network")
         return GateResult(
             decision=GateDecision.HUMAN_REVIEW,
             confidence_score=0,
@@ -594,6 +630,7 @@ def evolve_loop(
     step_name: str,
     max_iterations: int = 3,
     iteration_callback=None,
+    include_dirs: Optional[List[str]] = None,
 ) -> GateResult:
     """Evolution loop: iterate until convergence or max iterations."""
     current_output = initial_output
@@ -601,7 +638,7 @@ def evolve_loop(
 
     for i in range(max_iterations):
         iteration_name = f"{step_name}-v{i+1}" if i > 0 else step_name
-        result = gate.evaluate(current_output, current_confidence, iteration_name)
+        result = gate.evaluate(current_output, current_confidence, iteration_name, include_dirs=include_dirs)
 
         print(f"[EVOLVE] Iteration {i+1}/{max_iterations}: {result.decision.value} (confidence: {result.confidence_score})")
 
@@ -617,7 +654,7 @@ def evolve_loop(
             print(f"[EVOLVE] Applying feedback: {result.iteration_feedback[:100]}...")
             current_output = iteration_callback(current_output, result.iteration_feedback)
         else:
-            print(f"[EVOLVE] No iteration callback, stopping")
+            print("[EVOLVE] No iteration callback, stopping")
             return result
 
     print(f"[EVOLVE] Max iterations ({max_iterations}) reached without convergence")
@@ -632,6 +669,8 @@ def main():
     parser.add_argument("--output", "--input", "-o", "-i", help="Output to verify (or stdin)")
     parser.add_argument("--files", "-f", nargs="+",
                         help="File paths to ingest as input (concatenated)")
+    parser.add_argument("--include-dirs", nargs="+",
+                        help="Directories for Gemini to browse natively via --include-directories")
     parser.add_argument(
         "--confidence", "-c", type=int, default=70, help="Internal confidence score (ignored, anti-bias)"
     )
@@ -674,6 +713,22 @@ def main():
     else:
         output = sys.stdin.read()
 
+    # Validate and resolve include-dirs
+    include_dirs = None
+    if args.include_dirs:
+        include_dirs = []
+        for d in args.include_dirs:
+            d = os.path.expanduser(d)
+            d = os.path.abspath(d)
+            if os.path.isdir(d):
+                include_dirs.append(d)
+            else:
+                print(f"[WARN] Directory not found, skipping: {d}", file=sys.stderr)
+        if include_dirs:
+            print(f"[GATE] Including {len(include_dirs)} dir(s) in Gemini workspace")
+        else:
+            include_dirs = None
+
     # Check for [E] marker
     use_evolve = args.evolve
     if args.detect_evolve and detect_evolve_marker(output):
@@ -697,9 +752,10 @@ def main():
             step_name=args.step,
             max_iterations=args.max_iterations,
             iteration_callback=None,
+            include_dirs=include_dirs,
         )
     else:
-        result = gate.evaluate(output, args.confidence, args.step)
+        result = gate.evaluate(output, args.confidence, args.step, include_dirs=include_dirs)
 
     if args.json:
         print(
