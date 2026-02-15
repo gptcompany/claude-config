@@ -1,15 +1,15 @@
 # /research-papers - Query Academic Papers Knowledge Base
 
-Query processed academic papers using RAG (semantic search + knowledge graph).
+Query processed academic papers from the Research Pipeline (SQLite via HTTP API).
 
 ## Usage
 
 ```
-/research-papers "query"              # Semantic search (hybrid mode)
-/research-papers --local "query"      # Local context search
-/research-papers --global "query"     # Global summary search
-/research-papers --db                 # Show DB records (PostgreSQL)
-/research-papers --list               # List indexed papers
+/research-papers "query"              # Search papers by title/abstract
+/research-papers --list               # List all papers with stage info
+/research-papers --detail ID          # Full paper detail with formulas, validations, codegen
+/research-papers --formulas           # List all formulas
+/research-papers --formulas ID        # Formulas for paper ID
 ```
 
 ## User Input
@@ -24,104 +24,121 @@ $ARGUMENTS
 
 ```python
 args = "$ARGUMENTS"
-if "--db" in args:
-    MODE = "database"
+if "--detail" in args:
+    MODE = "detail"
+    PAPER_ID = args.replace("--detail", "").strip()
 elif "--list" in args:
     MODE = "list"
-elif "--local" in args:
-    MODE = "local"
-    QUERY = args.replace("--local", "").strip()
-elif "--global" in args:
-    MODE = "global"
-    QUERY = args.replace("--global", "").strip()
+elif "--formulas" in args:
+    MODE = "formulas"
+    PAPER_ID = args.replace("--formulas", "").strip() or None
 else:
-    MODE = "hybrid"
+    MODE = "search"
     QUERY = args.strip().strip('"').strip("'")
 ```
 
-### RAG Query (Default)
-
-For MODE in ["hybrid", "local", "global"]:
+### Check Pipeline Availability
 
 ```bash
-curl -s -X POST http://localhost:8767/query \
-  -H "Content-Type: application/json" \
-  -d '{"query": "QUERY", "mode": "MODE"}'
+curl -sf http://localhost:8775/health >/dev/null 2>&1
+```
+
+**If pipeline is not available:**
+```
+⚠️ Research Pipeline non disponibile (localhost:8775).
+Avvia con: cd /media/sam/1TB/research-pipeline && docker compose up -d
+```
+
+### List Papers (--list or default)
+
+```bash
+curl -sf http://localhost:8775/papers?limit=50
 ```
 
 **Output:**
 
 ```markdown
-## Research Papers Query
+## Research Papers in Pipeline
 
-**Query**: {query}
-**Mode**: {mode}
-
-### Answer
-
-{answer from RAG knowledge graph}
-
----
-*Processed via RAGAnything v3.0*
+| ID | Title | Stage | Score | arXiv |
+|----|-------|-------|-------|-------|
+| 1 | [Title](arxiv_url) | codegen | 0.85 | 2401.00001 |
+| 2 | [Title](arxiv_url) | analyzed | 0.72 | 2401.00002 |
 ```
 
-### Database Query (--db)
+### Paper Detail (--detail ID)
 
-If `MODE == "database"`, query PostgreSQL for paper records:
-
-```sql
--- Connection: postgres://user:pass@localhost:5432/n8n_dev
--- Schema: finance_papers
-
--- Recent completed papers
-SELECT
-    p.id,
-    p.title,
-    p.authors,
-    p.relevance_score,
-    p.status,
-    p.created_at
-FROM finance_papers.papers p
-WHERE p.status = 'completed'
-ORDER BY p.created_at DESC
-LIMIT 10;
-
--- Validated formulas for a paper
-SELECT
-    f.id,
-    f.latex,
-    f.context,
-    v.consensus_result,
-    v.confidence
-FROM finance_papers.formulas f
-JOIN finance_papers.validations v ON f.id = v.formula_id
-WHERE f.paper_id = $PAPER_ID
-AND v.confidence IN ('HIGH', 'VERY_HIGH');
-
--- Generated code
-SELECT
-    gc.language,
-    gc.code,
-    gc.is_executable,
-    gc.test_results
-FROM finance_papers.generated_code gc
-WHERE gc.formula_id = $FORMULA_ID;
+```bash
+curl -sf "http://localhost:8775/papers?id=PAPER_ID"
 ```
+
+Returns paper with nested formulas, validations, and generated code.
+
+**Output:**
+
+```markdown
+## Paper Detail: [Title]
+
+**Authors:** [Author list]
+**arXiv:** [ID]
+**Stage:** [stage]
+**Score:** X/1.0
+**DOI:** [doi]
+
+### Formulas (N total)
+
+**Formula 1:** [description]
+```latex
+f^* = \frac{p}{a} - \frac{q}{b}
+```
+
+**Validations:**
+| Engine | Valid | Time |
+|--------|-------|------|
+| sympy | ✅ | 120ms |
+| maxima | ✅ | 85ms |
+
+**Generated Code:**
+| Language | Stage |
+|----------|-------|
+| python | codegen |
+```
+
+### List Formulas (--formulas [ID])
+
+```bash
+# All formulas
+curl -sf http://localhost:8775/formulas?limit=50
+
+# Formulas for specific paper
+curl -sf "http://localhost:8775/formulas?paper_id=PAPER_ID"
+```
+
+### Search Papers (default mode)
+
+Search papers by matching query against titles in the results:
+
+```bash
+# Fetch all papers
+curl -sf http://localhost:8775/papers?limit=100
+```
+
+Then filter client-side by checking if QUERY terms appear in title or abstract.
 
 ## Output Format
 
 ### Recent Academic Research
 
-| Paper | Relevance | Status | Formulas |
-|-------|-----------|--------|----------|
-| [Title 1](arxiv_url) | 85/100 | Completed | 3 validated |
-| [Title 2](arxiv_url) | 72/100 | Processing | - |
+| Paper | Stage | Score | Formulas |
+|-------|-------|-------|----------|
+| [Title 1](arxiv_url) | codegen | 0.85 | 3 validated |
+| [Title 2](arxiv_url) | discovered | - | - |
 
 ### Paper Details: [Title]
 
 **Authors:** [Author list]
 **arXiv:** [ID]
-**Relevance Score:** X/100
+**Score:** X/1.0
 
 #### Validated Formulas
 
@@ -131,61 +148,30 @@ f* = \frac{p \cdot b - q}{b}
 ```
 
 **Multi-CAS Validation:**
-| CAS | Result | Notes |
-|-----|--------|-------|
-| SymPy | VALID | Algebraic check passed |
-| Wolfram | VALID | Symbolic verification |
-| SageMath | VALID | Numerical consistency |
+| CAS | Result | Time |
+|-----|--------|------|
+| SymPy | VALID | 120ms |
+| Maxima | VALID | 85ms |
 
-**Confidence:** HIGH (3/3 consensus)
+**Confidence:** HIGH (2/2 consensus)
 
 #### Generated Code
 
-**Python (SymPy):**
+**Python:**
 ```python
 def kelly_fraction(win_prob: float, win_loss_ratio: float) -> float:
-    """
-    Calculate optimal Kelly fraction for position sizing.
-
-    Args:
-        win_prob: Probability of winning (0-1)
-        win_loss_ratio: Ratio of average win to average loss
-
-    Returns:
-        Optimal fraction of capital to risk
-    """
     q = 1 - win_prob
     return (win_prob * win_loss_ratio - q) / win_loss_ratio
 ```
 
-**Test Status:** PASSED (3/3 tests)
-
-### Pending Research
-
-If there are pending research requests:
-
-| Query | Triggered | ETA |
-|-------|-----------|-----|
-| "optimal execution" | 10 min ago | ~5 min |
-| "volatility models" | 25 min ago | Processing |
-
 ## No Results?
 
 If no results found:
-1. Check if N8N pipeline is running: `docker ps | grep n8n`
-2. Verify research was triggered: Check Discord for trigger notification
-3. Pipeline may still be processing (typical: 15-30 min)
+1. Check if pipeline is running: `docker compose ps` in research-pipeline/
+2. Pipeline may need a run: `curl -X POST http://localhost:8775/run -H 'Content-Type: application/json' -d '{"query": "your query", "stages": 5, "max_papers": 10}'`
 
-Run `/research "your query"` to trigger new academic research.
-
-## Database Connection
-
-```bash
-# Direct PostgreSQL access (if needed)
-psql -h localhost -p 5432 -U postgres -d n8n_dev -c "SELECT * FROM finance_papers.papers LIMIT 5;"
-```
+Run `/research "your query"` to trigger new academic research via the pipeline.
 
 ## Related Commands
 
-- `/research` - Trigger new research with CoAT
-- `/audit metrics` - Check pipeline health
+- `/research` - Trigger new research with CoAT (delegates to pipeline)
