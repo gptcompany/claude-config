@@ -1,0 +1,7 @@
+#!/bin/bash
+# DEPRECATED: Use `secret-add` instead (dotenvx-based)
+# This script is kept for backward compatibility
+# MIGRATION (2026-02-02): SOPS → dotenvx
+
+echo "NOTE: sops-edit.sh is deprecated. Use 'secret-add' instead."
+exec /home/sam/.local/bin/secret-add "$@"
