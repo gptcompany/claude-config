@@ -169,11 +169,15 @@ Execute searches IN PARALLEL using multiple sources:
 
 1. **WebSearch** - For current information, articles, documentation
 2. **Grep/Read** - Search codebase for implementations, patterns, examples
-3. **Academic APIs** (if `USE_ACADEMIC=true`):
+3. **Research Pipeline** (if `USE_ACADEMIC=true` and `PIPELINE_AVAILABLE`):
    ```python
-   # Direct API calls - no MCP dependency
-   from academic_search import search_all
-   results = search_all(query, max_results=10, sources=["arxiv", "semantic", "crossref"])
+   # Delegated to pipeline microservices (Discovery + Analyzer)
+   # Triggered via POST /run, results read via GET /papers
+   # See "Academic Search Integration" section below
+   ```
+4. **GitHub Search** (always, for implementations):
+   ```
+   WebSearch "{topic} site:github.com implementation"
    ```
 
 **Cache results (if USE_CACHE=true):**
@@ -255,24 +259,68 @@ Confidence =
 
 ## Academic Search Integration (Auto with Academic Keywords)
 
+Academic search is **delegated to the Research Pipeline** (microservices on ports 8770-8775).
+The pipeline handles arXiv, Semantic Scholar, CrossRef with built-in rate limiting, dedup, and enrichment.
+
 ```python
-# Direct API calls via academic_search.py
-from academic_search import search_arxiv, search_semantic_scholar, search_crossref
+import urllib.request, json
 
-# Search with circuit breakers and rate limiting built-in
-arxiv_papers = search_arxiv(query, max_results=5)
-semantic_papers = search_semantic_scholar(query, max_results=5)
-crossref_papers = search_crossref(query, max_results=5)
-
-# Deduplicate across sources
-from academic_search import deduplicate_papers
-all_papers = deduplicate_papers(arxiv_papers + semantic_papers + crossref_papers)
+# 1. Check pipeline availability
+try:
+    urllib.request.urlopen("http://localhost:8775/health", timeout=3)
+    PIPELINE_AVAILABLE = True
+except Exception:
+    PIPELINE_AVAILABLE = False
 ```
 
-**Rate limits (built into academic_search.py):**
-- arXiv: 3 seconds between requests
-- Semantic Scholar: 1 second (429 handling)
-- CrossRef: 0.5 seconds (polite pool)
+**If pipeline available** — trigger a pipeline run and read results:
+```python
+if PIPELINE_AVAILABLE:
+    # Build arXiv query from user's natural language query
+    # CoAT generates the arXiv-syntax query from the topic
+    arx_query = f'abs:"{QUERY}"'  # Claude refines this based on context
+
+    # Trigger pipeline: discovery + analysis (stages=2)
+    payload = json.dumps({
+        "query": arx_query, "stages": 2, "max_papers": 10
+    }).encode()
+    req = urllib.request.Request(
+        "http://localhost:8775/run", data=payload,
+        headers={"Content-Type": "application/json"}
+    )
+    run_result = json.loads(urllib.request.urlopen(req, timeout=300).read())
+
+    # Read enriched results via GET endpoint
+    papers = json.loads(urllib.request.urlopen(
+        "http://localhost:8775/papers?limit=10", timeout=10
+    ).read())
+
+    # For each paper, get detail with formulas if needed
+    for paper in papers[:5]:
+        detail = json.loads(urllib.request.urlopen(
+            f"http://localhost:8775/papers?id={paper['id']}", timeout=10
+        ).read())
+```
+
+**If pipeline NOT available** — inform the user clearly:
+```
+⚠️ Research Pipeline non disponibile (localhost:8775).
+Avvia con: cd /media/sam/1TB/research-pipeline && docker compose up -d
+Solo la ricerca web sarà utilizzata per questa sessione.
+```
+
+**No fallback API dirette** — le query accademiche vivono SOLO nel pipeline (single source of truth).
+
+## GitHub Implementation Search (Phase 2)
+
+After academic search, search for **existing implementations** on GitHub (not redundant — the pipeline doesn't search GitHub):
+
+```
+WebSearch "{topic} site:github.com implementation"
+WebSearch "{topic} github repository python"
+```
+
+GitHub results go in the Sources section as "Implementations" with repo URL, stars, language.
 
 ## PMW Validation (Auto with Academic Keywords)
 
@@ -487,13 +535,13 @@ If research fails at any point:
 ```
 → If incomplete checkpoint exists, Claude asks: "Resume previous research?"
 
-## ⚠️ Academic Papers: Flusso Asincrono
+## ⚠️ Academic Papers: Pipeline Processing
 
-Le fonti in `research.md` sono **metadata** (titolo, abstract, DOI) da API search.
+Le fonti in `research.md` includono metadata (titolo, abstract, DOI) e punteggi di analisi dal pipeline.
 
-**Per accedere al contenuto RAG completo dei papers:**
+**Per esplorare papers processati dal pipeline:**
+- `/research-papers` per lista papers con stage e formule
+- `/research-papers --detail 1` per dettaglio completo paper #1
 
-1. Attendi notifica Discord (processing 15-30 min)
-2. Usa `/research-papers "query"` per query semantiche sul knowledge base
-
-**Validazione CAS** (se paper contiene formule): SymPy, Wolfram, SageMath, MATLAB
+**Pipeline stages:** Discovery → Analyzer → Extractor → Validator → Codegen
+**Validazione CAS:** SymPy, Maxima (integrata nel pipeline, stage Validator)
