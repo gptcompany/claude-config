@@ -8,7 +8,8 @@
     "fallback": "gemini-2.5-flash"
   },
   "thresholds": {
-    "auto_approve": 85,
-    "cross_verify": 60
-  }
+    "auto_approve": 95,
+    "cross_verify": 75
+  },
+  "always_cross_verify": true
 }

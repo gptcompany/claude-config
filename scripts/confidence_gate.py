@@ -224,16 +224,32 @@ OUTPUT TEST:
         instruction = instruction.replace("{{", "{").replace("}}", "}")
         return content, instruction
 
+    CALIBRATION_PREFIX = """CALIBRAZIONE SCORE:
+- 95-100: Eccezionale, zero difetti trovati, test completi, edge cases gestiti
+- 80-94: Buono, problemi minori trovati, potrebbe migliorare
+- 60-79: Mediocre, problemi significativi che richiedono iterazione
+- 40-59: Scarso, problemi critici, necessita riscrittura parziale
+- 0-39: Inaccettabile, problemi fondamentali
+
+REGOLE:
+- DEVI trovare almeno 2 issues (nessun codice è perfetto)
+- Score > 90 SOLO se non trovi difetti significativi
+- Valuta con lo standard di un senior engineer in code review
+
+"""
+
     def get_prompt_for_step(self, step_name: str) -> str:
-        """Get the best prompt template for a given step."""
+        """Get the best prompt template for a given step, with calibration prefix."""
         step_lower = step_name.lower()
         if step_lower in self._custom_step_prompts:
-            return self._custom_step_prompts[step_lower]
-        if self._custom_prompt:
-            return self._custom_prompt
-        if step_lower in self.STEP_PROMPTS:
-            return self.STEP_PROMPTS[step_lower]
-        return self.DEFAULT_PROMPT
+            template = self._custom_step_prompts[step_lower]
+        elif self._custom_prompt:
+            template = self._custom_prompt
+        elif step_lower in self.STEP_PROMPTS:
+            template = self.STEP_PROMPTS[step_lower]
+        else:
+            template = self.DEFAULT_PROMPT
+        return self.CALIBRATION_PREFIX + template
 
     def _load_config(self) -> Dict:
         """Carica configurazione da file JSON."""
@@ -395,9 +411,9 @@ OUTPUT TEST:
     ) -> List[VerificationResult]:
         """
         Catena di verifica via Gemini CLI (subscription OAuth):
-        1. Flash (primario, veloce)
-        2. Pro (cross-verify se Flash non approva o confidence bassa)
-        3. 2.5 Flash (fallback se entrambi falliscono)
+        1. Flash (primario) - SEMPRE
+        2. Pro (cross-verify) - SEMPRE
+        3. 2.5 Flash (fallback solo se entrambi falliscono)
         """
         cli_models = self.config.get("gemini_cli_models", {})
         primary = cli_models.get("primary", "gemini-3-flash-preview")
@@ -406,22 +422,19 @@ OUTPUT TEST:
 
         results = []
 
-        # 1. Primary: Flash
+        # 1. Primary: Flash (always)
         flash_result = self.verify_with_gemini_cli(
             output, step_name=step_name, model=primary, include_dirs=include_dirs)
         if flash_result:
             results.append(flash_result)
-            if flash_result.approved and flash_result.confidence >= 80:
-                return results
 
-        # 2. Cross-verify: Pro
+        # 2. Cross-verify: Pro (always)
         pro_result = self.verify_with_gemini_cli(
             output, step_name=step_name, model=cross, include_dirs=include_dirs)
         if pro_result:
             results.append(pro_result)
-            return results
 
-        # 3. Fallback: 2.5 Flash
+        # 3. Fallback: 2.5 Flash (only if both failed)
         if not results:
             fb_result = self.verify_with_gemini_cli(
                 output, step_name=step_name, model=fallback, include_dirs=include_dirs)
@@ -436,10 +449,12 @@ class ConfidenceGate:
     Gate automatico basato su confidence score ESTERNO (anti-bias).
 
     Flusso ANTI-BIAS (confidence calcolata da Gemini CLI, NON da Claude):
-    1. Gemini Flash calcola confidence score
-    2. Se >= 85 e approved: AUTO_APPROVE
-    3. Se 60-84: CROSS_VERIFY con Gemini Pro
-    4. Se < 60: HUMAN_REVIEW
+    1. Gemini Flash valuta → salva risultato
+    2. Gemini Pro valuta SEMPRE → salva risultato
+    3. Media pesata: avg = Flash*0.4 + Pro*0.6
+    4. AUTO_APPROVE solo se avg >= 95 E entrambi approved
+    5. CROSS_VERIFY se avg >= 75
+    6. HUMAN_REVIEW se avg < 75
     """
 
     DEFAULT_THRESHOLDS = {
@@ -480,129 +495,122 @@ class ConfidenceGate:
         primary = cli_models.get("primary", "gemini-3-flash-preview")
         cross = cli_models.get("cross_verify", "gemini-2.5-pro")
 
+        fallback_model = cli_models.get("fallback", "gemini-2.5-flash")
+        verifications: List[VerificationResult] = []
+
         # Step 1: Primary verification (Flash)
         flash_result = self.verifier.verify_with_gemini_cli(
             step_output, step_name=step_name, model=primary, include_dirs=include_dirs
         )
 
         if flash_result:
-            ext_conf = flash_result.confidence
-            print(f"  [{primary}] confidence: {ext_conf}, approved: {flash_result.approved}")
+            verifications.append(flash_result)
+            print(f"  [{primary}] confidence: {flash_result.confidence}, approved: {flash_result.approved}")
             if flash_result.issues:
                 print(f"    Issues: {', '.join(flash_result.issues[:3])}")
+        else:
+            print(f"  [{primary}] FAILED")
 
-            # AUTO_APPROVE: high confidence + approved
-            if ext_conf >= self.THRESHOLDS["auto_approve"] and flash_result.approved:
-                print(f"[GATE] {step_name}: AUTO_APPROVE (confidence: {ext_conf})")
+        # Step 2: ALWAYS cross-verify with Pro (anti single-model bias)
+        print(f"[GATE] {step_name}: Cross-verifying with {cross}...")
+        pro_result = self.verifier.verify_with_gemini_cli(
+            step_output, step_name=step_name, model=cross, include_dirs=include_dirs
+        )
+
+        if pro_result:
+            verifications.append(pro_result)
+            print(f"  [{cross}] confidence: {pro_result.confidence}, approved: {pro_result.approved}")
+            if pro_result.issues:
+                print(f"    Issues: {', '.join(pro_result.issues[:3])}")
+        else:
+            print(f"  [{cross}] FAILED")
+
+        # Step 3: If both failed, try fallback
+        if not verifications:
+            print(f"[GATE] {step_name}: Both models failed, trying {fallback_model}...")
+            fb_result = self.verifier.verify_with_gemini_cli(
+                step_output, step_name=step_name, model=fallback_model, include_dirs=include_dirs
+            )
+            if fb_result:
+                verifications.append(fb_result)
+            else:
+                print(f"[GATE] {step_name}: All Gemini models failed - HUMAN_REVIEW required")
+                print("[GATE] Check: Gemini CLI installed, OAuth configured, network")
                 return GateResult(
-                    decision=GateDecision.AUTO_APPROVE,
-                    confidence_score=ext_conf,
-                    verifications=[flash_result],
+                    decision=GateDecision.HUMAN_REVIEW,
+                    confidence_score=0,
+                    verifications=[],
                     should_iterate=False,
-                    iteration_feedback=None,
-                    final_approved=True,
+                    iteration_feedback="All Gemini CLI models failed. Check: gemini CLI, OAuth, network.",
+                    final_approved=False,
                 )
 
-            # CROSS_VERIFY: medium confidence
-            if ext_conf >= self.THRESHOLDS["cross_verify"]:
-                print(f"[GATE] {step_name}: Cross-verifying with {cross}...")
-                pro_result = self.verifier.verify_with_gemini_cli(
-                    step_output, step_name=step_name, model=cross, include_dirs=include_dirs
-                )
+        # Step 4: Decision based on weighted average of all results
+        if len(verifications) == 2 and flash_result and pro_result:
+            # Both Flash and Pro succeeded: weighted average (Pro weighs more)
+            avg_conf = int(flash_result.confidence * 0.4 + pro_result.confidence * 0.6)
+            both_approved = flash_result.approved and pro_result.approved
+        elif len(verifications) == 1:
+            # Only one model succeeded (the other failed)
+            avg_conf = verifications[0].confidence
+            both_approved = verifications[0].approved
+        else:
+            # Fallback-only case
+            avg_conf = verifications[0].confidence
+            both_approved = verifications[0].approved
 
-                verifications = [flash_result]
-                if pro_result:
-                    verifications.append(pro_result)
-                    print(f"  [{cross}] confidence: {pro_result.confidence}, approved: {pro_result.approved}")
-                    if pro_result.issues:
-                        print(f"    Issues: {', '.join(pro_result.issues[:3])}")
+        # Collect all issues
+        all_issues: List[str] = []
+        for v in verifications:
+            all_issues.extend(v.issues)
 
-                    # Weighted average: Pro has more weight
-                    avg_conf = int(flash_result.confidence * 0.4 + pro_result.confidence * 0.6)
-                    approved_count = sum(1 for v in verifications if v.approved)
-
-                    if approved_count >= 1 and avg_conf >= 70:
-                        print(f"[GATE] {step_name}: APPROVED by cross-verification (avg: {avg_conf})")
-                        return GateResult(
-                            decision=GateDecision.AUTO_APPROVE,
-                            confidence_score=avg_conf,
-                            verifications=verifications,
-                            should_iterate=False,
-                            iteration_feedback=None,
-                            final_approved=True,
-                        )
-
-                # Collect issues for iteration
-                all_issues = []
-                for v in verifications:
-                    all_issues.extend(v.issues)
-                avg_conf = sum(v.confidence for v in verifications) // len(verifications)
-
-                if all_issues:
-                    feedback = "\n".join(f"- {issue}" for issue in all_issues[:5])
-                    print(f"[GATE] {step_name}: ITERATE suggested")
-                    return GateResult(
-                        decision=GateDecision.CROSS_VERIFY,
-                        confidence_score=avg_conf,
-                        verifications=verifications,
-                        should_iterate=True,
-                        iteration_feedback=feedback,
-                        final_approved=False,
-                    )
-
-            # LOW confidence
-            print(f"[GATE] {step_name}: HUMAN_REVIEW (confidence: {ext_conf})")
+        # AUTO_APPROVE: high avg confidence AND all models approved
+        if avg_conf >= self.THRESHOLDS["auto_approve"] and both_approved:
+            print(f"[GATE] {step_name}: AUTO_APPROVE (avg confidence: {avg_conf}, models: {len(verifications)})")
             return GateResult(
-                decision=GateDecision.HUMAN_REVIEW,
-                confidence_score=ext_conf,
-                verifications=[flash_result],
+                decision=GateDecision.AUTO_APPROVE,
+                confidence_score=avg_conf,
+                verifications=verifications,
+                should_iterate=False,
+                iteration_feedback=None,
+                final_approved=True,
+            )
+
+        # CROSS_VERIFY / ITERATE: medium confidence with issues
+        if avg_conf >= self.THRESHOLDS["cross_verify"]:
+            if all_issues:
+                feedback = "\n".join(f"- {issue}" for issue in all_issues[:5])
+                print(f"[GATE] {step_name}: ITERATE suggested (avg confidence: {avg_conf})")
+                return GateResult(
+                    decision=GateDecision.CROSS_VERIFY,
+                    confidence_score=avg_conf,
+                    verifications=verifications,
+                    should_iterate=True,
+                    iteration_feedback=feedback,
+                    final_approved=False,
+                )
+            # Medium confidence, no issues but not high enough for auto_approve
+            print(f"[GATE] {step_name}: CROSS_VERIFY (avg confidence: {avg_conf}, below auto_approve threshold)")
+            return GateResult(
+                decision=GateDecision.CROSS_VERIFY,
+                confidence_score=avg_conf,
+                verifications=verifications,
                 should_iterate=False,
                 iteration_feedback=None,
                 final_approved=False,
             )
 
-        # Flash failed - try fallback model
-        fallback = cli_models.get("fallback", "gemini-2.5-flash")
-        print(f"[GATE] {step_name}: Primary failed, trying {fallback}...")
-        fb_result = self.verifier.verify_with_gemini_cli(
-            step_output, step_name=step_name, model=fallback, include_dirs=include_dirs
-        )
-
-        if fb_result:
-            ext_conf = fb_result.confidence
-            if fb_result.approved and ext_conf >= self.THRESHOLDS["auto_approve"]:
-                print(f"[GATE] {step_name}: AUTO_APPROVE via {fallback} (confidence: {ext_conf})")
-                return GateResult(
-                    decision=GateDecision.AUTO_APPROVE,
-                    confidence_score=ext_conf,
-                    verifications=[fb_result],
-                    should_iterate=False,
-                    iteration_feedback=None,
-                    final_approved=True,
-                )
-
-            feedback = None
-            if fb_result.issues:
-                feedback = "\n".join(f"- {issue}" for issue in fb_result.issues[:5])
-
-            return GateResult(
-                decision=GateDecision.CROSS_VERIFY if ext_conf >= 60 else GateDecision.HUMAN_REVIEW,
-                confidence_score=ext_conf,
-                verifications=[fb_result],
-                should_iterate=bool(fb_result.issues),
-                iteration_feedback=feedback,
-                final_approved=False,
-            )
-
-        # All models failed
-        print(f"[GATE] {step_name}: All Gemini models failed - HUMAN_REVIEW required")
-        print("[GATE] Check: Gemini CLI installed, OAuth configured, network")
+        # LOW confidence
+        feedback = None
+        if all_issues:
+            feedback = "\n".join(f"- {issue}" for issue in all_issues[:5])
+        print(f"[GATE] {step_name}: HUMAN_REVIEW (avg confidence: {avg_conf})")
         return GateResult(
             decision=GateDecision.HUMAN_REVIEW,
-            confidence_score=0,
-            verifications=[],
-            should_iterate=False,
-            iteration_feedback="All Gemini CLI models failed. Check: gemini CLI, OAuth, network.",
+            confidence_score=avg_conf,
+            verifications=verifications,
+            should_iterate=bool(all_issues),
+            iteration_feedback=feedback,
             final_approved=False,
         )
 
