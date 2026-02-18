@@ -92,6 +92,10 @@ All repositories share the same hooks infrastructure:
 | context-preservation.py | Stop | Save context on exit |
 | session-summary.py | Stop | Generate session summaries |
 
+Note: These hooks are Claude Code-specific (expect Claude hooks JSON input,
+`CLAUDE_*` env, and `.claude`/`claude-flow` paths). Codex uses its own
+Git hooks in `/home/sam/.codex/hooks`.
+
 ### Metrics (QuestDB)
 
 7 tables for comprehensive observability:
