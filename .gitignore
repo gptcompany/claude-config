@@ -48,3 +48,7 @@ tdd-guard/
 .claude/
 .env
 .env.keys
+
+# Separated repos (symlinked)
+validation-framework
+progressive-deploy

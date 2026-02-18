@@ -1,9 +1,0 @@
-# Ruff configuration for validation-framework
-
-[lint]
-# Ignore specific rules
-ignore = []
-
-[lint.per-file-ignores]
-# Test aggregation file uses star imports intentionally for pytest discovery
-"tests/test_validation_framework.py" = ["E402", "F403", "F405"]
