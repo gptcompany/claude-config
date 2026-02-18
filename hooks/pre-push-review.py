@@ -69,18 +69,39 @@ Report ONLY real issues (not style):
 Be concise (max 10 lines)."""
 
 
+def _git(args: list[str], timeout: int = 10) -> subprocess.CompletedProcess:
+    return subprocess.run(
+        ["git", *args],
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+    )
+
+
+def _get_base_ref() -> str | None:
+    """Best-effort base for the upcoming push."""
+    for ref in ("@{push}", "@{upstream}"):
+        result = _git(["rev-parse", "--verify", "--quiet", ref], timeout=5)
+        if result.returncode == 0 and result.stdout.strip():
+            return ref
+    return None
+
+
+def _get_diff_range() -> str | None:
+    base = _get_base_ref()
+    return f"{base}...HEAD" if base else None
+
+
 def get_changed_files() -> list[str]:
     """Get list of changed code files to be pushed."""
     try:
-        result = subprocess.run(
-            ["git", "diff", "--name-only", "@{push}.."],
-            capture_output=True, text=True,
-        )
-        if result.returncode != 0:
-            result = subprocess.run(
-                ["git", "diff", "--name-only", "HEAD~1"],
-                capture_output=True, text=True,
-            )
+        diff_range = _get_diff_range()
+        if diff_range:
+            result = _git(["diff", "--name-only", diff_range])
+        else:
+            # No upstream/push target yet: include root diff against empty tree.
+            result = _git(["diff", "--name-only", "--root", "HEAD"])
+
         files = result.stdout.strip().split("\n") if result.stdout.strip() else []
         code_extensions = {".py", ".ts", ".js", ".tsx", ".jsx", ".rs", ".go", ".sh"}
         return [f for f in files if Path(f).suffix in code_extensions]
@@ -91,10 +112,11 @@ def get_changed_files() -> list[str]:
 def get_diff_context(files: list[str]) -> str:
     """Get git diff for context."""
     try:
-        result = subprocess.run(
-            ["git", "diff", "HEAD~1", "--", *files[:10]],
-            capture_output=True, text=True, timeout=15,
-        )
+        diff_range = _get_diff_range()
+        if diff_range:
+            result = _git(["diff", diff_range, "--", *files[:10]], timeout=15)
+        else:
+            result = _git(["diff", "--root", "HEAD", "--", *files[:10]], timeout=15)
         diff = result.stdout.strip()
         return diff[:30000] if len(diff) > 30000 else diff
     except Exception:
@@ -104,16 +126,15 @@ def get_diff_context(files: list[str]) -> str:
 def run_local_analysis() -> dict:
     """Run local diff analysis with git + heuristics."""
     try:
-        result = subprocess.run(
-            ["git", "diff", "--name-only", "HEAD~1..HEAD"],
-            capture_output=True, text=True, timeout=10,
-        )
-        files = [f for f in result.stdout.strip().split("\n") if f]
+        diff_range = _get_diff_range()
+        if diff_range:
+            result = _git(["diff", "--name-only", diff_range], timeout=10)
+            stat_result = _git(["diff", "--stat", diff_range], timeout=10)
+        else:
+            result = _git(["diff", "--name-only", "--root", "HEAD"], timeout=10)
+            stat_result = _git(["diff", "--stat", "--root", "HEAD"], timeout=10)
 
-        stat_result = subprocess.run(
-            ["git", "diff", "--stat", "HEAD~1..HEAD"],
-            capture_output=True, text=True, timeout=10,
-        )
+        files = [f for f in result.stdout.strip().split("\n") if f]
 
         lines_added = 0
         lines_removed = 0
