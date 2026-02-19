@@ -3,7 +3,7 @@
 These tests verify that validation tools actually work in the current environment.
 Run with: pytest tests/e2e/test_real_tools.py -v -m e2e
 
-Works in both Claude Code (user sam) and OpenClaw (user openclaw) environments.
+Works in Claude Code (user sam) environment.
 """
 
 import subprocess
@@ -85,18 +85,3 @@ class TestInfraReachability:
             assert "ok" in data.lower()
         except Exception as e:
             pytest.skip(f"Grafana not reachable: {e}")
-
-    def test_prometheus_has_openclaw_metrics(self):
-        """Prometheus has openclaw metrics via Grafana proxy."""
-        try:
-            import urllib.request
-            import json
-            url = (
-                "http://192.168.1.111:9090/api/v1/query"
-                "?query=openclaw_daily_cost"
-            )
-            resp = urllib.request.urlopen(url, timeout=5)
-            data = json.loads(resp.read().decode())
-            assert data.get("status") == "success"
-        except Exception as e:
-            pytest.skip(f"Prometheus not reachable: {e}")

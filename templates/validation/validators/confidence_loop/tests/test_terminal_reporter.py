@@ -383,7 +383,7 @@ class TestRichIntegration:
 
             original = sys.modules.get("rich")
             try:
-                sys.modules["rich"] = None
+                sys.modules["rich"] = None  # type: ignore[assignment]
                 # Need to test the actual method behavior
                 # Since it catches ImportError, we test the fallback
                 reporter2 = TerminalReporter(use_rich=False)

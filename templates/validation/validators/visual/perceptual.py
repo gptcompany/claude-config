@@ -3,7 +3,7 @@
 
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 try:
     import numpy as np
@@ -16,6 +16,9 @@ except ImportError:
     np = None  # type: ignore[assignment]
     Image = None  # type: ignore[assignment, misc]
     ssim = None  # type: ignore[assignment]
+
+if TYPE_CHECKING:
+    import numpy as _np
 
 
 @dataclass
@@ -44,7 +47,7 @@ class PerceptualComparator:
     def is_available(self) -> bool:
         return SKIMAGE_AVAILABLE
 
-    def _load_image(self, path: str) -> tuple["np.ndarray | None", str | None]:
+    def _load_image(self, path: str) -> "tuple[_np.ndarray | None, str | None]":
         if not SKIMAGE_AVAILABLE:
             return (
                 None,
@@ -63,8 +66,8 @@ class PerceptualComparator:
             return None, f"Failed to load image {path}: {str(e)}"
 
     def _center_crop(
-        self, img: "np.ndarray", target_h: int, target_w: int
-    ) -> "np.ndarray":
+        self, img: "_np.ndarray", target_h: int, target_w: int
+    ) -> "_np.ndarray":
         h, w = img.shape[:2]
         start_h = (h - target_h) // 2
         start_w = (w - target_w) // 2
@@ -108,9 +111,10 @@ class PerceptualComparator:
             win_size -= 1
         win_size = max(3, win_size)
 
+        assert ssim is not None  # guaranteed by is_available() check above
         try:
             if self.multichannel and len(img1.shape) == 3:  # type: ignore[arg-type]
-                score, diff_img = ssim(
+                score, diff_img = ssim(  # type: ignore[reportAssignmentType]
                     img1,
                     img2,
                     win_size=win_size,
@@ -119,7 +123,7 @@ class PerceptualComparator:
                     data_range=255,
                 )
             else:
-                score, diff_img = ssim(
+                score, diff_img = ssim(  # type: ignore[reportAssignmentType]
                     img1, img2, win_size=win_size, full=True, data_range=255
                 )
         except Exception as e:

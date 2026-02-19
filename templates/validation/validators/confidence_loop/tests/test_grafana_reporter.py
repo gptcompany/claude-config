@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Tests for GrafanaReporter - metrics push for confidence loops."""
 
+import http.client
 import urllib.error
 from unittest.mock import MagicMock, Mock, patch
 
@@ -269,7 +270,7 @@ class TestMakeRequest:
             url="http://localhost:3000/api/test",
             code=401,
             msg="Unauthorized",
-            hdrs={},
+            hdrs=http.client.HTTPMessage(),
             fp=None,
         )
 

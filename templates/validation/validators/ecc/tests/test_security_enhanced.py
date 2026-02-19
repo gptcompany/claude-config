@@ -328,7 +328,7 @@ class TestSecurityEnhancedValidatorGrepErrors:
         validator = SecurityEnhancedValidator(project_path=tmp_path)
 
         async def mock_run_tool(cmd, timeout=None):
-            raise subprocess.TimeoutExpired(cmd, timeout)
+            raise subprocess.TimeoutExpired(cmd, timeout or 0.0)
 
         with patch.object(validator, "_run_tool", side_effect=mock_run_tool):
             result = await validator._run_grep("pattern", tmp_path)

@@ -10,13 +10,11 @@ import pytest
 # Import path setup
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
-from plugins import (
-    PLUGIN_INTERFACE,
-    PluginSpec,
-    load_plugin,
-    load_plugins,
-    parse_plugin_spec,
-)
+from plugins import PLUGIN_INTERFACE  # pyright: ignore[reportAttributeAccessIssue]
+from plugins import PluginSpec  # pyright: ignore[reportAttributeAccessIssue]
+from plugins import load_plugin  # pyright: ignore[reportAttributeAccessIssue]
+from plugins import load_plugins  # pyright: ignore[reportAttributeAccessIssue]
+from plugins import parse_plugin_spec  # pyright: ignore[reportAttributeAccessIssue]
 
 # =============================================================================
 # parse_plugin_spec tests (4 tests)
@@ -428,7 +426,7 @@ class TestLoadModuleFromPath:
 
     def test_load_single_py_file(self, tmp_path):
         """Test loading a single .py file as plugin."""
-        from plugins import _load_module_from_path
+        from plugins import _load_module_from_path  # pyright: ignore[reportAttributeAccessIssue]
 
         py_file = tmp_path / "my_validator.py"
         py_file.write_text("""
@@ -443,7 +441,7 @@ class Validator:
 
     def test_load_dir_without_init(self, tmp_path):
         """Test loading a directory without __init__.py (namespace package)."""
-        from plugins import _load_module_from_path
+        from plugins import _load_module_from_path  # pyright: ignore[reportAttributeAccessIssue]
 
         plugin_dir = tmp_path / "ns_plugin"
         plugin_dir.mkdir()
@@ -457,7 +455,7 @@ class Validator:
 
     def test_load_invalid_path(self, tmp_path):
         """Test loading a non-py, non-dir path returns None."""
-        from plugins import _load_module_from_path
+        from plugins import _load_module_from_path  # pyright: ignore[reportAttributeAccessIssue]
 
         bad_file = tmp_path / "data.txt"
         bad_file.write_text("not python")
@@ -466,7 +464,7 @@ class Validator:
 
     def test_load_module_exception(self, tmp_path):
         """Test that exceptions during module load return None."""
-        from plugins import _load_module_from_path
+        from plugins import _load_module_from_path  # pyright: ignore[reportAttributeAccessIssue]
 
         py_file = tmp_path / "broken.py"
         py_file.write_text("raise RuntimeError('broken module')")
@@ -477,7 +475,7 @@ class Validator:
         """Test when spec_from_file_location returns None."""
         import importlib.util
 
-        from plugins import _load_module_from_path
+        from plugins import _load_module_from_path  # pyright: ignore[reportAttributeAccessIssue]
 
         py_file = tmp_path / "good.py"
         py_file.write_text("x = 1")

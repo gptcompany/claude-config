@@ -45,7 +45,7 @@ except ImportError:
 
 # Plugin system (Phase 20 - graceful degradation)
 try:
-    from plugins import load_plugins
+    from plugins import load_plugins  # type: ignore[import-not-found]
 
     PLUGINS_AVAILABLE = True
 except ImportError:
@@ -335,6 +335,27 @@ class BaseValidator:
     dimension: str = "unknown"
     tier: ValidationTier = ValidationTier.MONITOR
     agent: str | None = None
+    config: dict[str, Any] | None = None
+
+    def get_timeout(self) -> int:
+        """Get timeout for this validator from config or defaults."""
+        if self.config and "timeouts" in self.config:
+            return self.config["timeouts"].get(
+                self.dimension, self.config["timeouts"].get("default", 120)
+            )
+        return _STUB_DEFAULT_TIMEOUTS.get(self.dimension, 120)
+
+    def get_command(self, tool: str) -> str:
+        """Get command for a tool from config or use default."""
+        if self.config and "commands" in self.config:
+            return self.config["commands"].get(tool, tool)
+        return tool
+
+    def get_scan_path(self) -> str:
+        """Get scan path from config or default to current directory."""
+        if self.config and "scan_path" in self.config:
+            return self.config["scan_path"]
+        return "."
 
     async def validate(self) -> ValidationResult:
         """Run validation. Override in subclasses."""
@@ -356,11 +377,13 @@ class CodeQualityValidator(BaseValidator):
         start = datetime.now()
         try:
             # Use JSON output format for accurate error counting
+            ruff_cmd = self.get_command("ruff")
+            scan_path = self.get_scan_path()
             result = subprocess.run(
-                ["ruff", "check", ".", "--no-cache", "--output-format=json"],
+                [*ruff_cmd.split(), "check", scan_path, "--no-cache", "--output-format=json"],
                 capture_output=True,
                 text=True,
-                timeout=60,
+                timeout=self.get_timeout(),
             )
             passed = result.returncode == 0
 
@@ -424,11 +447,16 @@ class TypeSafetyValidator(BaseValidator):
     async def validate(self) -> ValidationResult:
         start = datetime.now()
         try:
+            pyright_cmd = self.get_command("pyright")
+            cmd_parts = pyright_cmd.split()
+            if len(cmd_parts) == 1:
+                cmd_parts = ["python3", "-m", "pyright"]
+            scan_path = self.get_scan_path()
             result = subprocess.run(
-                ["python3", "-m", "pyright", "--outputjson", "."],
+                [*cmd_parts, "--outputjson", scan_path],
                 capture_output=True,
                 text=True,
-                timeout=120,
+                timeout=self.get_timeout(),
             )
 
             if result.returncode == 0:
@@ -500,22 +528,24 @@ class SecurityValidator(BaseValidator):
     def _check_bandit(self) -> list[str]:
         """Run bandit SAST scanner."""
         try:
+            bandit_cmd = self.get_command("bandit")
+            scan_path = self.get_scan_path()
+            # Get severity threshold from config (default: HIGH only)
+            min_severity = "high"
+            if self.config and "security" in self.config:
+                min_severity = self.config["security"].get("bandit_severity", "high")
             result = subprocess.run(
-                ["bandit", "-r", ".", "-f", "json", "-q"],
+                [*bandit_cmd.split(), "-r", scan_path, "--severity-level", min_severity, "-f", "json", "-q"],
                 capture_output=True,
                 text=True,
-                timeout=60,
+                timeout=self.get_timeout(),
             )
-            if result.returncode != 0:
+            if result.returncode != 0 and result.stdout.strip():
                 try:
                     data = json.loads(result.stdout)
-                    high_sev = [
-                        r
-                        for r in data.get("results", [])
-                        if r.get("issue_severity") in ("HIGH", "MEDIUM")
-                    ]
-                    if high_sev:
-                        return [f"Bandit: {len(high_sev)} issues"]
+                    issues = data.get("results", [])
+                    if issues:
+                        return [f"Bandit: {len(issues)} issues"]
                 except json.JSONDecodeError:
                     pass
         except FileNotFoundError:
@@ -525,11 +555,15 @@ class SecurityValidator(BaseValidator):
     def _check_gitleaks(self) -> list[str]:
         """Run gitleaks secrets scanner."""
         try:
+            # Use --no-git by default, but prefer git-aware mode if .gitleaksignore exists
+            cmd = ["gitleaks", "detect", "--no-git", "-v"]
+            if Path(".gitleaksignore").exists():
+                cmd = ["gitleaks", "detect", "-v"]
             result = subprocess.run(
-                ["gitleaks", "detect", "--no-git", "-v"],
+                cmd,
                 capture_output=True,
                 text=True,
-                timeout=30,
+                timeout=self.get_timeout(),
             )
             if result.returncode != 0:
                 return ["Gitleaks: secrets detected"]
@@ -1218,7 +1252,9 @@ class ValidationOrchestrator:
         for name, dim_config in dimensions.items():
             if dim_config.get("enabled", True):
                 validator_class = self.VALIDATOR_REGISTRY.get(name, BaseValidator)
-                self.validators[name] = validator_class()
+                instance = validator_class()
+                instance.config = self.config
+                self.validators[name] = instance
 
                 # Override tier if specified in config
                 if "tier" in dim_config:

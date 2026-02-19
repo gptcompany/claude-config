@@ -354,7 +354,7 @@ class TestVisualTargetValidatorEdgeCases:
 
         # pixel_score=0, ssim_score=0.9 -> confidence=ssim_score
         assert result.confidence == 0.9
-        assert "ODiff" in result.error
+        assert result.error is not None and "ODiff" in result.error
 
     @patch("validators.visual.validator.ODiffRunner")
     @patch("validators.visual.validator.PerceptualComparator")
@@ -391,7 +391,7 @@ class TestVisualTargetValidatorEdgeCases:
 
         # ssim_score=0, pixel_score=0.8 -> confidence=pixel_score
         assert result.confidence == 0.8
-        assert "SSIM" in result.error
+        assert result.error is not None and "SSIM" in result.error
 
     @patch("validators.visual.validator.ODiffRunner")
     @patch("validators.visual.validator.PerceptualComparator")
@@ -428,8 +428,8 @@ class TestVisualTargetValidatorEdgeCases:
 
         assert result.confidence == 0.0
         assert result.match is False
-        assert "ODiff" in result.error
-        assert "SSIM" in result.error
+        assert result.error is not None and "ODiff" in result.error
+        assert result.error is not None and "SSIM" in result.error
 
     @patch("validators.visual.validator.ODiffRunner")
     @patch("validators.visual.validator.PerceptualComparator")
@@ -594,7 +594,8 @@ class TestVisualTargetValidatorAsync:
         # Tier 3 still passes
         assert result.passed is True
         assert result.details.get("images_compared") == 1
-        assert result.details.get("mismatches") >= 1
+        mismatches = result.details.get("mismatches")
+        assert mismatches is not None and mismatches >= 1
 
     @pytest.mark.asyncio
     @pytest.mark.skipif(not SKIMAGE_AVAILABLE, reason="scikit-image not installed")

@@ -864,12 +864,12 @@ class TestImportFallbacks:
         """Test fallback push_validation_metrics returns False."""
         from orchestrator import push_validation_metrics
 
-        result = push_validation_metrics(None, "test")
+        result = push_validation_metrics(None, "test")  # type: ignore[arg-type]
         assert isinstance(result, bool)
 
     def test_stub_load_plugins(self):
         """Test fallback load_plugins returns empty dict."""
-        from orchestrator import load_plugins
+        from orchestrator import load_plugins  # type: ignore[attr-defined]
 
         result = load_plugins(["something"])
         assert isinstance(result, dict)
@@ -878,7 +878,7 @@ class TestImportFallbacks:
         """Test fallback inject_validation_context returns bool."""
         from orchestrator import inject_validation_context
 
-        result = inject_validation_context(None)
+        result = inject_validation_context(None)  # type: ignore[arg-type]
         assert isinstance(result, bool)
 
     def test_stub_add_validation_breadcrumb(self):
@@ -1223,7 +1223,7 @@ class TestDesignPrinciplesValidatorExtended:
         validator = DesignPrinciplesValidator()
         mock_file = MagicMock()
         mock_file.stat.return_value.st_size = 60000
-        mock_file.__str__ = lambda self: "big_file.py"
+        type(mock_file).__str__ = lambda self: "big_file.py"  # type: ignore[assignment]
         with patch("orchestrator.DesignPrinciplesValidatorImpl", None):
             with patch("orchestrator.Path") as mock_path:
                 mock_path.return_value.rglob.return_value = [mock_file]

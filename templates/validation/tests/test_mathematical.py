@@ -137,7 +137,7 @@ class TestCASClient:
         result = client.validate("x^2")
         assert result.success is False
         assert result.cas_available is False
-        assert "httpx not installed" in result.error
+        assert result.error and "httpx not installed" in result.error
 
     def test_validate_success(self):
         """Test validate with successful response."""
@@ -179,7 +179,7 @@ class TestCASClient:
 
         result = client.validate("x^2")
         assert result.success is False
-        assert "timeout" in result.error.lower()
+        assert result.error and "timeout" in result.error.lower()
 
     def test_validate_other_error(self):
         """Test validate with other errors."""
@@ -190,7 +190,7 @@ class TestCASClient:
 
         result = client.validate("x^2")
         assert result.success is False
-        assert "Some error" in result.error
+        assert result.error and "Some error" in result.error
 
     def test_wolfram_fallback(self):
         """Test _wolfram_fallback returns unavailable."""
@@ -198,7 +198,7 @@ class TestCASClient:
         result = client._wolfram_fallback("x^2", "maxima")
         assert result.success is False
         assert result.cas_available is False
-        assert "Wolfram fallback" in result.error
+        assert result.error and "Wolfram fallback" in result.error
 
     def test_close(self):
         """Test close method."""
@@ -670,6 +670,7 @@ class TestMathematicalValidator:
         )
 
         result = await validator.validate()
+        assert result.fix_suggestion is not None
         assert "bad_0" in result.fix_suggestion
         assert "bad_2" in result.fix_suggestion
         assert "bad_4" not in result.fix_suggestion

@@ -123,7 +123,7 @@ class TestOasdiffRunner:
         result = runner.breaking_changes(Path("base.yaml"), Path("rev.yaml"))
         assert result.success is False
         assert result.oasdiff_available is False
-        assert "not installed" in result.error
+        assert result.error and "not installed" in result.error
 
     def test_breaking_changes_base_not_found(self):
         """Test breaking_changes when base spec not found."""
@@ -134,7 +134,7 @@ class TestOasdiffRunner:
             rev.write_text("openapi: 3.0.0")
             result = runner.breaking_changes(Path("/nonexistent"), rev)
         assert result.success is False
-        assert "not found" in result.error
+        assert result.error and "not found" in result.error
 
     def test_breaking_changes_revision_not_found(self):
         """Test breaking_changes when revision spec not found."""
@@ -145,7 +145,7 @@ class TestOasdiffRunner:
             base.write_text("openapi: 3.0.0")
             result = runner.breaking_changes(base, Path("/nonexistent"))
         assert result.success is False
-        assert "not found" in result.error
+        assert result.error and "not found" in result.error
 
     def test_breaking_changes_no_breaks(self):
         """Test breaking_changes with no breaking changes."""
@@ -216,7 +216,7 @@ class TestOasdiffRunner:
                 result = runner.breaking_changes(base, rev)
 
         assert result.success is False
-        assert "Error message" in result.error
+        assert result.error and "Error message" in result.error
 
     def test_breaking_changes_timeout(self):
         """Test breaking_changes with timeout."""
@@ -237,7 +237,7 @@ class TestOasdiffRunner:
                 result = runner.breaking_changes(base, rev)
 
         assert result.success is False
-        assert "timeout" in result.error
+        assert result.error and "timeout" in result.error
 
     def test_breaking_changes_file_not_found(self):
         """Test breaking_changes when binary disappears."""
@@ -598,6 +598,7 @@ class TestAPIContractValidator:
         )
 
         result = await validator.validate()
+        assert result.fix_suggestion is not None
         assert "CODE_0" in result.fix_suggestion
         assert "CODE_2" in result.fix_suggestion
         assert "CODE_4" not in result.fix_suggestion

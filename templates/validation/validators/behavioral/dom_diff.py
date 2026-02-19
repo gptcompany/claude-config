@@ -183,7 +183,7 @@ class DOMComparator:
             return self._fallback_compare(tree1, tree2, size1, size2)
 
         try:
-            distance = zss.simple_distance(
+            distance: float = zss.simple_distance(  # type: ignore[union-attr]
                 tree1,
                 tree2,
                 get_children=lambda n: n.children,
