@@ -7,6 +7,17 @@
     "cross_verify": "gemini-2.5-pro",
     "fallback": "gemini-2.5-flash"
   },
+  "codex_cli": {
+    "enabled": true,
+    "model": "gpt-5.1-codex"
+  },
+  "pal_consensus": {
+    "enabled": true,
+    "models": [
+      {"model": "gemini-2.5-pro", "stance": "neutral"},
+      {"model": "gpt-5.2", "stance": "neutral"}
+    ]
+  },
   "thresholds": {
     "auto_approve": 95,
     "cross_verify": 75

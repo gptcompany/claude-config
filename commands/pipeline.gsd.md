@@ -45,8 +45,8 @@ AskUserQuestion({
 ### 2. CONFIDENCE GATE → CALL SCRIPT DIRECTLY
 **At plan and execute steps, MUST call the confidence gate script via Bash:**
 ```bash
-# ✅ CORRECT - Calls real script with external verification
-GATE_RESULT=$(echo "$STEP_OUTPUT" | python3 ~/.claude/scripts/confidence_gate.py --step "plan" --json 2>&1)
+# ✅ CORRECT - Calls real script with --files for file-based input
+GATE_RESULT=$(python3 ~/.claude/scripts/confidence_gate.py --step "plan" --files "$PLAN_FILE" --json 2>&1)
 ```
 
 ### 3. POST-PHASE → USE AskUserQuestion (NEVER just stop)
@@ -234,7 +234,7 @@ def should_gate(step_name: str, output: str, context: dict) -> bool:
 │ 5. CONFIDENCE GATE (Plan)                   │
 │    /confidence-gate --step plan             │
 │    exit 0 → continue                        │
-│    exit 1 → iterate (max 3x)                │
+│    exit 1 → CROSS_VERIFY (iterate suggested)│
 │    exit 2 → human review                    │
 └─────────────────┬───────────────────────────┘
                   ↓
@@ -375,10 +375,13 @@ Valuta CONTEXT.md con `/confidence-gate --step "context-PHASE" --input CONTEXT_F
 
 **CHECKPOINT PRE:** `npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:step5" --value '{"status":"starting"}' --namespace pipeline`
 
-Valuta PLAN con `/confidence-gate --step "plan-PHASE" --detect-evolve --json`:
-- Exit 0: ✅ Plan approved
-- Exit 1: 🔄 Iterate (max 3x) con re-plan
-- Exit 2: ⏸️ Human review
+Valuta PLAN con:
+```bash
+python3 ~/.claude/scripts/confidence_gate.py --step "plan-PHASE" --files "$PLAN_FILE" --detect-evolve --threshold $THRESHOLD --json
+```
+- Exit 0: Plan approved (AUTO_APPROVE)
+- Exit 1: CROSS_VERIFY (iterate max 3x) con re-plan
+- Exit 2: HUMAN_REVIEW
 
 **CHECKPOINT POST:** `npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:step5" --value '{"status":"done"}' --namespace pipeline`
 
@@ -432,14 +435,17 @@ Se TIER2_WARN e AUTOFIX=true: auto-fix lint
 
 **CHECKPOINT PRE:** `npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:step8" --value '{"status":"starting"}' --namespace pipeline`
 
-Valuta VALIDATE_OUTPUT con `/confidence-gate --step "impl-PHASE" --detect-evolve --json`:
-- Exit 0: ✅ Phase complete
+Valuta VALIDATE_OUTPUT con:
+```bash
+python3 ~/.claude/scripts/confidence_gate.py --step "impl-PHASE" --files "$VALIDATE_OUTPUT_FILE" --include-dirs "$PROJECT_SRC_DIR" --detect-evolve --threshold $THRESHOLD --json
+```
+- Exit 0: Phase complete (AUTO_APPROVE)
   ```bash
   npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:complete" --value '{"status":"success"}' --namespace pipeline
   npx @claude-flow/cli@latest session save --name "gsd-PHASE-complete"
   ```
-- Exit 1: 🔄 Iterate
-- Exit 2: ⏸️ Human review
+- Exit 1: CROSS_VERIFY (iterate suggested)
+- Exit 2: HUMAN_REVIEW
 
 **CHECKPOINT POST:** `npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:step8" --value '{"status":"done"}' --namespace pipeline`
 

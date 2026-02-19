@@ -98,7 +98,6 @@
     ],
     "defaultMode": "bypassPermissions"
   },
-  "model": "opus",
   "enableAllProjectMcpServers": true,
   "hooks": {
     "PreToolUse": [
@@ -211,6 +210,11 @@
             "type": "command",
             "command": "npx @claude-flow/cli@latest hooks post-edit --train-neural true 2>/dev/null || true",
             "timeout": 8
+          },
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/quality/confidence-gate-sync.js\"",
+            "timeout": 5
           }
         ]
       },
@@ -335,6 +339,11 @@
             "type": "command",
             "command": "node \"$HOME/.claude/scripts/hooks/intelligence/lesson-injector.js\"",
             "timeout": 5
+          },
+          {
+            "type": "command",
+            "command": "node \"$HOME/.claude/scripts/hooks/intelligence/cf-session-workers.js\"",
+            "timeout": 4
           }
         ]
       }
@@ -349,5 +358,6 @@
     "code-simplifier@claude-plugins-official": true
   },
   "language": "italian",
-  "alwaysThinkingEnabled": true
+  "alwaysThinkingEnabled": true,
+  "skipDangerousModePermissionPrompt": true
 }

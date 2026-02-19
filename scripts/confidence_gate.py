@@ -405,36 +405,138 @@ REGOLE:
 
         return None
 
+    def verify_with_codex_cli(
+        self, output: str, timeout: int = 120, step_name: str = "unknown",
+        model: str = "",
+    ) -> Optional[VerificationResult]:
+        """Verifica usando Codex CLI (OpenAI subscription).
+
+        Modelli disponibili: o3-mini, o3, o3-pro, o4-mini,
+        gpt-5, gpt-5-mini, gpt-5.1-codex, gpt-5.1-codex-mini,
+        gpt-5.2, gpt-5.2-pro.
+
+        Default: gpt-5.1-codex (specializzato code review).
+        """
+        import shutil
+
+        codex_bin = shutil.which("codex")
+        if not codex_bin:
+            print("[WARN] Codex CLI not found in PATH", file=sys.stderr)
+            return None
+
+        if not model:
+            codex_config = self.config.get("codex_cli", {})
+            model = codex_config.get("model", "gpt-5.1-codex")
+
+        prompt = self._get_prompt(output, step_name)
+
+        start_time = time.time()
+        try:
+            result = subprocess.run(
+                [codex_bin, "-q", "--full-auto", "-m", model, prompt],
+                capture_output=True, text=True, timeout=timeout,
+            )
+
+            if result.returncode != 0:
+                stderr = result.stderr.strip()
+                if stderr:
+                    print(f"[WARN] Codex CLI {model} failed (exit {result.returncode}): {stderr[:200]}", file=sys.stderr)
+                return None
+
+            latency = int((time.time() - start_time) * 1000)
+            content = result.stdout.strip()
+
+            # Extract JSON (same logic as Gemini)
+            json_end = content.rfind("}") + 1
+            if json_end > 0:
+                depth = 0
+                json_start = -1
+                for i in range(json_end - 1, -1, -1):
+                    if content[i] == "}":
+                        depth += 1
+                    elif content[i] == "{":
+                        depth -= 1
+                        if depth == 0:
+                            json_start = i
+                            break
+
+                if json_start >= 0:
+                    try:
+                        parsed = json.loads(content[json_start:json_end])
+                        if "approved" in parsed or "confidence" in parsed:
+                            return VerificationResult(
+                                approved=parsed.get("approved", False),
+                                confidence=parsed.get("confidence", 0),
+                                issues=parsed.get("issues", []),
+                                provider="codex_cli",
+                                model=model,
+                                latency_ms=latency,
+                            )
+                    except json.JSONDecodeError:
+                        pass
+
+            # Fallback: first { to last }
+            json_start = content.find("{")
+            if json_start >= 0 and json_end > json_start:
+                try:
+                    parsed = json.loads(content[json_start:json_end])
+                    return VerificationResult(
+                        approved=parsed.get("approved", False),
+                        confidence=parsed.get("confidence", 0),
+                        issues=parsed.get("issues", []),
+                        provider="codex_cli",
+                        model=model,
+                        latency_ms=latency,
+                    )
+                except json.JSONDecodeError:
+                    print(f"[WARN] Codex CLI {model}: could not parse JSON from response", file=sys.stderr)
+
+        except subprocess.TimeoutExpired:
+            print(f"[WARN] Codex CLI {model} timeout after {timeout}s", file=sys.stderr)
+        except Exception as e:
+            print(f"[WARN] Codex CLI {model} failed: {e}", file=sys.stderr)
+
+        return None
+
     def verify_chain(
         self, output: str, step_name: str = "unknown",
         include_dirs: Optional[List[str]] = None,
     ) -> List[VerificationResult]:
         """
-        Catena di verifica via Gemini CLI (subscription OAuth):
-        1. Flash (primario) - SEMPRE
-        2. Pro (cross-verify) - SEMPRE
-        3. 2.5 Flash (fallback solo se entrambi falliscono)
+        Catena di verifica multi-provider (anti-bias):
+        1. Gemini Flash (primario) - SEMPRE
+        2. Gemini Pro (cross-verify) - SEMPRE
+        3. Codex CLI (se abilitato in config) - cross-provider diversity
+        4. Gemini 2.5 Flash (fallback solo se tutti falliscono)
         """
         cli_models = self.config.get("gemini_cli_models", {})
         primary = cli_models.get("primary", "gemini-3-flash-preview")
         cross = cli_models.get("cross_verify", "gemini-2.5-pro")
         fallback = cli_models.get("fallback", "gemini-2.5-flash")
+        codex_config = self.config.get("codex_cli", {})
 
         results = []
 
-        # 1. Primary: Flash (always)
+        # 1. Primary: Gemini Flash (always)
         flash_result = self.verify_with_gemini_cli(
             output, step_name=step_name, model=primary, include_dirs=include_dirs)
         if flash_result:
             results.append(flash_result)
 
-        # 2. Cross-verify: Pro (always)
+        # 2. Cross-verify: Gemini Pro (always)
         pro_result = self.verify_with_gemini_cli(
             output, step_name=step_name, model=cross, include_dirs=include_dirs)
         if pro_result:
             results.append(pro_result)
 
-        # 3. Fallback: 2.5 Flash (only if both failed)
+        # 3. Codex CLI (if enabled) - cross-provider for diversity
+        if codex_config.get("enabled", False):
+            codex_result = self.verify_with_codex_cli(
+                output, step_name=step_name)
+            if codex_result:
+                results.append(codex_result)
+
+        # 4. Fallback: Gemini 2.5 Flash (only if all failed)
         if not results:
             fb_result = self.verify_with_gemini_cli(
                 output, step_name=step_name, model=fallback, include_dirs=include_dirs)
@@ -448,13 +550,14 @@ class ConfidenceGate:
     """
     Gate automatico basato su confidence score ESTERNO (anti-bias).
 
-    Flusso ANTI-BIAS (confidence calcolata da Gemini CLI, NON da Claude):
+    Flusso ANTI-BIAS (confidence calcolata da modelli esterni, NON da Claude):
     1. Gemini Flash valuta → salva risultato
     2. Gemini Pro valuta SEMPRE → salva risultato
-    3. Media pesata: avg = Flash*0.4 + Pro*0.6
-    4. AUTO_APPROVE solo se avg >= 95 E entrambi approved
-    5. CROSS_VERIFY se avg >= 75
-    6. HUMAN_REVIEW se avg < 75
+    3. Codex CLI valuta (se abilitato) → cross-provider diversity
+    4. Media pesata dinamica (vedi _weighted_average)
+    5. AUTO_APPROVE solo se avg >= threshold E tutti approved
+    6. CROSS_VERIFY se avg >= cross_verify threshold
+    7. HUMAN_REVIEW se avg < cross_verify threshold
     """
 
     DEFAULT_THRESHOLDS = {
@@ -470,26 +573,57 @@ class ConfidenceGate:
             **config.get("thresholds", {}),
         }
 
+    @staticmethod
+    def _weighted_average(
+        flash_result: Optional[VerificationResult],
+        pro_result: Optional[VerificationResult],
+        codex_result: Optional[VerificationResult],
+        verifications: List[VerificationResult],
+    ) -> tuple:
+        """Calculate weighted average confidence and all-approved flag.
+
+        Weights (when all 3 present): Flash*0.3 + Pro*0.4 + Codex*0.3
+        Weights (2 Gemini only): Flash*0.4 + Pro*0.6
+        Weights (1 model): that model's score
+        """
+        if len(verifications) >= 3 and flash_result and pro_result and codex_result:
+            avg = int(flash_result.confidence * 0.3 + pro_result.confidence * 0.4 + codex_result.confidence * 0.3)
+            approved = flash_result.approved and pro_result.approved and codex_result.approved
+        elif len(verifications) == 2 and flash_result and pro_result:
+            avg = int(flash_result.confidence * 0.4 + pro_result.confidence * 0.6)
+            approved = flash_result.approved and pro_result.approved
+        elif len(verifications) == 1:
+            avg = verifications[0].confidence
+            approved = verifications[0].approved
+        else:
+            avg = verifications[0].confidence if verifications else 0
+            approved = verifications[0].approved if verifications else False
+        return avg, approved
+
     def evaluate(
         self,
         step_output: str,
         internal_confidence: int = 0,
         step_name: str = "unknown",
         include_dirs: Optional[List[str]] = None,
+        no_iterate: bool = False,
     ) -> GateResult:
         """
-        Valuta output usando Gemini CLI (anti-bias, subscription OAuth).
+        Valuta output usando verifier esterni (anti-bias).
 
         Args:
             step_output: Output dello step da valutare
-            internal_confidence: IGNORATO - confidence calcolata da Gemini
+            internal_confidence: IGNORATO - confidence calcolata da modelli esterni
             step_name: Nome dello step per logging
             include_dirs: Directory da includere nel workspace Gemini
+            no_iterate: Se True, should_iterate forzato a False
         """
+        codex_enabled = self.verifier.config.get("codex_cli", {}).get("enabled", False)
+        providers = "Gemini+Codex" if codex_enabled else "Gemini"
         if include_dirs:
-            print(f"[GATE] {step_name}: Calculating confidence via Gemini CLI (anti-bias, dirs: {len(include_dirs)})...")
+            print(f"[GATE] {step_name}: Calculating confidence via {providers} CLI (anti-bias, dirs: {len(include_dirs)})...")
         else:
-            print(f"[GATE] {step_name}: Calculating confidence via Gemini CLI (anti-bias)...")
+            print(f"[GATE] {step_name}: Calculating confidence via {providers} CLI (anti-bias)...")
 
         cli_models = self.verifier.config.get("gemini_cli_models", {})
         primary = cli_models.get("primary", "gemini-3-flash-preview")
@@ -498,7 +632,7 @@ class ConfidenceGate:
         fallback_model = cli_models.get("fallback", "gemini-2.5-flash")
         verifications: List[VerificationResult] = []
 
-        # Step 1: Primary verification (Flash)
+        # Step 1: Primary verification (Gemini Flash)
         flash_result = self.verifier.verify_with_gemini_cli(
             step_output, step_name=step_name, model=primary, include_dirs=include_dirs
         )
@@ -511,7 +645,7 @@ class ConfidenceGate:
         else:
             print(f"  [{primary}] FAILED")
 
-        # Step 2: ALWAYS cross-verify with Pro (anti single-model bias)
+        # Step 2: ALWAYS cross-verify with Gemini Pro (anti single-model bias)
         print(f"[GATE] {step_name}: Cross-verifying with {cross}...")
         pro_result = self.verifier.verify_with_gemini_cli(
             step_output, step_name=step_name, model=cross, include_dirs=include_dirs
@@ -525,39 +659,46 @@ class ConfidenceGate:
         else:
             print(f"  [{cross}] FAILED")
 
-        # Step 3: If both failed, try fallback
+        # Step 3: Codex CLI cross-provider (if enabled)
+        codex_result = None
+        if codex_enabled:
+            codex_model = self.verifier.config.get("codex_cli", {}).get("model", "gpt-5.1-codex")
+            print(f"[GATE] {step_name}: Cross-provider verification with Codex ({codex_model})...")
+            codex_result = self.verifier.verify_with_codex_cli(
+                step_output, step_name=step_name
+            )
+            if codex_result:
+                verifications.append(codex_result)
+                print(f"  [codex/{codex_model}] confidence: {codex_result.confidence}, approved: {codex_result.approved}")
+                if codex_result.issues:
+                    print(f"    Issues: {', '.join(codex_result.issues[:3])}")
+            else:
+                print(f"  [codex/{codex_model}] FAILED")
+
+        # Step 4: If all failed, try Gemini fallback
         if not verifications:
-            print(f"[GATE] {step_name}: Both models failed, trying {fallback_model}...")
+            print(f"[GATE] {step_name}: All models failed, trying {fallback_model}...")
             fb_result = self.verifier.verify_with_gemini_cli(
                 step_output, step_name=step_name, model=fallback_model, include_dirs=include_dirs
             )
             if fb_result:
                 verifications.append(fb_result)
             else:
-                print(f"[GATE] {step_name}: All Gemini models failed - HUMAN_REVIEW required")
-                print("[GATE] Check: Gemini CLI installed, OAuth configured, network")
+                print(f"[GATE] {step_name}: All models failed - HUMAN_REVIEW required")
+                print("[GATE] Check: Gemini CLI, Codex CLI, OAuth, network")
                 return GateResult(
                     decision=GateDecision.HUMAN_REVIEW,
                     confidence_score=0,
                     verifications=[],
                     should_iterate=False,
-                    iteration_feedback="All Gemini CLI models failed. Check: gemini CLI, OAuth, network.",
+                    iteration_feedback="All verification models failed. Check: gemini CLI, codex CLI, OAuth, network.",
                     final_approved=False,
                 )
 
-        # Step 4: Decision based on weighted average of all results
-        if len(verifications) == 2 and flash_result and pro_result:
-            # Both Flash and Pro succeeded: weighted average (Pro weighs more)
-            avg_conf = int(flash_result.confidence * 0.4 + pro_result.confidence * 0.6)
-            both_approved = flash_result.approved and pro_result.approved
-        elif len(verifications) == 1:
-            # Only one model succeeded (the other failed)
-            avg_conf = verifications[0].confidence
-            both_approved = verifications[0].approved
-        else:
-            # Fallback-only case
-            avg_conf = verifications[0].confidence
-            both_approved = verifications[0].approved
+        # Step 5: Weighted average (dynamic based on available results)
+        avg_conf, all_approved = self._weighted_average(
+            flash_result, pro_result, codex_result, verifications
+        )
 
         # Collect all issues
         all_issues: List[str] = []
@@ -565,7 +706,7 @@ class ConfidenceGate:
             all_issues.extend(v.issues)
 
         # AUTO_APPROVE: high avg confidence AND all models approved
-        if avg_conf >= self.THRESHOLDS["auto_approve"] and both_approved:
+        if avg_conf >= self.THRESHOLDS["auto_approve"] and all_approved:
             print(f"[GATE] {step_name}: AUTO_APPROVE (avg confidence: {avg_conf}, models: {len(verifications)})")
             return GateResult(
                 decision=GateDecision.AUTO_APPROVE,
@@ -576,16 +717,16 @@ class ConfidenceGate:
                 final_approved=True,
             )
 
-        # CROSS_VERIFY / ITERATE: medium confidence with issues
+        # CROSS_VERIFY: medium confidence with issues
         if avg_conf >= self.THRESHOLDS["cross_verify"]:
             if all_issues:
                 feedback = "\n".join(f"- {issue}" for issue in all_issues[:5])
-                print(f"[GATE] {step_name}: ITERATE suggested (avg confidence: {avg_conf})")
+                print(f"[GATE] {step_name}: CROSS_VERIFY with issues (avg confidence: {avg_conf})")
                 return GateResult(
                     decision=GateDecision.CROSS_VERIFY,
                     confidence_score=avg_conf,
                     verifications=verifications,
-                    should_iterate=True,
+                    should_iterate=not no_iterate,
                     iteration_feedback=feedback,
                     final_approved=False,
                 )
@@ -673,7 +814,7 @@ def main():
     """CLI per testing."""
     import argparse
 
-    parser = argparse.ArgumentParser(description="Confidence Gate (Gemini CLI)")
+    parser = argparse.ArgumentParser(description="Confidence Gate (Gemini + Codex CLI)")
     parser.add_argument("--output", "--input", "-o", "-i", help="Output to verify (or stdin)")
     parser.add_argument("--files", "-f", nargs="+",
                         help="File paths to ingest as input (concatenated)")
@@ -698,6 +839,10 @@ def main():
                         help="Override Gemini model")
     parser.add_argument("--max-input-chars", type=int, default=None,
                         help="Override max input chars (default: 500000)")
+    parser.add_argument("--threshold", "-t", type=int, default=None,
+                        help="Override auto_approve threshold (default: from config)")
+    parser.add_argument("--no-iterate", action="store_true",
+                        help="Disable iteration suggestions (should_iterate=False)")
     args = parser.parse_args()
 
     # Leggi output da file, argomento, o stdin
@@ -752,6 +897,10 @@ def main():
     if args.gemini_model:
         gate.verifier.config.setdefault("gemini_cli_models", {})["primary"] = args.gemini_model
 
+    # Override threshold if specified
+    if args.threshold is not None:
+        gate.THRESHOLDS["auto_approve"] = args.threshold
+
     if use_evolve:
         result = evolve_loop(
             gate=gate,
@@ -763,7 +912,10 @@ def main():
             include_dirs=include_dirs,
         )
     else:
-        result = gate.evaluate(output, args.confidence, args.step, include_dirs=include_dirs)
+        result = gate.evaluate(
+            output, args.confidence, args.step,
+            include_dirs=include_dirs, no_iterate=args.no_iterate,
+        )
 
     if args.json:
         print(

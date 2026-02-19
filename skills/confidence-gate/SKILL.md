@@ -1,7 +1,7 @@
 ---
 name: confidence-gate
 description: Autonomous confidence gate with multi-model verification. Eliminates "is this OK?" questions when confidence is high. Pluggable into any workflow.
-argument-hint: "<step_output> [--confidence N] [--step NAME] [--threshold N] [--no-iterate] [--json]"
+argument-hint: "<step_output> [--confidence N] [--step NAME] [--threshold N] [--no-iterate] [--json] [--files FILE...] [--include-dirs DIR...]"
 allowed-tools:
   - Bash
   - Read
@@ -9,9 +9,9 @@ allowed-tools:
   - AskUserQuestion
   - mcp__claude-flow__memory_store
   - mcp__claude-flow__memory_retrieve
-  - mcp__pal__review
-  - mcp__pal__consensus
   - mcp__pal__clink
+  - mcp__pal__codereview
+  - mcp__pal__consensus
   - mcp__pal__chat
 ---
 
@@ -51,16 +51,19 @@ echo "$STEP_OUTPUT" | /confidence-gate --step "plan"
 
 | Argument | Description | Default |
 |----------|-------------|---------|
-| `--input`, `-i` | Step output to verify (or stdin) | stdin |
-| `--confidence`, `-c` | Internal confidence score (0-100) | Auto-calculate |
-| `--step`, `-s` | Step name for logging/tracking | "unknown" |
-| `--threshold`, `-t` | Auto-approve threshold | 85 |
-| `--no-iterate` | Skip iteration suggestions | false |
+| `--output`, `--input`, `-o`, `-i` | Output to verify (or stdin) | stdin |
+| `--files`, `-f` | File paths to ingest as input (concatenated) | - |
+| `--include-dirs` | Directories for Gemini to browse natively | - |
+| `--confidence`, `-c` | Internal confidence score (ignored, anti-bias) | 70 |
+| `--step`, `-s` | Step name (plan\|implement\|verify\|test\|security-review) | "unknown" |
+| `--threshold`, `-t` | Override auto_approve threshold | from config (85) |
+| `--no-iterate` | Disable iteration suggestions (should_iterate=False) | false |
 | `--json` | Output JSON for workflow parsing | false |
-| `--save` | Save result to claude-flow memory | true |
 | `--evolve`, `-e` | Enable evolution loop (iterate until convergence) | false |
 | `--max-iterations`, `-m` | Max iterations for evolve loop | 3 |
 | `--detect-evolve` | Auto-detect [E] marker and enable evolve | false |
+| `--gemini-model`, `-g` | Override Gemini model | from config |
+| `--max-input-chars` | Override max input chars | 500000 |
 
 ## Evolution Loop [E] Marker
 
@@ -94,20 +97,31 @@ This prevents Claude from biasing the score to auto-approve.
 
 | Decision | Trigger | Action |
 |----------|---------|--------|
-| `AUTO_APPROVE` | External verifier approves with high confidence | Proceed |
-| `CROSS_VERIFY` | First verifier uncertain, needs second opinion | Verify with backup |
-| `ITERATE` | Verifiers found fixable issues | Return feedback for retry |
-| `HUMAN_REVIEW` | Low confidence or verifiers reject | Pause and ask user |
+| `AUTO_APPROVE` | avg confidence >= threshold AND all models approved | Proceed |
+| `CROSS_VERIFY` | avg confidence 60-84, or not all models approved | Verify with backup; may set should_iterate=True if issues found |
+| `HUMAN_REVIEW` | avg confidence < 60, or all models failed | Pause and ask user |
+
+Note: There is no separate ITERATE decision. Instead, `CROSS_VERIFY` with `should_iterate=True` serves that purpose -- the gate returns fixable issues as `iteration_feedback` for the caller to retry.
 
 ## Verification Chain
 
 ```
-1. Gemini 3 Flash Preview (primary, via Gemini CLI + OAuth subscription)
-2. Gemini 2.5 Pro (cross-verify)
-3. Gemini 2.5 Flash (fallback)
+Path 1 (PAL MCP clink -> Gemini CLI, preferred inside Claude Code):
+  mcp__pal__clink(cli_name="gemini", role="codereviewer", prompt=...)
+
+Path 2 (PAL MCP clink -> Codex CLI, code review inside Claude Code):
+  mcp__pal__clink(prompt="...", cli_name="codex", role="codereviewer")
+
+Path 3 (PAL MCP consensus, multi-model for critical decisions):
+  mcp__pal__consensus(step="...", models=[...])
+
+Path 4 (Python script standalone, fallback for CLI/CI):
+  python3 ~/.claude/scripts/confidence_gate.py --step NAME --json
+  Uses both Gemini CLI + Codex CLI (if codex_cli.enabled in config)
 ```
 
-All models use Gemini CLI with Google AI Pro subscription (OAuth, no API keys).
+Paths 1-2 use CLI OAuth subscriptions (no API keys). Path 3 uses API keys via PAL.
+Path 4 runs Gemini CLI and optionally Codex CLI as subprocesses.
 
 ## Output Format
 
@@ -122,19 +136,35 @@ Final Approved: true
 ### JSON Output (--json)
 ```json
 {
-  "decision": "auto_approve|cross_verify|iterate|human_review",
-  "confidence_score": 92,
+  "decision": "auto_approve|cross_verify|human_review",
+  "confidence_score": 88,
   "final_approved": true,
   "should_iterate": false,
   "iteration_feedback": null,
   "verifications": [
     {
-      "provider": "gemini",
-      "model": "google/gemini-3-flash-preview",
+      "provider": "gemini_cli",
+      "model": "gemini-3-flash-preview",
+      "approved": true,
+      "confidence": 90,
+      "issues": [],
+      "latency_ms": 2500
+    },
+    {
+      "provider": "gemini_cli",
+      "model": "gemini-2.5-pro",
+      "approved": true,
+      "confidence": 85,
+      "issues": ["Minor: could add input validation"],
+      "latency_ms": 4200
+    },
+    {
+      "provider": "codex_cli",
+      "model": "gpt-5.1-codex",
       "approved": true,
       "confidence": 88,
       "issues": [],
-      "latency_ms": 2500
+      "latency_ms": 3100
     }
   ]
 }
@@ -150,7 +180,7 @@ stages:
     post_hook: "/confidence-gate --step plan --json"
     on_result:
       auto_approve: continue
-      iterate: retry_with_feedback
+      cross_verify_with_iterate: retry_with_feedback
       human_review: pause
 ```
 
@@ -182,49 +212,80 @@ fi
 
 ## Execution
 
-When invoked, use **PAL MCP** as primary path (via `mcp__pal__review`), with Gemini CLI Python script as fallback.
+When invoked, use **PAL MCP** as primary path (Paths 1-3 within Claude Code), with the Python script as fallback (Path 4 for CLI/CI).
 
-### Path 1: PAL MCP (preferred, within Claude Code)
+### Path 1: PAL MCP clink -> Gemini (preferred, within Claude Code)
 
-Use `mcp__pal__review` for code review verification:
+Use `mcp__pal__clink` with `cli_name="gemini"` to route through Gemini CLI (OAuth, no API keys):
 
 ```
-mcp__pal__review(
-  code="<STEP_OUTPUT>",
+mcp__pal__clink(
+  prompt="<REVIEW_PROMPT>\n\n---\n<STEP_OUTPUT>",
   cli_name="gemini",
-  focus="completeness,correctness,security,risks"
+  role="codereviewer"
 )
 ```
 
-Or `mcp__pal__consensus` for multi-model agreement:
+The review prompt must ask for JSON response with `{approved, confidence, issues, recommendation}`.
+Use the step-specific prompts from the Python script (plan, implement, verify, test, security-review).
+
+### Path 2: PAL MCP clink -> Codex (code review, within Claude Code)
+
+Use `mcp__pal__clink` with `cli_name="codex"` to route through Codex CLI (OpenAI subscription):
+
+```
+mcp__pal__clink(
+  prompt="<REVIEW_PROMPT>\n\n---\n<STEP_OUTPUT>",
+  cli_name="codex",
+  role="codereviewer"
+)
+```
+
+Best for code-focused reviews. Default model: gpt-5.1-codex (specialized for code review).
+
+### Path 3: PAL MCP consensus (multi-model, for critical decisions)
+
+Use `mcp__pal__consensus` for cross-provider verification (uses API keys, not CLI OAuth):
 
 ```
 mcp__pal__consensus(
-  prompt="Valuta questo output. Rispondi con JSON: {approved, confidence, issues, recommendation}.\n\n<STEP_OUTPUT>",
-  cli_name="gemini"
+  step="Valuta questo output...\n\n<STEP_OUTPUT>",
+  models=[
+    {"model": "gemini-2.5-pro", "stance": "neutral"},
+    {"model": "gpt-5.2", "stance": "neutral"}
+  ]
 )
 ```
 
-PAL MCP uses Gemini CLI with OAuth subscription (no API keys needed for `clink`/`review`).
+Reserve for high-stakes decisions (security reviews, architecture choices).
+
+### Confidence scoring (Paths 1-3)
 
 Parse the response and map to gate decisions:
-- confidence >= 85 + approved → `AUTO_APPROVE`
-- confidence 60-84 → `CROSS_VERIFY` (call again with different model)
-- confidence < 60 → `HUMAN_REVIEW`
+- confidence >= threshold (config, default 85) + approved -> `AUTO_APPROVE`
+- confidence 60-84 -> `CROSS_VERIFY` (may suggest iteration if issues found)
+- confidence < 60 -> `HUMAN_REVIEW`
 
-### Path 2: Python Script (fallback, for CLI/CI usage)
+### Path 4: Python Script (fallback, for CLI/CI usage)
 
 ```bash
 echo "$STEP_OUTPUT" | python3 ~/.claude/scripts/confidence_gate.py \
   --step "$STEP_NAME" \
   --json
+
+# With file inputs and directory browsing
+python3 ~/.claude/scripts/confidence_gate.py \
+  --files src/main.py src/utils.py \
+  --include-dirs src/ tests/ \
+  --step "implement" \
+  --json
 ```
 
-This runs Gemini CLI directly (subprocess), useful for standalone/hook/CI usage.
+This runs Gemini CLI directly (subprocess), and optionally Codex CLI if `codex_cli.enabled` is true in config. Useful for standalone/hook/CI usage.
 
 ## Memory Persistence
 
-When `--save` is enabled (default), results are stored:
+When using Paths 1-3 (within Claude Code), store results via claude-flow memory:
 
 ```python
 mcp__claude-flow__memory_store(
@@ -254,19 +315,32 @@ Models configured in `~/.claude/config/confidence_gate.json`:
     "primary": "gemini-3-flash-preview",
     "cross_verify": "gemini-2.5-pro",
     "fallback": "gemini-2.5-flash"
+  },
+  "codex_cli": {
+    "enabled": true,
+    "model": "gpt-5.1-codex"
+  },
+  "pal_consensus": {
+    "enabled": true,
+    "models": [
+      {"model": "gemini-2.5-pro", "stance": "neutral"},
+      {"model": "gpt-5.2", "stance": "neutral"}
+    ]
   }
 }
 ```
 
-Requires: Gemini CLI (`npm i -g @google/gemini-cli`) + Google AI Pro subscription (OAuth).
+Requires:
+- Gemini CLI (`npm i -g @google/gemini-cli`) + Google AI Pro subscription (OAuth)
+- Codex CLI (optional, `npm i -g @openai/codex`) + OpenAI subscription
 
-**Note:** Thresholds are hardcoded in the script and NOT exposed to Claude to prevent gaming.
+**Note:** Thresholds default to 85 (auto_approve) and 60 (cross_verify). They can be overridden via `--threshold` CLI flag or `thresholds` config key, but are NOT exposed to Claude to prevent gaming.
 
 ## Exit Codes
 
 | Code | Meaning |
 |------|---------|
 | 0 | AUTO_APPROVE or CROSS_VERIFY approved |
-| 1 | ITERATE - issues found, retry suggested |
+| 1 | CROSS_VERIFY with should_iterate - issues found, retry suggested |
 | 2 | HUMAN_REVIEW - human approval required |
 | 3 | Error (verification failed, config missing) |

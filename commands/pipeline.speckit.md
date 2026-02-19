@@ -45,14 +45,15 @@ AskUserQuestion({
 ### 2. CONFIDENCE GATE → CALL BASH SCRIPT DIRECTLY
 **At steps 4, 7, 10 - MUST call the confidence gate script via Bash:**
 ```bash
-# ✅ CORRECT - Calls real script with external verification
-GATE_RESULT=$(echo "$STEP_OUTPUT" | python3 ~/.claude/scripts/confidence_gate.py --step "plan" --json 2>&1)
+# ✅ CORRECT - Calls real script with --files for file-based input
+GATE_RESULT=$(python3 ~/.claude/scripts/confidence_gate.py --step "plan" --files "$PLAN_FILE" --json 2>&1)
 echo "$GATE_RESULT"
 
-# ❌ WRONG - Never generate inline Python heredocs for cross-verification
-# cat << 'SCRIPT_EOF' | python3 ...  # This will fail with heredoc errors
+# ❌ WRONG - Never pipe via echo or generate inline Python heredocs
+# echo "$STEP_OUTPUT" | python3 ~/.claude/scripts/confidence_gate.py ...
+# cat << 'SCRIPT_EOF' | python3 ...
 ```
-**NEVER improvise inline Python code for confidence gate. ALWAYS use the script.**
+**NEVER improvise inline Python code for confidence gate. ALWAYS use the script with --files.**
 
 ### 3. PIPELINE FLAG → DISABILITA CONTEXT WARNING
 **All'inizio della pipeline, crea flag per evitare interruzioni:**
@@ -243,7 +244,7 @@ def calculate_complexity(output: str) -> float:
 │ 5. CONFIDENCE GATE (Plan)                   │
 │    /confidence-gate --step plan             │
 │    exit 0 → continue                        │
-│    exit 1 → iterate (max 3x)                │
+│    exit 1 → CROSS_VERIFY (iterate suggested)│
 │    exit 2 → human review                    │
 └─────────────────┬───────────────────────────┘
                   ↓
@@ -385,10 +386,13 @@ Se NO_CLARIFY!=true:
 
 **CHECKPOINT PRE:** `npx @claude-flow/cli@latest memory store --key "speckit:SPEC:step4" --value '{"status":"starting"}' --namespace pipeline`
 
-Valuta PLAN con `python3 ~/.claude/scripts/confidence_gate.py --step "plan" --detect-evolve --json`:
-- Exit 0: ✅ Plan approved
-- Exit 1: 🔄 Iterate (max 3x) - re-clarify + re-plan
-- Exit 2: ⏸️ Human review
+Valuta PLAN con:
+```bash
+python3 ~/.claude/scripts/confidence_gate.py --step "plan" --files "$PLAN_FILE" --detect-evolve --threshold $THRESHOLD --json
+```
+- Exit 0: Plan approved (AUTO_APPROVE)
+- Exit 1: CROSS_VERIFY (iterate max 3x) - re-clarify + re-plan
+- Exit 2: HUMAN_REVIEW
 
 **CHECKPOINT POST:** `npx @claude-flow/cli@latest memory store --key "speckit:SPEC:step4" --value '{"status":"done"}' --namespace pipeline`
 
@@ -414,10 +418,12 @@ Valuta PLAN con `python3 ~/.claude/scripts/confidence_gate.py --step "plan" --de
 
 **CHECKPOINT PRE:** `npx @claude-flow/cli@latest memory store --key "speckit:SPEC:step7" --value '{"status":"starting"}' --namespace pipeline`
 
-- `/confidence-gate --step "analyze" --json`
-- Exit 0: ✅ Proceed
-- Exit 1: 🔄 Autofix again
-- Exit 2: ⏸️ Human review
+```bash
+python3 ~/.claude/scripts/confidence_gate.py --step "analyze" --files "$ANALYZE_OUTPUT_FILE" --threshold $THRESHOLD --json
+```
+- Exit 0: Proceed (AUTO_APPROVE)
+- Exit 1: CROSS_VERIFY - autofix again
+- Exit 2: HUMAN_REVIEW
 
 **CHECKPOINT POST:** `npx @claude-flow/cli@latest memory store --key "speckit:SPEC:step7" --value '{"status":"done"}' --namespace pipeline`
 
@@ -449,15 +455,18 @@ npx @claude-flow/cli@latest session save --name "speckit-SPEC-post-implement"
 
 **CHECKPOINT PRE:** `npx @claude-flow/cli@latest memory store --key "speckit:SPEC:step10" --value '{"status":"starting"}' --namespace pipeline`
 
-Valuta VALIDATE_OUTPUT con `/confidence-gate --step "impl" --detect-evolve --json`:
-- Exit 0: ✅ Feature complete
+Valuta VALIDATE_OUTPUT con:
+```bash
+python3 ~/.claude/scripts/confidence_gate.py --step "impl" --files "$VALIDATE_OUTPUT_FILE" --include-dirs "$PROJECT_SRC_DIR" --detect-evolve --threshold $THRESHOLD --json
+```
+- Exit 0: Feature complete (AUTO_APPROVE)
   ```bash
   npx @claude-flow/cli@latest memory store --key "speckit:SPEC:complete" --value '{"status":"success"}' --namespace pipeline
   npx @claude-flow/cli@latest session save --name "speckit-SPEC-complete"
   ```
   AskUserQuestion per next steps (Continua/Deploy/Review/Done)
-- Exit 1: 🔄 Iterate
-- Exit 2: ⏸️ Human review
+- Exit 1: CROSS_VERIFY (iterate suggested)
+- Exit 2: HUMAN_REVIEW
 
 **CHECKPOINT POST:** `npx @claude-flow/cli@latest memory store --key "speckit:SPEC:step10" --value '{"status":"done"}' --namespace pipeline`
         ;;
