@@ -49,20 +49,28 @@ function markRun() {
 }
 
 /**
- * Extract CLI flag names from confidence_gate.py argparse calls.
- * Returns Set of flag names like: --files, --step, --json, etc.
+ * Extract CLI flags with help text from confidence_gate.py argparse calls.
+ * Returns Map<flag, {aliases: string[], help: string}>.
  */
 function extractScriptFlags(content) {
-  const flags = new Set();
-  // Match all add_argument() calls, then extract ALL --flags from each
-  const callRe = /parser\.add_argument\(([^)]+)\)/g;
+  const flags = new Map();
+  // Match add_argument() calls (may span multiple lines)
+  const callRe = /parser\.add_argument\(([\s\S]*?)\)\s*\n/g;
   let call;
   while ((call = callRe.exec(content)) !== null) {
+    const body = call[1];
+    const aliases = [];
     const flagRe = /"(--[\w-]+)"/g;
     let m;
-    while ((m = flagRe.exec(call[1])) !== null) {
-      flags.add(m[1]);
+    while ((m = flagRe.exec(body)) !== null) {
+      aliases.push(m[1]);
     }
+    if (aliases.length === 0) continue;
+    const helpMatch = body.match(/help\s*=\s*"([^"]+)"/);
+    const help = helpMatch ? helpMatch[1] : '';
+    // Primary flag = longest --flag (e.g. --output over -o)
+    const primary = aliases.reduce((a, b) => a.length >= b.length ? a : b);
+    flags.set(primary, { aliases, help });
   }
   return flags;
 }
@@ -166,29 +174,48 @@ async function main() {
 
   // 1. Compare script flags vs SKILL.md flags
   const scriptFlags = extractScriptFlags(files.script);
+  const scriptFlagNames = new Set(scriptFlags.keys());
   if (files.skill) {
     const skillFlags = extractDocFlags(files.skill);
-    for (const flag of scriptFlags) {
+    for (const [flag, info] of scriptFlags) {
       if (flag === '--output' || flag === '--confidence') continue; // Aliases, not primary
       if (!skillFlags.has(flag)) {
-        drifts.push(`SKILL.md missing flag: ${flag}`);
+        const aliasStr = info.aliases.length > 1
+          ? info.aliases.map(a => `\`${a}\``).join(', ')
+          : `\`${flag}\``;
+        const suggestion = `| ${aliasStr} | ${info.help} | - |`;
+        drifts.push(`SKILL.md missing flag: ${flag}\n    Add to table: ${suggestion}`);
       }
     }
     for (const flag of skillFlags) {
-      if (!scriptFlags.has(flag)) {
-        drifts.push(`SKILL.md documents non-existent flag: ${flag}`);
+      if (!scriptFlagNames.has(flag)) {
+        // Check if it's an alias of an existing flag
+        let isAlias = false;
+        for (const info of scriptFlags.values()) {
+          if (info.aliases.includes(flag)) { isAlias = true; break; }
+        }
+        if (!isAlias) {
+          drifts.push(`SKILL.md documents non-existent flag: ${flag}\n    Remove from docs or add to script`);
+        }
       }
     }
   }
 
   // 2. Check decision names in docs
   const validDecisions = extractDecisions(files.script);
+  const validList = [...validDecisions].join(', ');
   for (const [key, content] of Object.entries(files)) {
     if (key === 'script' || !content) continue;
     const invalid = findInvalidDecisions(content, validDecisions);
     if (invalid.length > 0) {
       const fileName = path.basename(MONITORED_FILES[key]);
-      drifts.push(`${fileName} uses invalid decision(s): ${invalid.join(', ')}`);
+      const suggestions = invalid.map(inv => {
+        if (inv === 'ITERATE') return `${inv} → CROSS_VERIFY (with should_iterate=True)`;
+        if (inv === 'REJECT' || inv === 'AUTO_REJECT') return `${inv} → HUMAN_REVIEW`;
+        if (inv === 'APPROVE') return `${inv} → AUTO_APPROVE`;
+        return `${inv} → one of: ${validList}`;
+      });
+      drifts.push(`${fileName} uses invalid decision(s):\n${suggestions.map(s => `    Replace: ${s}`).join('\n')}`);
     }
   }
 
