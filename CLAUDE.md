@@ -180,7 +180,7 @@ Quando analizzi codice, valuti progressi, o riporti status:
 | `SENTRY_AUTH_TOKEN` | Sentry MCP |
 | `OPENAI_API_KEY` | OpenAI API |
 | `GEMINI_API_KEY` | Vertex AI |
-| `OPENROUTER_API_KEY` | OpenRouter (OpenClaw cronjob/devops) |
+| `OPENROUTER_API_KEY` | OpenRouter (Cronjob/devops) |
 | `OPENROUTER_API_KEY2` | OpenRouter (confidence-gate pipeline) |
 | `N8N_API_KEY` | N8N MCP |
 | `DISCORD_TOKEN` | Discord bot |
@@ -189,7 +189,7 @@ Quando analizzi codice, valuti progressi, o riporti status:
 | `FIRECRAWL_API_KEY` | Firecrawl MCP |
 | `LANGSMITH_*` | LangSmith tracing |
 | `WOLFRAM_LLM_APP_ID` | WolframAlpha (in .claude.json env) |
-| `BRAVE_AI_API_KEY` | Brave Search API (openclaw web_search) |
+| `BRAVE_AI_API_KEY` | Brave Search API (Web search) |
 | `CLOUDFLARE_API_KEY` | Cloudflare Global API |
 | `CF_API_TOKEN` | Cloudflare Tunnel token |
 | `CF_ACCOUNT_ID` | Cloudflare Account ID |
@@ -288,112 +288,6 @@ Capabilities:
 - `computer_application` - Apri app (firefox, vscode, terminal)
 
 Skill: `~/.claude/skills/bytebot/SKILL.md`
-
-### OpenClaw (Agent Gateway + Node)
-
-**Architecture:** Gateway (Muletto Docker) → Node (Workstation systemd) → exec on repos
-
-**Gateway (Muletto 192.168.1.100):**
-- Container: `openclaw-gateway` (`ghcr.io/openclaw/openclaw:main`)
-- Config: `/home/sam/moltbot-infra/clawdbot-config/openclaw.json`
-- Workspace: `/home/sam/moltbot-infra/clawd-workspace/` (SOUL.md, BOOT.md, USER.md, AGENTS.md)
-- Persistent deps volume: `openclaw-node-modules` at `/app/node_modules`
-- Entrypoint: `node /app/dist/entry.js gateway --bind lan --port 8090`
-- Network: bridge + `moltbot-infra_moltbot-net` (for Synapse)
-
-**Node (Workstation 192.168.1.111):**
-- Service: `/etc/systemd/system/openclaw-node.service`
-- User: `openclaw` (dedicated, isolated)
-- WorkingDirectory: `/media/sam/1TB`
-- Security: `InaccessiblePaths` on sops/ssh/gnupg/claude/clawdbot, `ReadOnlyPaths=/ /home/sam`
-- Exec approvals: `/home/openclaw/.openclaw/exec-approvals.json` (`security: "full"`)
-- ACLs: `openclaw` has rwx on `/media/sam/1TB` via POSIX ACL
-- Filesystem: `chmod o+x` on `/home/sam`, `/home/sam/.local`, `/home/sam/.local/share` (traverse only, for uv python)
-
-**Matrix channel (Bambam):**
-- Room: `!GQeiGgJenxtCKbaxDL:matrix.lan` (name: "bambam")
-- Bot user: `@clawdbot:matrix.lan`
-- Send programmatic messages via Synapse API (NOT `openclaw message send` — uses separate client that loses room state)
-- Bot only responds to messages from other users, not its own
-
-**Multi-agent routing:** 4 agents (main, nautilus, utxoracle, n8n), deterministic per-session
-
-**CLI (inside gateway container):**
-```bash
-ssh 192.168.1.100 'docker exec openclaw-gateway node /app/dist/entry.js <command>'
-# Useful: skills list, doctor, config get/set, message send/read, agent, memory status/search
-```
-
-**Programmatic agent interaction (preferred over Matrix API):**
-```bash
-# Run agent turn and get JSON response
-ssh 192.168.1.100 'docker exec openclaw-gateway node /app/dist/entry.js agent \
-  --agent main --session-id <id> --message "..." --json --timeout 600'
-
-# Run + deliver response to Matrix room
-ssh 192.168.1.100 'docker exec openclaw-gateway node /app/dist/entry.js agent \
-  --agent main --message "..." --deliver \
-  --reply-channel matrix --reply-to "!GQeiGgJenxtCKbaxDL:matrix.lan" --json --timeout 600'
-```
-
-**Memory:** File-based via MEMORY.md in workspace (read every session). Embeddings via OpenAI text-embedding-3-small.
-
-**MCPorter (MCP bridge for Bambam):**
-- Config: `/home/openclaw/.mcporter/mcporter.json` (chmod 600)
-- Bambam usa `exec` → `npx -y mcporter call <server.tool> args...`
-- Per aggiungere MCP: editare mcporter.json con nuovo server
-- Chrome headless service: `chrome-headless.service` + `chrome-cdp-proxy.service` sulla Workstation
-
-**MCPorter Servers configurati (7):**
-
-| Server | Tools | Uso |
-|--------|-------|-----|
-| `playwright` | 22 | Browser automation, visual validation (headless Chrome) |
-| `context7` | 2 | Documentation lookup per librerie |
-| `grafana` | 55 | Metriche, dashboards, alerting |
-| `sentry` | 22 | Error tracking, issue analysis |
-| `linear` | 7 | Issue tracking |
-| `firecrawl` | 8 | Web scraping |
-| `linux-desktop` | AT-SPI2 | Desktop automation leggera (via SSH → muletto bytebot container) |
-
-**linux-desktop-mcp** (token-efficient desktop automation):
-- Pacchetto Python 0.1.0 dentro container `bytebot-desktop` su Muletto
-- Usa AT-SPI2 accessibility tree (testo strutturato, NO screenshot raw → basso consumo token)
-- Wrapper: `/home/openclaw/.mcporter/linux-desktop-mcp-wrapper.sh` (SSH → docker exec)
-- Prerequisito: SSH key openclaw → sam@192.168.1.100 (authorized_keys)
-- Alternativa pesante: Bytebot API (`http://192.168.1.100:9990/mcp`) per screenshot reali
-
-**Agents per repo (Claude Code, in .claude/agents/):**
-- nautilus_dev: 7 agents
-- UTXOracle: 9 agents
-- N8N_dev: 3 agents
-
-### OpenClaw Config Audit (2026-02-01)
-
-**Workspace isolati per agent:**
-- `main` → `/home/node/clawd`
-- `nautilus` → `/home/node/clawd-nautilus`
-- `utxoracle` → `/home/node/clawd-utxoracle`
-- `n8n` → `/home/node/clawd-n8n`
-
-**Exec Approvals** (`~/.openclaw/exec-approvals.json`):
-- Default: `security: "allowlist"`, `ask: "on-miss"`, `askFallback: "deny"`
-- Per-agent allowlists: git, python3, node, npm, npx, pytest, .local/bin/*
-- `autoAllowSkills: true` per tutti gli agent
-
-**Memory Flush**: abilitato pre-compaction (`softThresholdTokens: 4000`)
-
-**Browser**: `evaluateEnabled: false` (anti-injection), profilo `openclaw` → CDP `http://192.168.1.111:9223`
-
-**Cron** (4 job, tutti agent "main"):
-- node-health-check: ogni 6h UTC
-- Auth check: ogni 6h
-- Daily QA: 09:00 Europe/Rome
-- Weekly review: lunedì 08:00 Europe/Rome
-
-**Hooks** (3 attivi): boot-md, session-memory, command-logger
-
-**SSH openclaw→muletto**: `command=` restriction — può solo eseguire `linux-desktop-mcp`
 
 ## Testing Requirements (MANDATORY)
 
@@ -522,7 +416,7 @@ mcp__claude-flow__memory_retrieve key="gsd:{project}:*"
 - **Metriche**: sync automatico a QuestDB via hook
 
 ### Alternative con garanzia
-Usa `/gsd:execute-phase-sync` o `/speckit.implement-sync` per sync automatico garantito.
+Usa `/gsd:execute-phase` o `/speckit.implement-sync` per sync automatico garantito.
 
 ### GitHub Sync Strategy
 
@@ -535,13 +429,11 @@ Combinazione ottimale per tracking completo:
    mcp__claude-flow__github_issue_track action="close" issueNumber={n}
    ```
 
-2. **Fine milestone** (batch sync completo):
+2. **Fine milestone** (batch sync via claude-flow):
    ```
-   /gsd:sync-github --create-project
+   mcp__claude-flow__github_issue_track action="create" title="Milestone N" labels=["gsd-milestone"]
    ```
-   - Crea GitHub ProjectsV2 board
-   - Sincronizza Phases → Milestones
-   - Sincronizza Plans → Issues
+   - Crea Issues per ogni Phase
    - Applica labels standard
 
 ## Academic Research Pipeline (N8N)

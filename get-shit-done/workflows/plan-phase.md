@@ -1,748 +1,452 @@
-<decimal_phase_numbering>
-Decimal phases enable urgent work insertion without renumbering:
-
-- Integer phases (1, 2, 3) = planned milestone work
-- Decimal phases (2.1, 2.2) = urgent insertions between integers
-
-**Rules:**
-- Decimals between consecutive integers (2.1 between 2 and 3)
-- Filesystem sorting works automatically (2 < 2.1 < 2.2 < 3)
-- Directory format: `02.1-description/`, Plan format: `02.1-01-PLAN.md`
-
-**Validation:** Integer X must exist and be complete, X+1 must exist, decimal X.Y must not exist, Y >= 1
-</decimal_phase_numbering>
-
-<required_reading>
-**Read these files NOW:**
-
-1. ~/.claude/get-shit-done/templates/phase-prompt.md
-2. ~/.claude/get-shit-done/references/plan-format.md
-3. ~/.claude/get-shit-done/references/scope-estimation.md
-4. ~/.claude/get-shit-done/references/checkpoints.md
-5. ~/.claude/get-shit-done/references/tdd.md
-6. .planning/ROADMAP.md
-7. .planning/PROJECT.md
-
-**Load domain expertise from ROADMAP:**
-- Parse ROADMAP.md's `## Domain Expertise` section for paths
-- Read each domain SKILL.md (these serve as indexes)
-- Determine phase type and load ONLY references relevant to THIS phase type from each SKILL.md's `<references_index>`
-</required_reading>
-
 <purpose>
-Create executable phase prompts (PLAN.md files) optimized for parallel execution.
-
-PLAN.md IS the prompt that Claude executes. Plans are grouped into execution waves based on dependencies - independent plans run in parallel, dependent plans wait for predecessors.
+Create executable phase prompts (PLAN.md files) for a roadmap phase with integrated research and verification. Default flow: Research (if needed) -> Plan -> Verify -> Done. Orchestrates gsd-phase-researcher, gsd-planner, and gsd-plan-checker agents with a revision loop (max 3 iterations).
 </purpose>
 
-<planning_principles>
-**Parallel by default:** Think in dependency graphs, not sequential lists. Ask "what does this need?" not "what comes next?"
+<required_reading>
+Read all files referenced by the invoking prompt's execution_context before starting.
 
-**Vertical slices over horizontal layers:** Group by feature (User: model + API + UI) not by type (all models → all APIs → all UIs).
-
-**Explicit dependencies:** Every plan declares what it needs (`depends_on`) and what it touches (`files_modified`). Empty dependencies = parallel candidate.
-
-**Secure by design:** Assume hostile input on every boundary. Validate, parameterize, authenticate, fail closed.
-
-**Performance by design:** Assume production load, not demo conditions. Plan for efficient data access, appropriate caching, minimal round trips.
-
-**Observable by design:** Plan to debug your own work. Include meaningful error messages, appropriate logging, and clear failure states.
-</planning_principles>
+@/home/sam/.claude/get-shit-done/references/ui-brand.md
+</required_reading>
 
 <process>
 
-<step name="load_project_state" priority="first">
-Read `.planning/STATE.md` and parse:
-- Current position (which phase we're planning)
-- Accumulated decisions (constraints on this phase)
-- Pending todos (candidates for inclusion)
-- Blockers/concerns (things this phase may address)
-- Brief alignment status
+## 1. Initialize
 
-If STATE.md missing but .planning/ exists, offer to reconstruct or continue without.
-</step>
-
-<step name="load_codebase_context">
-Check for codebase map:
+Load all context in one call (include file contents to avoid redundant reads):
 
 ```bash
-ls .planning/codebase/*.md 2>/dev/null
+INIT_RAW=$(node /home/sam/.claude/get-shit-done/bin/gsd-tools.cjs init plan-phase "$PHASE" --include state,roadmap,requirements,context,research,verification,uat)
+# Large payloads are written to a tmpfile — output starts with @file:/path
+if [[ "$INIT_RAW" == @file:* ]]; then
+  INIT_FILE="${INIT_RAW#@file:}"
+  INIT=$(cat "$INIT_FILE")
+  rm -f "$INIT_FILE"
+else
+  INIT="$INIT_RAW"
+fi
 ```
 
-**If .planning/codebase/ exists:** Load relevant documents based on phase type:
+Parse JSON for: `researcher_model`, `planner_model`, `checker_model`, `research_enabled`, `plan_checker_enabled`, `commit_docs`, `phase_found`, `phase_dir`, `phase_number`, `phase_name`, `phase_slug`, `padded_phase`, `has_research`, `has_context`, `has_plans`, `plan_count`, `planning_exists`, `roadmap_exists`.
 
-| Phase Keywords | Load These |
-|----------------|------------|
-| UI, frontend, components | CONVENTIONS.md, STRUCTURE.md |
-| API, backend, endpoints | ARCHITECTURE.md, CONVENTIONS.md |
-| database, schema, models | ARCHITECTURE.md, STACK.md |
-| testing, tests | TESTING.md, CONVENTIONS.md |
-| integration, external API | INTEGRATIONS.md, STACK.md |
-| refactor, cleanup | CONCERNS.md, ARCHITECTURE.md |
-| setup, config | STACK.md, STRUCTURE.md |
-| (default) | STACK.md, ARCHITECTURE.md |
+**File contents (from --include):** `state_content`, `roadmap_content`, `requirements_content`, `context_content`, `research_content`, `verification_content`, `uat_content`. These are null if files don't exist.
 
-Track extracted constraints for PLAN.md context section.
-</step>
+**If `planning_exists` is false:** Error — run `/gsd:new-project` first.
 
-<step name="identify_phase">
-Check roadmap and existing phases:
+## 2. Parse and Normalize Arguments
+
+Extract from $ARGUMENTS: phase number (integer or decimal like `2.1`), flags (`--research`, `--skip-research`, `--gaps`, `--skip-verify`).
+
+**If no phase number:** Detect next unplanned phase from roadmap.
+
+**If `phase_found` is false:** Validate phase exists in ROADMAP.md. If valid, create the directory using `phase_slug` and `padded_phase` from init:
+```bash
+mkdir -p ".planning/phases/${padded_phase}-${phase_slug}"
+```
+
+**Existing artifacts from init:** `has_research`, `has_plans`, `plan_count`.
+
+## 3. Validate Phase
 
 ```bash
-cat .planning/ROADMAP.md
-ls .planning/phases/
+PHASE_INFO=$(node /home/sam/.claude/get-shit-done/bin/gsd-tools.cjs roadmap get-phase "${PHASE}")
 ```
 
-If multiple phases available, ask which one to plan. If obvious (first incomplete phase), proceed.
+**If `found` is false:** Error with available phases. **If `found` is true:** Extract `phase_number`, `phase_name`, `goal` from JSON.
 
-**Phase number parsing:** Regex `^(\d+)(?:\.(\d+))?$` - Group 1: integer, Group 2: decimal (optional)
+## 4. Load CONTEXT.md
 
-**If decimal phase:** Validate integer X exists and is complete, X+1 exists in roadmap, decimal X.Y doesn't exist, Y >= 1.
+Use `context_content` from init JSON (already loaded via `--include context`).
 
-Read any existing PLAN.md or DISCOVERY.md in the phase directory.
-</step>
+**CRITICAL:** Use `context_content` from INIT — pass to researcher, planner, checker, and revision agents.
 
-<step name="mandatory_discovery">
-**Discovery is MANDATORY unless you can prove current context exists.**
+If `context_content` is not null, display: `Using phase context from: ${PHASE_DIR}/*-CONTEXT.md`
 
-<discovery_decision>
-**Level 0 - Skip** (pure internal work, existing patterns only)
-- ALL work follows established codebase patterns (grep confirms)
-- No new external dependencies
-- Pure internal refactoring or feature extension
-- Examples: Add delete button, add field to model, create CRUD endpoint
+**If `context_content` is null (no CONTEXT.md exists):**
 
-**Level 1 - Quick Verification** (2-5 min)
-- Single known library, confirming syntax/version
-- Low-risk decision (easily changed later)
-- Action: Context7 resolve-library-id + query-docs, no DISCOVERY.md needed
+Use AskUserQuestion:
+- header: "No context"
+- question: "No CONTEXT.md found for Phase {X}. Plans will use research and requirements only — your design preferences won't be included. Continue or capture context first?"
+- options:
+  - "Continue without context" — Plan using research + requirements only
+  - "Run discuss-phase first" — Capture design decisions before planning
 
-**Level 2 - Standard Research** (15-30 min)
-- Choosing between 2-3 options
-- New external integration (API, service)
-- Medium-risk decision
-- Action: Route to workflows/discovery-phase.md depth=standard, produces DISCOVERY.md
+If "Continue without context": Proceed to step 5.
+If "Run discuss-phase first": Display `/gsd:discuss-phase {X}` and exit workflow.
 
-**Level 3 - Deep Dive** (1+ hour)
-- Architectural decision with long-term impact
-- Novel problem without clear patterns
-- High-risk, hard to change later
-- Action: Route to workflows/discovery-phase.md depth=deep, full DISCOVERY.md
+## 5. Handle Research
 
-**Depth indicators:**
-- Level 2+: New library not in package.json, external API, "choose/select/evaluate" in description, roadmap marked Research: Yes
-- Level 3: "architecture/design/system", multiple external services, data modeling, auth design, real-time/distributed
-</discovery_decision>
+**Skip if:** `--gaps` flag, `--skip-research` flag, or `research_enabled` is false (from init) without `--research` override.
 
-If roadmap flagged `Research: Likely`, Level 0 (skip) is not available.
+**If `has_research` is true (from init) AND no `--research` flag:** Use existing, skip to step 6.
 
-For niche domains (3D, games, audio, shaders, ML), suggest `/gsd:research-phase` before plan-phase.
-</step>
+**If RESEARCH.md missing OR `--research` flag:**
 
-<step name="read_project_history">
-**Intelligent context assembly from frontmatter dependency graph:**
+Display banner:
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► RESEARCHING PHASE {X}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-**1. Scan all summary frontmatter (cheap - first ~25 lines):**
+◆ Spawning researcher...
+```
+
+### Spawn gsd-phase-researcher
 
 ```bash
-for f in .planning/phases/*/*-SUMMARY.md; do
-  # Extract frontmatter only (between first two --- markers)
-  sed -n '1,/^---$/p; /^---$/q' "$f" | head -30
-done
+PHASE_DESC=$(node /home/sam/.claude/get-shit-done/bin/gsd-tools.cjs roadmap get-phase "${PHASE}" | jq -r '.section')
+# Use requirements_content from INIT (already loaded via --include requirements)
+REQUIREMENTS=$(echo "$INIT" | jq -r '.requirements_content // empty' | grep -A100 "## Requirements" | head -50)
+PHASE_REQ_IDS=$(echo "$INIT" | jq -r '.roadmap_content // empty' | grep -i "Requirements:" | head -1 | sed 's/.*Requirements:\*\*\s*//' | sed 's/[\[\]]//g' | tr ',' '\n' | sed 's/^ *//;s/ *$//' | grep -v '^$' | tr '\n' ',' | sed 's/,$//')
+STATE_SNAP=$(node /home/sam/.claude/get-shit-done/bin/gsd-tools.cjs state-snapshot)
+# Extract decisions from state-snapshot JSON: jq '.decisions[] | "\(.phase): \(.summary) - \(.rationale)"'
 ```
 
-Parse YAML to extract: phase, subsystem, requires, provides, affects, tags, key-decisions, key-files
-
-**2. Build dependency graph for current phase:**
-
-- **Check affects field:** Which prior phases have current phase in their `affects` list? → Direct dependencies
-- **Check subsystem:** Which prior phases share same subsystem? → Related work
-- **Check requires chains:** If phase X requires phase Y, and we need X, we also need Y → Transitive dependencies
-- **Check roadmap:** Any phases marked as dependencies in ROADMAP.md phase description?
-
-**3. Select relevant summaries:**
-
-Auto-select phases that match ANY of:
-- Current phase name/number appears in prior phase's `affects` field
-- Same `subsystem` value
-- In `requires` chain (transitive closure)
-- Explicitly mentioned in STATE.md decisions as affecting current phase
-
-Typical selection: 2-4 prior phases (immediately prior + related subsystem work)
-
-**4. Extract context from frontmatter (WITHOUT opening full summaries yet):**
-
-From selected phases' frontmatter, extract:
-- **Tech available:** Union of all tech-stack.added lists
-- **Patterns established:** Union of all tech-stack.patterns and patterns-established
-- **Key files:** Union of all key-files (for @context references)
-- **Decisions:** Extract key-decisions from frontmatter
-
-**5. Now read FULL summaries for selected phases:**
-
-Only now open and read complete SUMMARY.md files for the selected relevant phases. Extract:
-- Detailed "Accomplishments" section
-- "Next Phase Readiness" warnings/blockers
-- "Issues Encountered" that might affect current phase
-- "Deviations from Plan" for patterns
-
-**From STATE.md:** Decisions → constrain approach. Pending todos → candidates. Blockers → may need to address.
-
-**From pending todos:**
-
-```bash
-ls .planning/todos/pending/*.md 2>/dev/null
-```
-
-Assess each pending todo - relevant to this phase? Natural to address now?
-
-**Answer before proceeding:**
-- Q1: What decisions from previous phases constrain this phase?
-- Q2: Are there pending todos that should become tasks?
-- Q3: Are there concerns from "Next Phase Readiness" that apply?
-- Q4: Given all context, does the roadmap's description still make sense?
-
-**Track for PLAN.md context section:**
-- Which summaries were selected (for @context references)
-- Tech stack available (from frontmatter)
-- Established patterns (from frontmatter)
-- Key files to reference (from frontmatter)
-- Applicable decisions (from frontmatter + full summary)
-- Todos being addressed (from pending todos)
-- Concerns being verified (from "Next Phase Readiness")
-</step>
-
-<step name="gather_phase_context">
-Understand:
-- Phase goal (from roadmap)
-- What exists already (scan codebase if mid-project)
-- Dependencies met (previous phases complete?)
-- Any {phase}-RESEARCH.md (from /gsd:research-phase)
-- Any DISCOVERY.md (from mandatory discovery)
-- Any {phase}-CONTEXT.md (from /gsd:discuss-phase)
-
-```bash
-# If mid-project, understand current state
-ls -la src/ 2>/dev/null
-cat package.json 2>/dev/null | head -20
-
-# Check for ecosystem research (from /gsd:research-phase)
-cat .planning/phases/XX-name/${PHASE}-RESEARCH.md 2>/dev/null
-
-# Check for phase context (from /gsd:discuss-phase)
-cat .planning/phases/XX-name/${PHASE}-CONTEXT.md 2>/dev/null
-```
-
-**If RESEARCH.md exists:** Use standard_stack (these libraries), architecture_patterns (follow in task structure), dont_hand_roll (NEVER custom solutions for listed problems), common_pitfalls (inform verification), code_examples (reference in actions).
-
-**If CONTEXT.md exists:** Honor vision, prioritize essential, respect boundaries, incorporate specifics.
-
-**If neither exist:** Suggest /gsd:research-phase for niche domains, /gsd:discuss-phase for simpler domains, or proceed with roadmap only.
-</step>
-
-<step name="break_into_tasks">
-Decompose phase into tasks. **Think dependencies first, not sequence.**
-
-For each potential task, ask:
-1. **What does this task NEED?** (files, types, APIs that must exist)
-2. **What does this task CREATE?** (files, types, APIs others might need)
-3. **Can this run independently?** (no dependencies = Wave 1 candidate)
-
-**Standard tasks need:**
-- **Type**: auto, checkpoint:human-verify, checkpoint:decision (human-action rarely needed)
-- **Task name**: Clear, action-oriented
-- **Files**: Which files created/modified (for auto tasks)
-- **Action**: Specific implementation (including what to avoid and WHY)
-- **Verify**: How to prove it worked
-- **Done**: Acceptance criteria
-
-**TDD detection:** For each potential task, evaluate TDD fit:
-
-TDD candidates (create dedicated TDD plans):
-- Business logic with defined inputs/outputs
-- API endpoints with request/response contracts
-- Data transformations, parsing, formatting
-- Validation rules and constraints
-- Algorithms with testable behavior
-- State machines and workflows
-
-Standard tasks (remain in standard plans):
-- UI layout, styling, visual components
-- Configuration changes
-- Glue code connecting existing components
-- One-off scripts and migrations
-- Simple CRUD with no business logic
-
-**Heuristic:** Can you write `expect(fn(input)).toBe(output)` before writing `fn`?
-→ Yes: Create a dedicated TDD plan for this feature (one feature per TDD plan)
-→ No: Standard task in standard plan
-
-**Why TDD gets its own plan:** TDD requires 2-3 execution cycles (RED → GREEN → REFACTOR), each with file reads, test runs, and potential debugging. Embedded in a multi-task plan, TDD work consumes 50-60% of context alone, degrading quality for remaining tasks.
-
-**Test framework:** If project has no test setup and TDD plans are needed, the first TDD plan's RED phase handles framework setup as part of writing the first test.
-
-See `~/.claude/get-shit-done/references/tdd.md` for TDD plan structure.
-
-**Checkpoints:** Visual/functional verification → checkpoint:human-verify. Implementation choices → checkpoint:decision. Manual action (email, 2FA) → checkpoint:human-action (rare).
-
-**Critical:** If external resource has CLI/API (Vercel, Stripe, etc.), use type="auto" to automate. Only checkpoint for verification AFTER automation.
-
-See ~/.claude/get-shit-done/references/checkpoints.md for checkpoint structure.
-
-**User setup detection:** For tasks involving external services, identify human-required configuration:
-
-External service indicators:
-- New SDK: `stripe`, `@sendgrid/mail`, `twilio`, `openai`, `@supabase/supabase-js`
-- Webhook handlers: Files in `**/webhooks/**` or `**/webhook*`
-- OAuth integration: Social login, third-party auth
-- API keys: Code referencing `process.env.SERVICE_*` patterns
-
-For each external service, determine:
-1. **Env vars needed** - What secrets must be retrieved from dashboards?
-2. **Account setup** - Does user need to create an account?
-3. **Dashboard config** - What must be configured in external UI?
-4. **Local dev** - Any CLI tools for local testing?
-
-Record in `user_setup` frontmatter (see write_phase_prompt step).
-</step>
-
-<step name="build_dependency_graph">
-**Map task dependencies explicitly before grouping into plans.**
-
-**1. For each task identified, record:**
-- `needs`: What must exist before this task runs (files, types, prior task outputs)
-- `creates`: What this task produces (files, types, exports)
-- `has_checkpoint`: Does this task require user interaction?
-
-**2. Build the dependency graph:**
-
-```
-Example phase with 6 tasks:
-
-Task A (User model): needs nothing, creates src/models/user.ts
-Task B (Product model): needs nothing, creates src/models/product.ts
-Task C (User API): needs Task A, creates src/api/users.ts
-Task D (Product API): needs Task B, creates src/api/products.ts
-Task E (Dashboard): needs Task C + D, creates src/components/Dashboard.tsx
-Task F (Verify UI): checkpoint:human-verify, needs Task E
-
-Dependency graph:
-  A ──→ C ──┐
-            ├──→ E ──→ F
-  B ──→ D ──┘
-
-Wave analysis:
-  Wave 1: A, B (independent roots)
-  Wave 2: C, D (depend only on Wave 1)
-  Wave 3: E (depends on Wave 2)
-  Wave 4: F (checkpoint, depends on Wave 3)
-```
-
-**3. Identify parallelization opportunities:**
-
-| Pattern | Result |
-|---------|--------|
-| No dependencies | Wave 1 (parallel) |
-| Depends only on Wave 1 | Wave 2 (parallel) |
-| Has checkpoint | Runs in wave, but can pause/resume |
-| Shared file conflict | Must be sequential |
-
-**4. Detect and prefer vertical slices:**
-
-**Sequential (horizontal layers) - AVOID:**
-```
-Plan 01: Create User model, Product model, Order model
-Plan 02: Create User API, Product API, Order API
-Plan 03: Create User UI, Product UI, Order UI
-```
-Result: Fully sequential (02 needs 01, 03 needs 02)
-
-**Parallel (vertical slices) - PREFER:**
-```
-Plan 01: User feature (model + API + UI)
-Plan 02: Product feature (model + API + UI)
-Plan 03: Order feature (model + API + UI)
-```
-Result: All three can run in parallel (Wave 1)
-
-**When vertical slices work:**
-- Features are independent (no shared types/data)
-- Each slice is self-contained
-- No cross-feature dependencies
-
-**When horizontal layers are necessary:**
-- Shared foundation required (auth before protected features)
-- Genuine type dependencies (Order needs User type)
-- Infrastructure setup (database before all features)
-
-**5. Output: Dependency map for each plan**
-
-For each plan, determine:
-- `depends_on: []` - plan IDs this plan requires (empty = parallel candidate)
-- `files_modified: []` - files this plan touches (for conflict detection)
-- `autonomous: true|false` - has checkpoints requiring user interaction?
-</step>
-
-<step name="assign_waves">
-**Compute wave numbers before writing plans.**
-
-Wave assignment algorithm (run in memory before writing any files):
-
-```
-waves = {}  # plan_id -> wave_number
-
-for each plan in plan_order:
-  if plan.depends_on is empty:
-    plan.wave = 1
-  else:
-    # Wave = max wave of dependencies + 1
-    plan.wave = max(waves[dep] for dep in plan.depends_on) + 1
-
-  waves[plan.id] = plan.wave
-```
-
-**Example:**
-
-```
-Plan 01: depends_on: []           → wave: 1
-Plan 02: depends_on: []           → wave: 1
-Plan 03: depends_on: ["01"]       → wave: 2
-Plan 04: depends_on: ["02"]       → wave: 2
-Plan 05: depends_on: ["03", "04"] → wave: 3
-```
-
-Store wave number with each plan in memory. Write to frontmatter in next step.
-</step>
-
-<step name="group_into_plans">
-**Group tasks into plans based on dependency waves and autonomy.**
-
-**Grouping rules:**
-
-1. **Same-wave tasks with no file conflicts → can be in parallel plans**
-2. **Tasks with shared files → must be in same plan or sequential plans**
-3. **Checkpoint tasks → mark plan as `autonomous: false`**
-4. **Each plan: 2-3 tasks max, single concern, ~50% context target**
-
-**Plan assignment algorithm:**
-
-```
-1. Start with Wave 1 tasks (no dependencies)
-2. Group into plans by:
-   - Feature affinity (vertical slice)
-   - File ownership (no conflicts)
-   - Checkpoint presence (group checkpoints with related auto tasks)
-3. Move to Wave 2 tasks, repeat
-4. Continue until all tasks assigned
-```
-
-**Example grouping:**
-
-```
-Tasks identified:
-- A: User model (Wave 1, auto)
-- B: Product model (Wave 1, auto)
-- C: User API (Wave 2, auto)
-- D: Product API (Wave 2, auto)
-- E: Dashboard (Wave 3, auto)
-- F: Verify Dashboard (Wave 3, checkpoint)
-
-Grouping into plans:
-Plan 01: [A, C] - User feature (model + API)
-         depends_on: [], autonomous: true
-
-Plan 02: [B, D] - Product feature (model + API)
-         depends_on: [], autonomous: true
-
-Plan 03: [E, F] - Dashboard (build + verify)
-         depends_on: ["01", "02"], autonomous: false
-
-Wave structure:
-  Wave 1 (parallel): Plan 01, Plan 02
-  Wave 2: Plan 03 (has checkpoint, runs after Wave 1)
-```
-</step>
-
-<step name="estimate_scope">
-After grouping, verify each plan fits context budget.
-
-**Check depth setting:**
-```bash
-cat .planning/config.json 2>/dev/null | grep depth
-```
-
-<depth_aware_splitting>
-**Depth controls compression tolerance, not artificial inflation.**
-
-| Depth | Typical Plans/Phase | Tasks/Plan |
-|-------|---------------------|------------|
-| Quick | 1-3 | 2-3 |
-| Standard | 3-5 | 2-3 |
-| Comprehensive | 5-10 | 2-3 |
-
-**Key principle:** Derive plans from actual work. Depth determines how aggressively you combine things, not a target to hit.
-
-- Comprehensive auth phase = 8 plans (because auth genuinely has 8 concerns)
-- Comprehensive "add config file" phase = 1 plan (because that's all it is)
-
-For comprehensive depth:
-- Create MORE plans when the work warrants it, not bigger ones
-- If a phase has 15 tasks, that's 5-8 plans (not 3 plans with 5 tasks each)
-- Each plan stays focused: 2-3 tasks, single concern
-
-For quick depth:
-- Combine aggressively into fewer plans
-- 1-3 plans per phase is fine
-- Focus on critical path
-</depth_aware_splitting>
-
-**ALWAYS split if:** >3 tasks, multiple subsystems, >5 files in any task, complex domains (auth, payments).
-
-**Each plan must be:** 2-3 tasks max, ~50% context target, independently committable.
-
-See ~/.claude/get-shit-done/references/scope-estimation.md for complete guidance.
-</step>
-
-<step name="confirm_breakdown">
-<if mode="yolo">
-Auto-approve and proceed to write_phase_prompt.
-</if>
-
-<if mode="interactive">
-Present breakdown with wave structure:
-
-```
-Phase [X] breakdown:
-
-## Execution Waves
-
-**Wave 1 (parallel):**
-  {phase}-01: [Plan Name] [autonomous]
-    - Task: [brief]
-    - Task: [brief]
-
-  {phase}-02: [Plan Name] [autonomous]
-    - Task: [brief]
-    - Task: [brief]
-
-**Wave 2 (parallel):**
-  {phase}-03: [Plan Name] (depends: 01, 02) [autonomous]
-    - Task: [brief]
-
-**Wave 3:**
-  {phase}-04: [Plan Name] (depends: 03) [has checkpoint]
-    - Task: [brief]
-    - Checkpoint: [type]
-
----
-Total: [N] plans in [M] waves
-Parallel plans: [X]
-Sequential plans: [Y]
-
-Does this look right? (yes / adjust / start over)
-```
-
-Wait for confirmation. If "adjust": revise. If "start over": return to gather_phase_context.
-</if>
-</step>
-
-<step name="write_phase_prompt">
-Use template from `~/.claude/get-shit-done/templates/phase-prompt.md`.
-
-**Single plan:** Write to `.planning/phases/XX-name/{phase}-01-PLAN.md`
-
-**Multiple plans:** Write separate files ({phase}-01-PLAN.md, {phase}-02-PLAN.md, etc.)
-
-Each plan follows template structure with:
-- Frontmatter (phase, plan, type, depends_on, files_modified, autonomous, domain)
-- Objective (plan-specific goal, purpose, output)
-- Execution context (execute-plan.md, summary template, checkpoints.md if needed)
-- Context (@references to PROJECT, ROADMAP, STATE, codebase docs, RESEARCH/DISCOVERY/CONTEXT if exist, prior summaries, source files)
-- Tasks (XML format with types)
-- Verification, Success criteria, Output specification
-
-**Plan frontmatter:**
-
-```yaml
----
-phase: XX-name
-plan: NN
-type: execute
-wave: N                     # Execution wave (1, 2, 3...). Computed at plan time.
-depends_on: []              # Plan IDs this plan requires.
-files_modified: []          # Files this plan touches.
-autonomous: true            # false if plan has checkpoints requiring user interaction
-domain: [optional]
-user_setup: []              # Human-required setup (omit if empty)
----
-```
-
-**User setup frontmatter (when external services involved):**
-
-```yaml
-user_setup:
-  - service: stripe
-    why: "Payment processing"
-    env_vars:
-      - name: STRIPE_SECRET_KEY
-        source: "Stripe Dashboard → Developers → API keys → Secret key"
-      - name: STRIPE_WEBHOOK_SECRET
-        source: "Stripe Dashboard → Developers → Webhooks → Signing secret"
-    account_setup:
-      - url: "https://dashboard.stripe.com/register"
-        skip_if: "Already have Stripe account"
-    dashboard_config:
-      - task: "Create webhook endpoint"
-        location: "Stripe Dashboard → Developers → Webhooks → Add endpoint"
-        details: "URL: https://[your-domain]/api/webhooks/stripe, Events: checkout.session.completed"
-    local_dev:
-      - "stripe listen --forward-to localhost:3000/api/webhooks/stripe"
-```
-
-**Automation-first rule:** Only include setup Claude literally cannot do:
-- Account creation (requires human signup)
-- Secret retrieval (requires dashboard access)
-- Dashboard configuration (requires human in browser)
-
-Do NOT include: npm install, code changes, file creation, CLI commands Claude can run.
-
-**Wave is pre-computed:** Wave numbers are assigned during planning (see `assign_waves` step). `/gsd:execute-phase` reads `wave` directly from frontmatter and groups plans by wave number. No runtime dependency analysis needed.
-
-**Context section - parallel-aware:**
-
-Only include prior plan SUMMARY references if this plan genuinely needs decisions/outputs:
+Research prompt:
 
 ```markdown
-<context>
-@.planning/PROJECT.md
-@.planning/ROADMAP.md
-@.planning/STATE.md
+<objective>
+Research how to implement Phase {phase_number}: {phase_name}
+Answer: "What do I need to know to PLAN this phase well?"
+</objective>
 
-# Only reference prior plans if genuinely needed:
-# - This plan uses types/exports from prior plan
-# - This plan continues work from prior plan
-# - Prior plan made decision that affects this plan
-#
-# Do NOT reflexively chain: Plan 02 refs 01, Plan 03 refs 02...
-# Independent plans need no prior SUMMARY references.
+<phase_context>
+IMPORTANT: If CONTEXT.md exists below, it contains user decisions from /gsd:discuss-phase.
+- **Decisions** = Locked — research THESE deeply, no alternatives
+- **Claude's Discretion** = Freedom areas — research options, recommend
+- **Deferred Ideas** = Out of scope — ignore
 
-@path/to/relevant/source.ts
-</context>
+{context_content}
+</phase_context>
+
+<additional_context>
+**Phase description:** {phase_description}
+**Phase requirement IDs (MUST address):** {phase_req_ids}
+**Requirements:** {requirements}
+**Prior decisions:** {decisions}
+</additional_context>
+
+<output>
+Write to: {phase_dir}/{phase_num}-RESEARCH.md
+</output>
 ```
 
-**For plans with checkpoints:**
-
-Include checkpoint reference in execution_context:
-```markdown
-<execution_context>
-@~/.claude/get-shit-done/workflows/execute-plan.md
-@~/.claude/get-shit-done/templates/summary.md
-@~/.claude/get-shit-done/references/checkpoints.md
-</execution_context>
+```
+Task(
+  prompt="First, read /home/sam/.claude/agents/gsd-phase-researcher.md for your role and instructions.\n\n" + research_prompt,
+  subagent_type="general-purpose",
+  model="{researcher_model}",
+  description="Research Phase {phase}"
+)
 ```
 
-Checkpoint plans can still run in parallel waves. When they hit a checkpoint, they pause and return to the orchestrator. User responds, orchestrator resumes the agent.
-</step>
+### Handle Researcher Return
 
-<step name="git_commit">
-Commit phase plan(s):
+- **`## RESEARCH COMPLETE`:** Display confirmation, continue to step 6
+- **`## RESEARCH BLOCKED`:** Display blocker, offer: 1) Provide context, 2) Skip research, 3) Abort
+
+## 6. Check Existing Plans
 
 ```bash
-# Stage all PLAN.md files for this phase
-git add .planning/phases/${PHASE}-*/${PHASE}-*-PLAN.md
-
-# Also stage DISCOVERY.md if it was created during mandatory_discovery
-git add .planning/phases/${PHASE}-*/DISCOVERY.md 2>/dev/null
-
-git commit -m "$(cat <<'EOF'
-docs(${PHASE}): create phase plan
-
-Phase ${PHASE}: ${PHASE_NAME}
-- [N] plan(s) in [M] wave(s)
-- [X] parallel, [Y] sequential
-- Ready for execution
-EOF
-)"
+ls "${PHASE_DIR}"/*-PLAN.md 2>/dev/null
 ```
 
-Confirm: "Committed: docs(${PHASE}): create phase plan"
-</step>
+**If exists:** Offer: 1) Add more plans, 2) View existing, 3) Replan from scratch.
 
-<step name="offer_next">
+## 7. Use Context Files from INIT
+
+All file contents are already loaded via `--include` in step 1 (`@` syntax doesn't work across Task() boundaries):
+
+```bash
+# Extract from INIT JSON (no need to re-read files)
+STATE_CONTENT=$(echo "$INIT" | jq -r '.state_content // empty')
+ROADMAP_CONTENT=$(echo "$INIT" | jq -r '.roadmap_content // empty')
+REQUIREMENTS_CONTENT=$(echo "$INIT" | jq -r '.requirements_content // empty')
+RESEARCH_CONTENT=$(echo "$INIT" | jq -r '.research_content // empty')
+VERIFICATION_CONTENT=$(echo "$INIT" | jq -r '.verification_content // empty')
+UAT_CONTENT=$(echo "$INIT" | jq -r '.uat_content // empty')
+CONTEXT_CONTENT=$(echo "$INIT" | jq -r '.context_content // empty')
 ```
-Phase {X} planned: {N} plan(s) in {M} wave(s)
 
-## Wave Structure
-Wave 1 (parallel): {plan-01}, {plan-02}
-Wave 2: {plan-03}
-...
+## 8. Spawn gsd-planner Agent
 
----
-
-## Next Up
-
-[If 1 plan created:]
-**{phase}-01: [Plan Name]** - [objective summary]
-
-`/gsd:execute-plan .planning/phases/XX-name/{phase}-01-PLAN.md`
-
-[If 2+ plans created:]
-**Phase {X}: [Phase Name]** - {N} plans in {M} waves
-
-`/gsd:execute-phase {X}`
-
-<sub>`/clear` first - fresh context window</sub>
-
----
-
-**Also available:**
-- Review/adjust plans before executing
-[If 2+ plans: - `/gsd:execute-plan {phase}-01-PLAN.md` - run plans one at a time]
-[If 2+ plans: - View all plans: `ls .planning/phases/XX-name/*-PLAN.md`]
-
----
+Display banner:
 ```
-</step>
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► PLANNING PHASE {X}
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+◆ Spawning planner...
+```
+
+Planner prompt:
+
+```markdown
+<planning_context>
+**Phase:** {phase_number}
+**Mode:** {standard | gap_closure}
+
+**Project State:** {state_content}
+**Roadmap:** {roadmap_content}
+**Phase requirement IDs (every ID MUST appear in a plan's `requirements` field):** {phase_req_ids}
+**Requirements:** {requirements_content}
+
+**Phase Context:**
+IMPORTANT: If context exists below, it contains USER DECISIONS from /gsd:discuss-phase.
+- **Decisions** = LOCKED — honor exactly, do not revisit
+- **Claude's Discretion** = Freedom — make implementation choices
+- **Deferred Ideas** = Out of scope — do NOT include
+
+{context_content}
+
+**Research:** {research_content}
+**Gap Closure (if --gaps):** {verification_content} {uat_content}
+</planning_context>
+
+<downstream_consumer>
+Output consumed by /gsd:execute-phase. Plans need:
+- Frontmatter (wave, depends_on, files_modified, autonomous)
+- Tasks in XML format
+- Verification criteria
+- must_haves for goal-backward verification
+</downstream_consumer>
+
+<quality_gate>
+- [ ] PLAN.md files created in phase directory
+- [ ] Each plan has valid frontmatter
+- [ ] Tasks are specific and actionable
+- [ ] Dependencies correctly identified
+- [ ] Waves assigned for parallel execution
+- [ ] must_haves derived from phase goal
+</quality_gate>
+```
+
+```
+Task(
+  prompt="First, read /home/sam/.claude/agents/gsd-planner.md for your role and instructions.\n\n" + filled_prompt,
+  subagent_type="general-purpose",
+  model="{planner_model}",
+  description="Plan Phase {phase}"
+)
+```
+
+## 9. Handle Planner Return
+
+- **`## PLANNING COMPLETE`:** Display plan count. If `--skip-verify` or `plan_checker_enabled` is false (from init): skip to step 13. Otherwise: step 10.
+- **`## CHECKPOINT REACHED`:** Present to user, get response, spawn continuation (step 12)
+- **`## PLANNING INCONCLUSIVE`:** Show attempts, offer: Add context / Retry / Manual
+
+## 10. Spawn gsd-plan-checker Agent
+
+Display banner:
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► VERIFYING PLANS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+◆ Spawning plan checker...
+```
+
+```bash
+PLANS_CONTENT=$(cat "${PHASE_DIR}"/*-PLAN.md 2>/dev/null)
+```
+
+Checker prompt:
+
+```markdown
+<verification_context>
+**Phase:** {phase_number}
+**Phase Goal:** {goal from ROADMAP}
+
+**Plans to verify:** {plans_content}
+**Phase requirement IDs (MUST ALL be covered):** {phase_req_ids}
+**Requirements:** {requirements_content}
+
+**Phase Context:**
+IMPORTANT: Plans MUST honor user decisions. Flag as issue if plans contradict.
+- **Decisions** = LOCKED — plans must implement exactly
+- **Claude's Discretion** = Freedom areas — plans can choose approach
+- **Deferred Ideas** = Out of scope — plans must NOT include
+
+{context_content}
+</verification_context>
+
+<expected_output>
+- ## VERIFICATION PASSED — all checks pass
+- ## ISSUES FOUND — structured issue list
+</expected_output>
+```
+
+```
+Task(
+  prompt=checker_prompt,
+  subagent_type="gsd-plan-checker",
+  model="{checker_model}",
+  description="Verify Phase {phase} plans"
+)
+```
+
+## 11. Handle Checker Return
+
+- **`## VERIFICATION PASSED`:** Display confirmation, proceed to step 13.
+- **`## ISSUES FOUND`:** Display issues, check iteration count, proceed to step 12.
+
+## 12. Revision Loop (Max 3 Iterations)
+
+Track `iteration_count` (starts at 1 after initial plan + check).
+
+**If iteration_count < 3:**
+
+Display: `Sending back to planner for revision... (iteration {N}/3)`
+
+```bash
+PLANS_CONTENT=$(cat "${PHASE_DIR}"/*-PLAN.md 2>/dev/null)
+```
+
+Revision prompt:
+
+```markdown
+<revision_context>
+**Phase:** {phase_number}
+**Mode:** revision
+
+**Existing plans:** {plans_content}
+**Checker issues:** {structured_issues_from_checker}
+
+**Phase Context:**
+Revisions MUST still honor user decisions.
+{context_content}
+</revision_context>
+
+<instructions>
+Make targeted updates to address checker issues.
+Do NOT replan from scratch unless issues are fundamental.
+Return what changed.
+</instructions>
+```
+
+```
+Task(
+  prompt="First, read /home/sam/.claude/agents/gsd-planner.md for your role and instructions.\n\n" + revision_prompt,
+  subagent_type="general-purpose",
+  model="{planner_model}",
+  description="Revise Phase {phase} plans"
+)
+```
+
+After planner returns -> spawn checker again (step 10), increment iteration_count.
+
+**If iteration_count >= 3:**
+
+Display: `Max iterations reached. {N} issues remain:` + issue list
+
+Offer: 1) Force proceed, 2) Provide guidance and retry, 3) Abandon
+
+## 13. Present Final Status
+
+Route to `<offer_next>` OR `auto_advance` depending on flags/config.
+
+## 14. Auto-Advance Check
+
+Check for auto-advance trigger:
+
+1. Parse `--auto` flag from $ARGUMENTS
+2. Read `workflow.auto_advance` from config:
+   ```bash
+   AUTO_CFG=$(node /home/sam/.claude/get-shit-done/bin/gsd-tools.cjs config-get workflow.auto_advance 2>/dev/null || echo "false")
+   ```
+
+**If `--auto` flag present OR `AUTO_CFG` is true:**
+
+Display banner:
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► AUTO-ADVANCING TO EXECUTE
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Plans ready. Spawning execute-phase...
+```
+
+Spawn execute-phase as Task:
+```
+Task(
+  prompt="Run /gsd:execute-phase ${PHASE} --auto",
+  subagent_type="general-purpose",
+  description="Execute Phase ${PHASE}"
+)
+```
+
+**Handle execute-phase return:**
+- **PHASE COMPLETE** → Display final summary:
+  ```
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+   GSD ► PHASE ${PHASE} COMPLETE ✓
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  Auto-advance pipeline finished.
+
+  Next: /gsd:discuss-phase ${NEXT_PHASE} --auto
+  ```
+- **GAPS FOUND / VERIFICATION FAILED** → Display result, stop chain:
+  ```
+  Auto-advance stopped: Execution needs review.
+
+  Review the output above and continue manually:
+  /gsd:execute-phase ${PHASE}
+  ```
+
+**If neither `--auto` nor config enabled:**
+Route to `<offer_next>` (existing behavior).
 
 </process>
 
-<task_quality>
-**Good tasks:** Specific files, actions, verification
-- "Add User model to Prisma schema with email, passwordHash, createdAt"
-- "Create POST /api/auth/login endpoint with bcrypt validation"
+<offer_next>
+Output this markdown directly (not as a code block):
 
-**Bad tasks:** Vague, not actionable
-- "Set up authentication" / "Make it secure" / "Handle edge cases"
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► PHASE {X} PLANNED ✓
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-If you can't specify Files + Action + Verify + Done, the task is too vague.
+**Phase {X}: {Name}** — {N} plan(s) in {M} wave(s)
 
-**TDD candidates get dedicated plans.** If "Create price calculator with discount rules" warrants TDD, create a TDD plan for it. See `~/.claude/get-shit-done/references/tdd.md` for TDD plan structure.
-</task_quality>
+| Wave | Plans | What it builds |
+|------|-------|----------------|
+| 1    | 01, 02 | [objectives] |
+| 2    | 03     | [objective]  |
 
-<anti_patterns>
-- No story points or hour estimates
-- No team assignments
-- No acceptance criteria committees
-- No sub-sub-sub tasks
-- **No reflexive sequential chaining** (Plan 02 depends on 01 "just because")
-Tasks are instructions for Claude, not Jira tickets.
-</anti_patterns>
+Research: {Completed | Used existing | Skipped}
+Verification: {Passed | Passed with override | Skipped}
+
+───────────────────────────────────────────────────────────────
+
+## ▶ Next Up
+
+**Execute Phase {X}** — run all {N} plans
+
+/gsd:execute-phase {X}
+
+<sub>/clear first → fresh context window</sub>
+
+───────────────────────────────────────────────────────────────
+
+**Also available:**
+- cat .planning/phases/{phase-dir}/*-PLAN.md — review plans
+- /gsd:plan-phase {X} --research — re-research first
+
+───────────────────────────────────────────────────────────────
+</offer_next>
 
 <success_criteria>
-Phase planning complete when:
-- [ ] STATE.md read, project history absorbed
-- [ ] Mandatory discovery completed (Level 0-3)
-- [ ] Prior decisions, issues, concerns synthesized
-- [ ] Dependency graph built (needs/creates for each task)
-- [ ] Tasks grouped into plans by wave, not by sequence
-- [ ] PLAN file(s) exist with XML structure
-- [ ] Each plan: depends_on, files_modified, autonomous in frontmatter
-- [ ] Each plan: user_setup declared if external services involved
-- [ ] Each plan: Objective, context, tasks, verification, success criteria, output
-- [ ] Each plan: 2-3 tasks (~50% context)
-- [ ] Each task: Type, Files (if auto), Action, Verify, Done
-- [ ] Checkpoints properly structured
-- [ ] Wave structure maximizes parallelism
-- [ ] PLAN file(s) committed to git
-- [ ] User knows next steps and wave structure
+- [ ] .planning/ directory validated
+- [ ] Phase validated against roadmap
+- [ ] Phase directory created if needed
+- [ ] CONTEXT.md loaded early (step 4) and passed to ALL agents
+- [ ] Research completed (unless --skip-research or --gaps or exists)
+- [ ] gsd-phase-researcher spawned with CONTEXT.md
+- [ ] Existing plans checked
+- [ ] gsd-planner spawned with CONTEXT.md + RESEARCH.md
+- [ ] Plans created (PLANNING COMPLETE or CHECKPOINT handled)
+- [ ] gsd-plan-checker spawned with CONTEXT.md
+- [ ] Verification passed OR user override OR max iterations with user decision
+- [ ] User sees status between agent spawns
+- [ ] User knows next steps
 </success_criteria>

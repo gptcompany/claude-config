@@ -114,7 +114,7 @@ def detect_project_state():
     if not (planning_dir / "ROADMAP.md").exists():
         return {
             "state": "needs_roadmap",
-            "action": "Run /gsd:create-roadmap"
+            "action": "Run /gsd:new-project or /gsd:new-milestone"
         }
 
     # Find current phase from STATE.md
@@ -240,7 +240,7 @@ def should_gate(step_name: str, output: str, context: dict) -> bool:
                   ↓
 ┌─────────────────────────────────────────────┐
 │ 6. EXECUTE                                  │
-│    /gsd:execute-phase-sync {phase}          │
+│    /gsd:execute-phase {phase}               │
 │    With claude-flow state sync              │
 └─────────────────┬───────────────────────────┘
                   ↓
@@ -251,9 +251,9 @@ def should_gate(step_name: str, output: str, context: dict) -> bool:
 └─────────────────┬───────────────────────────┘
                   ↓
 ┌─────────────────────────────────────────────┐
-│ 6c. PLAN-FIX (if verification failed)       │  ← NEW
-│     Use /gsd:plan-fix for structured fix    │
-│     Or delegate to coder agent              │
+│ 6c. FIX (if verification failed)             │  ← NEW
+│     Delegate to coder agent for fix         │
+│     Or /gsd:plan-milestone-gaps for gaps    │
 └─────────────────┬───────────────────────────┘
                   ↓
 ┌─────────────────────────────────────────────┐
@@ -393,7 +393,7 @@ npx @claude-flow/cli@latest session save --name "gsd-PHASE-pre-execute"
 npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:step6" --value '{"status":"starting"}' --namespace pipeline
 ```
 
-- `/gsd:execute-phase-sync $PHASE`
+- `/gsd:execute-phase $PHASE`
 
 **CHECKPOINT POST:**
 ```bash
@@ -416,8 +416,8 @@ Esegue verification-runner (Build, Type, Lint, Tests, Security):
 **CHECKPOINT PRE:** `npx @claude-flow/cli@latest memory store --key "gsd:PROJECT:PHASE:step6c" --value '{"status":"starting"}' --namespace pipeline`
 
 Se TIER1_FAIL:
-- Se UAT.md esiste: `/gsd:plan-fix $PHASE`
-- Altrimenti: Task agent coder per fix immediato
+- Task agent coder per fix immediato
+- Se gap strutturali: `/gsd:plan-milestone-gaps $PHASE`
 
 Se TIER2_WARN e AUTOFIX=true: auto-fix lint
 
@@ -502,7 +502,7 @@ AskUserQuestion({
 | `--threshold N` | Custom confidence threshold (default: 85) |
 | `--evolve` | Force evolution loop even without [E] marker |
 | `--autodiscuss` | Validate CONTEXT.md and re-run /gsd:discuss-phase if incomplete |
-| `--autofix` | Auto-fix lint issues, use /gsd:plan-fix for verification failures |
+| `--autofix` | Auto-fix lint issues, use coder agent for verification failures |
 | `--gate-all` | Gate after EVERY step (includes autodiscuss) |
 | `--gate-dynamic` | Only gate when complexity detected |
 

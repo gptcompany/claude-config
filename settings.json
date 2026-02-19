@@ -347,6 +347,16 @@
           }
         ]
       }
+    ],
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"/home/sam/.claude/hooks/gsd-check-update.js\""
+          }
+        ]
+      }
     ]
   },
   "statusLine": {

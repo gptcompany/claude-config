@@ -1,5 +1,5 @@
 <purpose>
-Validate built features through conversational testing with persistent state. Creates UAT.md that tracks test progress, survives /clear, and feeds into /gsd:plan-fix.
+Validate built features through conversational testing with persistent state. Creates UAT.md that tracks test progress, survives /clear, and feeds gaps into /gsd:plan-phase --gaps.
 
 User tests, Claude records. One test at a time. Plain text responses.
 </purpose>
@@ -15,85 +15,19 @@ No Pass/Fail buttons. No severity questions. Just: "Here's what should happen. D
 </philosophy>
 
 <template>
-@~/.claude/get-shit-done/templates/UAT.md
+@/home/sam/.claude/get-shit-done/templates/UAT.md
 </template>
 
 <process>
 
-<step name="automated_validation">
-**Run automated validation before conversational UAT:**
-
-Before proceeding to manual testing, run automated validation to catch issues early.
-
-### Tier 1 (Blockers) - MUST PASS
+<step name="initialize" priority="first">
+If $ARGUMENTS contains a phase number, load context:
 
 ```bash
-python3 ~/.claude/templates/validation/orchestrator.py 1
+INIT=$(node /home/sam/.claude/get-shit-done/bin/gsd-tools.cjs init verify-work "${PHASE_ARG}")
 ```
 
-**If Tier 1 fails (exit code 1):**
-
-```
-════════════════════════════════════════
-VALIDATION BLOCKED: Cannot Proceed to UAT
-════════════════════════════════════════
-
-Tier 1 (blocker) validation failed:
-[List failing validators with messages]
-
-UAT skipped - no point testing broken code.
-
-Options:
-1. Fix issues and re-run `/gsd:verify-work`
-2. Run `/gsd:plan-fix` to create fix plan
-════════════════════════════════════════
-```
-
-Do NOT proceed to UAT. Route user to fix issues first.
-
-**If Tier 1 passes (exit code 0):**
-
-Continue to Tier 2 validation.
-
-### Tier 2 (Warnings) - Show to User
-
-```bash
-python3 ~/.claude/templates/validation/orchestrator.py 2
-```
-
-**Present Tier 2 results to user:**
-
-```
-## Automated Validation Results
-
-### Tier 1 (Blockers): PASSED
-All critical checks passed.
-
-### Tier 2 (Warnings): [N] items
-[List any warnings with suggestions]
-
-Note: These are suggestions, not blockers. You can proceed with UAT.
-```
-
-User can acknowledge warnings and proceed to manual testing.
-
-### Environment Control
-
-```bash
-if [ "${VALIDATION_ENABLED:-true}" = "false" ]; then
-  echo "⚠️ Validation disabled - proceeding directly to UAT"
-fi
-```
-
-### Quick Mode
-
-If user runs with `--quick` flag, skip Tier 2:
-```bash
-# Only run Tier 1 for quick verification
-python3 ~/.claude/templates/validation/orchestrator.py 1
-```
-
-Proceed to UAT after Tier 1 passes.
+Parse JSON for: `planner_model`, `checker_model`, `commit_docs`, `phase_found`, `phase_dir`, `phase_number`, `phase_name`, `has_verification`.
 </step>
 
 <step name="check_active_session">
@@ -146,14 +80,10 @@ Continue to `create_uat_file`.
 <step name="find_summaries">
 **Find what to test:**
 
-Parse $ARGUMENTS as phase number (e.g., "4") or plan number (e.g., "04-02").
+Use `phase_dir` from init (or run init if not already done).
 
 ```bash
-# Find phase directory
-PHASE_DIR=$(ls -d .planning/phases/${PHASE_ARG}* 2>/dev/null | head -1)
-
-# Find SUMMARY files
-ls "$PHASE_DIR"/*-SUMMARY.md 2>/dev/null
+ls "$phase_dir"/*-SUMMARY.md 2>/dev/null
 ```
 
 Read each SUMMARY.md to extract testable deliverables.
@@ -229,12 +159,12 @@ issues: 0
 pending: [N]
 skipped: 0
 
-## Issues for /gsd:plan-fix
+## Gaps
 
 [none yet]
 ```
 
-Write to `.planning/phases/XX-name/{phase}-UAT.md`
+Write to `.planning/phases/XX-name/{phase_num}-UAT.md`
 
 Proceed to `present_test`.
 </step>
@@ -244,14 +174,20 @@ Proceed to `present_test`.
 
 Read Current Test section from UAT file.
 
-Display:
+Display using checkpoint box format:
 
 ```
-## Test {number}: {name}
+╔══════════════════════════════════════════════════════════════╗
+║  CHECKPOINT: Verification Required                           ║
+╚══════════════════════════════════════════════════════════════╝
 
-**Expected:** {expected}
+**Test {number}: {name}**
 
-Does this match what you see?
+{expected}
+
+──────────────────────────────────────────────────────────────
+→ Type "pass" or describe what's wrong
+──────────────────────────────────────────────────────────────
 ```
 
 Wait for user response (plain text, no AskUserQuestion).
@@ -300,9 +236,15 @@ reported: "{verbatim user response}"
 severity: {inferred}
 ```
 
-Append to Issues section:
-```
-- UAT-{NNN}: {brief summary from response} ({severity}) - Test {N}
+Append to Gaps section (structured YAML for plan-phase --gaps):
+```yaml
+- truth: "{expected behavior from test}"
+  status: failed
+  reason: "User reported: {verbatim user response}"
+  severity: {inferred}
+  test: {N}
+  artifacts: []  # Filled by diagnosis
+  missing: []    # Filled by diagnosis
 ```
 
 **After any response:**
@@ -350,8 +292,7 @@ Clear Current Test section:
 
 Commit the UAT file:
 ```bash
-git add ".planning/phases/XX-name/{phase}-UAT.md"
-git commit -m "test({phase}): complete UAT - {passed} passed, {issues} issues"
+node /home/sam/.claude/get-shit-done/bin/gsd-tools.cjs commit "test({phase_num}): complete UAT - {passed} passed, {issues} issues" --files ".planning/phases/XX-name/{phase_num}-UAT.md"
 ```
 
 Present summary:
@@ -393,50 +334,210 @@ Spawning parallel debug agents to investigate each issue.
 ```
 
 - Load diagnose-issues workflow
-- Follow @~/.claude/get-shit-done/workflows/diagnose-issues.md
+- Follow @/home/sam/.claude/get-shit-done/workflows/diagnose-issues.md
 - Spawn parallel debug agents for each issue
 - Collect root causes
 - Update UAT.md with root causes
-- Proceed to `offer_plan_fix`
+- Proceed to `plan_gap_closure`
 
 Diagnosis runs automatically - no user prompt. Parallel agents investigate simultaneously, so overhead is minimal and fixes are more accurate.
 </step>
 
-<step name="offer_plan_fix">
-**Offer next steps after diagnosis:**
+<step name="plan_gap_closure">
+**Auto-plan fixes from diagnosed gaps:**
+
+Display:
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► PLANNING FIXES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+◆ Spawning planner for gap closure...
+```
+
+Spawn gsd-planner in --gaps mode:
 
 ```
----
+Task(
+  prompt="""
+<planning_context>
 
-## Diagnosis Complete
+**Phase:** {phase_number}
+**Mode:** gap_closure
 
-| Issue | Root Cause |
-|-------|------------|
-| UAT-001 | {root_cause} |
-| UAT-002 | {root_cause} |
-...
+**UAT with diagnoses:**
+@.planning/phases/{phase_dir}/{phase_num}-UAT.md
 
-Next steps:
-- `/gsd:plan-fix {phase}` — Create fix plan with root causes
-- `/gsd:verify-work {phase}` — Re-test after fixes
+**Project State:**
+@.planning/STATE.md
+
+**Roadmap:**
+@.planning/ROADMAP.md
+
+</planning_context>
+
+<downstream_consumer>
+Output consumed by /gsd:execute-phase
+Plans must be executable prompts.
+</downstream_consumer>
+""",
+  subagent_type="gsd-planner",
+  model="{planner_model}",
+  description="Plan gap fixes for Phase {phase}"
+)
+```
+
+On return:
+- **PLANNING COMPLETE:** Proceed to `verify_gap_plans`
+- **PLANNING INCONCLUSIVE:** Report and offer manual intervention
+</step>
+
+<step name="verify_gap_plans">
+**Verify fix plans with checker:**
+
+Display:
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► VERIFYING FIX PLANS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+◆ Spawning plan checker...
+```
+
+Initialize: `iteration_count = 1`
+
+Spawn gsd-plan-checker:
+
+```
+Task(
+  prompt="""
+<verification_context>
+
+**Phase:** {phase_number}
+**Phase Goal:** Close diagnosed gaps from UAT
+
+**Plans to verify:**
+@.planning/phases/{phase_dir}/*-PLAN.md
+
+</verification_context>
+
+<expected_output>
+Return one of:
+- ## VERIFICATION PASSED — all checks pass
+- ## ISSUES FOUND — structured issue list
+</expected_output>
+""",
+  subagent_type="gsd-plan-checker",
+  model="{checker_model}",
+  description="Verify Phase {phase} fix plans"
+)
+```
+
+On return:
+- **VERIFICATION PASSED:** Proceed to `present_ready`
+- **ISSUES FOUND:** Proceed to `revision_loop`
+</step>
+
+<step name="revision_loop">
+**Iterate planner ↔ checker until plans pass (max 3):**
+
+**If iteration_count < 3:**
+
+Display: `Sending back to planner for revision... (iteration {N}/3)`
+
+Spawn gsd-planner with revision context:
+
+```
+Task(
+  prompt="""
+<revision_context>
+
+**Phase:** {phase_number}
+**Mode:** revision
+
+**Existing plans:**
+@.planning/phases/{phase_dir}/*-PLAN.md
+
+**Checker issues:**
+{structured_issues_from_checker}
+
+</revision_context>
+
+<instructions>
+Read existing PLAN.md files. Make targeted updates to address checker issues.
+Do NOT replan from scratch unless issues are fundamental.
+</instructions>
+""",
+  subagent_type="gsd-planner",
+  model="{planner_model}",
+  description="Revise Phase {phase} plans"
+)
+```
+
+After planner returns → spawn checker again (verify_gap_plans logic)
+Increment iteration_count
+
+**If iteration_count >= 3:**
+
+Display: `Max iterations reached. {N} issues remain.`
+
+Offer options:
+1. Force proceed (execute despite issues)
+2. Provide guidance (user gives direction, retry)
+3. Abandon (exit, user runs /gsd:plan-phase manually)
+
+Wait for user response.
+</step>
+
+<step name="present_ready">
+**Present completion and next steps:**
+
+```
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+ GSD ► FIXES READY ✓
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+**Phase {X}: {Name}** — {N} gap(s) diagnosed, {M} fix plan(s) created
+
+| Gap | Root Cause | Fix Plan |
+|-----|------------|----------|
+| {truth 1} | {root_cause} | {phase}-04 |
+| {truth 2} | {root_cause} | {phase}-04 |
+
+Plans verified and ready for execution.
+
+───────────────────────────────────────────────────────────────
+
+## ▶ Next Up
+
+**Execute fixes** — run fix plans
+
+`/clear` then `/gsd:execute-phase {phase} --gaps-only`
+
+───────────────────────────────────────────────────────────────
 ```
 </step>
 
 </process>
 
 <update_rules>
-**Section update rules:**
+**Batched writes for efficiency:**
 
-| Section | Rule | When |
-|---------|------|------|
+Keep results in memory. Write to file only when:
+1. **Issue found** — Preserve the problem immediately
+2. **Session complete** — Final write before commit
+3. **Checkpoint** — Every 5 passed tests (safety net)
+
+| Section | Rule | When Written |
+|---------|------|--------------|
 | Frontmatter.status | OVERWRITE | Start, complete |
-| Frontmatter.updated | OVERWRITE | Every update |
-| Current Test | OVERWRITE | Each test transition |
-| Tests.{N}.result | OVERWRITE | When user responds |
-| Summary | OVERWRITE | After each response |
-| Issues | APPEND | When issue found |
+| Frontmatter.updated | OVERWRITE | On any file write |
+| Current Test | OVERWRITE | On any file write |
+| Tests.{N}.result | OVERWRITE | On any file write |
+| Summary | OVERWRITE | On any file write |
+| Gaps | APPEND | When issue found |
 
-**Update file AFTER processing each response.** If context resets, file shows exactly where to resume.
+On context reset: File shows last checkpoint. Resume from there.
 </update_rules>
 
 <severity_inference>
@@ -459,8 +560,11 @@ Default to **major** if unclear. User can correct if needed.
 - [ ] Tests presented one at a time with expected behavior
 - [ ] User responses processed as pass/issue/skip
 - [ ] Severity inferred from description (never asked)
-- [ ] File updated after each response
-- [ ] Can resume perfectly from any /clear
+- [ ] Batched writes: on issue, every 5 passes, or completion
 - [ ] Committed on completion
-- [ ] Clear next steps based on results
+- [ ] If issues: parallel debug agents diagnose root causes
+- [ ] If issues: gsd-planner creates fix plans (gap_closure mode)
+- [ ] If issues: gsd-plan-checker verifies fix plans
+- [ ] If issues: revision loop until plans pass (max 3 iterations)
+- [ ] Ready for `/gsd:execute-phase --gaps-only` when complete
 </success_criteria>

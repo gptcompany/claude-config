@@ -28,7 +28,7 @@ Claude's training data is 6-18 months stale. Always verify.
 2. **Official docs** - When Context7 lacks coverage
 3. **WebSearch LAST** - For comparisons and trends only
 
-See ~/.claude/get-shit-done/templates/discovery.md `<discovery_protocol>` for full protocol.
+See /home/sam/.claude/get-shit-done/templates/discovery.md `<discovery_protocol>` for full protocol.
 </source_hierarchy>
 
 <process>
@@ -107,16 +107,14 @@ For: Choosing between options, new external integration.
 
 5. **Cross-verify:** Any WebSearch finding → confirm with Context7/official docs.
 
-6. **Quality check:** Before finalizing findings, consult ~/.claude/get-shit-done/references/research-pitfalls.md to avoid common research gaps.
-
-7. **Create DISCOVERY.md** using ~/.claude/get-shit-done/templates/discovery.md structure:
+6. **Create DISCOVERY.md** using /home/sam/.claude/get-shit-done/templates/discovery.md structure:
 
    - Summary with recommendation
    - Key findings per option
    - Code examples from Context7
    - Confidence level (should be MEDIUM-HIGH for Level 2)
 
-8. Return to plan-phase.md.
+7. Return to plan-phase.md.
 
 **Output:** `.planning/phases/XX-name/DISCOVERY.md`
 </step>
@@ -128,7 +126,7 @@ For: Architectural decisions, novel problems, high-risk choices.
 
 **Process:**
 
-1. **Scope the discovery** using ~/.claude/get-shit-done/templates/discovery.md:
+1. **Scope the discovery** using /home/sam/.claude/get-shit-done/templates/discovery.md:
 
    - Define clear scope
    - Define include/exclude boundaries
@@ -160,18 +158,16 @@ For: Architectural decisions, novel problems, high-risk choices.
    - Mark what's verified vs assumed
    - Flag contradictions
 
-6. **Quality check:** Before finalizing findings, consult ~/.claude/get-shit-done/references/research-pitfalls.md to ensure comprehensive coverage and avoid common research gaps.
+6. **Create comprehensive DISCOVERY.md:**
 
-7. **Create comprehensive DISCOVERY.md:**
-
-   - Full structure from ~/.claude/get-shit-done/templates/discovery.md
+   - Full structure from /home/sam/.claude/get-shit-done/templates/discovery.md
    - Quality report with source attribution
    - Confidence by finding
    - If LOW confidence on any critical finding → add validation checkpoints
 
-8. **Confidence gate:** If overall confidence is LOW, present options before proceeding.
+7. **Confidence gate:** If overall confidence is LOW, present options before proceeding.
 
-9. Return to plan-phase.md.
+8. Return to plan-phase.md.
 
 **Output:** `.planning/phases/XX-name/DISCOVERY.md` (comprehensive)
 </step>
@@ -188,7 +184,7 @@ Ask: What do we need to learn before we can plan this phase?
   </step>
 
 <step name="create_discovery_scope">
-Use ~/.claude/get-shit-done/templates/discovery.md.
+Use /home/sam/.claude/get-shit-done/templates/discovery.md.
 
 Include:
 
@@ -220,7 +216,7 @@ After creating DISCOVERY.md, check confidence level.
 If confidence is LOW:
 Use AskUserQuestion:
 
-- header: "Low Confidence"
+- header: "Low Conf."
 - question: "Discovery confidence is LOW: [reason]. How would you like to proceed?"
 - options:
   - "Dig deeper" - Do more research before planning

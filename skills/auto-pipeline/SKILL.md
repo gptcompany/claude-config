@@ -102,7 +102,7 @@ fi
 
 # === PHASE 5: EXECUTE ===
 if framework == "gsd":
-    /gsd:execute-phase-sync {target}
+    /gsd:execute-phase {target}
 else:
     /speckit.implement-sync
 
