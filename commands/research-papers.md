@@ -46,7 +46,7 @@ curl -sf http://localhost:8775/health >/dev/null 2>&1
 **If pipeline is not available:**
 ```
 ⚠️ Research Pipeline non disponibile (localhost:8775).
-Avvia con: cd /media/sam/1TB/research-pipeline && docker compose up -d
+Avvia con: cd /media/sam/1TB/pepers && docker compose up -d
 ```
 
 ### List Papers (--list or default)
@@ -96,7 +96,7 @@ f^* = \frac{p}{a} - \frac{q}{b}
 | Engine | Valid | Time |
 |--------|-------|------|
 | sympy | ✅ | 120ms |
-| maxima | ✅ | 85ms |
+| sage | ✅ | 85ms |
 
 **Generated Code:**
 | Language | Stage |
@@ -116,10 +116,22 @@ curl -sf "http://localhost:8775/formulas?paper_id=PAPER_ID"
 
 ### Search Papers (default mode)
 
-Search papers by matching query against titles in the results:
+**Primary: Semantic search via RAGAnything knowledge graph:**
 
 ```bash
-# Fetch all papers
+# Semantic search (knowledge graph + vector embeddings + reranking)
+curl -sf -X POST http://localhost:8775/search \
+  -H 'Content-Type: application/json' \
+  -d '{"query": "QUERY", "mode": "hybrid"}'
+```
+
+If the response has `"success": true` and a non-empty `"answer"`, display the RAG answer directly.
+The answer comes from LightRAG's knowledge graph which understands paper content, formulas, and relationships.
+
+**Fallback: If RAGAnything is unavailable or /search fails:**
+
+```bash
+# Fetch all papers and filter client-side
 curl -sf http://localhost:8775/papers?limit=100
 ```
 
@@ -151,9 +163,9 @@ f* = \frac{p \cdot b - q}{b}
 | CAS | Result | Time |
 |-----|--------|------|
 | SymPy | VALID | 120ms |
-| Maxima | VALID | 85ms |
+| SageMath | VALID | 85ms |
 
-**Confidence:** HIGH (2/2 consensus)
+**Confidence:** HIGH (all engines agree)
 
 #### Generated Code
 
@@ -167,7 +179,7 @@ def kelly_fraction(win_prob: float, win_loss_ratio: float) -> float:
 ## No Results?
 
 If no results found:
-1. Check if pipeline is running: `docker compose ps` in research-pipeline/
+1. Check if pipeline is running: `docker compose ps` in pepers/
 2. Pipeline may need a run: `curl -X POST http://localhost:8775/run -H 'Content-Type: application/json' -d '{"query": "your query", "stages": 5, "max_papers": 10}'`
 
 Run `/research "your query"` to trigger new academic research via the pipeline.

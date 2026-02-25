@@ -305,7 +305,7 @@ if PIPELINE_AVAILABLE:
 **If pipeline NOT available** — inform the user clearly:
 ```
 ⚠️ Research Pipeline non disponibile (localhost:8775).
-Avvia con: cd /media/sam/1TB/research-pipeline && docker compose up -d
+Avvia con: cd /media/sam/1TB/pepers && docker compose up -d
 Solo la ricerca web sarà utilizzata per questa sessione.
 ```
 
@@ -544,4 +544,4 @@ Le fonti in `research.md` includono metadata (titolo, abstract, DOI) e punteggi 
 - `/research-papers --detail 1` per dettaglio completo paper #1
 
 **Pipeline stages:** Discovery → Analyzer → Extractor → Validator → Codegen
-**Validazione CAS:** SymPy, Maxima (integrata nel pipeline, stage Validator)
+**Validazione CAS:** SymPy + SageMath (required); MATLAB + WolframAlpha (optional) — via CAS microservice (:8769), auto-discovered
