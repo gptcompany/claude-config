@@ -1,373 +1,318 @@
 {
-  "env": {
-    "STATUSLINE_SYMBOLS": "emoji",
-    "ENABLE_TOOL_SEARCH": "auto:10",
-    "USE_BUILTIN_RIPGREP": "1",
-    "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1",
-    "CLAUDE_CODE_DISABLE_TERMINAL_TITLE": "0",
-    "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1",
-    "DISABLE_COST_WARNINGS": "1",
-    "QUESTDB_HOST": "localhost",
-    "QUESTDB_ILP_PORT": "9009",
-    "PG_HOST": "localhost",
-    "PG_PORT": "5433",
-    "PG_USER": "n8n",
-    "PG_PASS": "n8n",
-    "PG_DB": "n8n"
-  },
-  "permissions": {
-    "allow": [
-      "WebSearch",
-      "Read(//home/sam/**)",
-      "Edit(//home/sam/**)",
-      "MultiEdit(//home/sam/**)",
-      "Read(//media/sam/**)",
-      "Edit(//media/sam/1TB/**)",
-      "Edit(//media/sam/1TB1/**)",
-      "MultiEdit(//media/sam/1TB/**)",
-      "MultiEdit(//media/sam/1TB1/**)",
-      "Write(//media/sam/1TB/**)",
-      "Write(//media/sam/1TB1/**)",
-      "Read(//dev/**)",
-      "Read(//usr/share/fonts/**)",
-      "Read(//boot/grub/**)",
-      "Read(//sys/devices/system/clocksource/**)",
-      "mcp__context7__get-library-docs",
-      "Bash(docker-compose:*)",
-      "Bash(docker:*)",
-      "Bash(uv:*)",
-      "Bash(serena:*)",
-      "Bash(ssh:*)",
-      "Bash(sync)",
-      "Bash(chmod:*)",
-      "Bash(rsync:*)",
-      "Bash(ln:*)",
-      "Bash(mkdir:*)",
-      "Bash(head:*)",
-      "Bash(tail:*)",
-      "Bash(zcat:*)",
-      "Bash(for:*)",
-      "Bash(bash:*)",
-      "Bash(python:*)",
-      "Bash(python3:*)",
-      "Bash(source:*)",
-      "Bash(echo:*)",
-      "Bash(cat:*)",
-      "Bash(dpkg:*)",
-      "Bash(systemctl:*)",
-      "Bash(pkill:*)",
-      "Bash(sudo apt:*)",
-      "Bash(sudo apt-get:*)",
-      "Bash(sudo add-apt-repository:*)",
-      "Bash(git:*)",
-      "Bash(gh:*)",
-      "Bash(ccundo:*)",
-      "Bash(pytest:*)",
-      "Bash(ruff:*)",
-      "Bash(npx:*)",
-      "Bash(npm:*)",
-      "Bash(node:*)",
-      "Bash(curl:*)",
-      "Bash(wget:*)",
-      "Bash(setsid:*)",
-      "Bash(nohup:*)",
-      "WebFetch(domain:github.com)",
-      "WebFetch(domain:docs.github.com)",
-      "WebFetch(domain:api.github.com)",
-      "WebFetch(domain:www.binance.com)",
-      "WebFetch(domain:binance-docs.github.io)",
-      "WebFetch(domain:bybit-exchange.github.io)",
-      "WebFetch(domain:data.binance.vision)",
-      "WebFetch(domain:www.coinglass.com)",
-      "WebFetch(domain:docs.coinglass.com)",
-      "WebFetch(domain:coinank.com)",
-      "WebFetch(domain:alternative.me)",
-      "WebFetch(domain:bitcoincounterflow.com)",
-      "WebFetch(domain:docs.nautilustrader.io)",
-      "WebFetch(domain:nautilustrader.io)",
-      "WebFetch(domain:packages.nautechsystems.io)",
-      "WebFetch(domain:tardis.dev)",
-      "WebFetch(domain:docs.tardis.dev)",
-      "WebFetch(domain:docs.n8n.io)",
-      "WebFetch(domain:www.youtube.com)",
-      "WebFetch(domain:arxiv.org)",
-      "WebFetch(domain:pypi.org)"
-    ],
-    "deny": [
-      "Read(.claude/tdd-guard/**)"
-    ],
-    "defaultMode": "bypassPermissions"
-  },
-  "enableAllProjectMcpServers": true,
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/suggest-compact.js\"",
-            "timeout": 2
-          }
+    "env": {
+        "STATUSLINE_SYMBOLS": "emoji",
+        "ENABLE_TOOL_SEARCH": "auto:10",
+        "USE_BUILTIN_RIPGREP": "1",
+        "CLAUDE_BASH_MAINTAIN_PROJECT_WORKING_DIR": "1",
+        "CLAUDE_CODE_DISABLE_TERMINAL_TITLE": "0",
+        "DISABLE_NON_ESSENTIAL_MODEL_CALLS": "1",
+        "DISABLE_COST_WARNINGS": "1",
+        "QUESTDB_HOST": "localhost",
+        "QUESTDB_ILP_PORT": "9009",
+        "PG_HOST": "localhost",
+        "PG_PORT": "5433",
+        "PG_USER": "n8n",
+        "PG_PASS": "n8n",
+        "PG_DB": "n8n"
+    },
+    "permissions": {
+        "allow": [
+            "WebSearch",
+            "Read(//home/sam/**)",
+            "Edit(//home/sam/**)",
+            "Read(//media/sam/**)",
+            "Edit(//media/sam/1TB/**)",
+            "Edit(//media/sam/1TB1/**)",
+            "Read(//dev/**)",
+            "Read(//usr/share/fonts/**)",
+            "Read(//boot/grub/**)",
+            "Read(//sys/devices/system/clocksource/**)",
+            "mcp__context7__get-library-docs",
+            "Bash(docker-compose:*)",
+            "Bash(docker:*)",
+            "Bash(uv:*)",
+            "Bash(serena:*)",
+            "Bash(ssh:*)",
+            "Bash(sync)",
+            "Bash(chmod:*)",
+            "Bash(rsync:*)",
+            "Bash(ln:*)",
+            "Bash(mkdir:*)",
+            "Bash(head:*)",
+            "Bash(tail:*)",
+            "Bash(zcat:*)",
+            "Bash(for:*)",
+            "Bash(bash:*)",
+            "Bash(python:*)",
+            "Bash(python3:*)",
+            "Bash(source:*)",
+            "Bash(echo:*)",
+            "Bash(cat:*)",
+            "Bash(dpkg:*)",
+            "Bash(systemctl:*)",
+            "Bash(pkill:*)",
+            "Bash(sudo apt:*)",
+            "Bash(sudo apt-get:*)",
+            "Bash(sudo add-apt-repository:*)",
+            "Bash(git:*)",
+            "Bash(gh:*)",
+            "Bash(ccundo:*)",
+            "Bash(pytest:*)",
+            "Bash(ruff:*)",
+            "Bash(npx:*)",
+            "Bash(npm:*)",
+            "Bash(node:*)",
+            "Bash(curl:*)",
+            "Bash(wget:*)",
+            "Bash(setsid:*)",
+            "Bash(nohup:*)",
+            "WebFetch(domain:github.com)",
+            "WebFetch(domain:docs.github.com)",
+            "WebFetch(domain:api.github.com)",
+            "WebFetch(domain:www.binance.com)",
+            "WebFetch(domain:binance-docs.github.io)",
+            "WebFetch(domain:bybit-exchange.github.io)",
+            "WebFetch(domain:data.binance.vision)",
+            "WebFetch(domain:www.coinglass.com)",
+            "WebFetch(domain:docs.coinglass.com)",
+            "WebFetch(domain:coinank.com)",
+            "WebFetch(domain:alternative.me)",
+            "WebFetch(domain:bitcoincounterflow.com)",
+            "WebFetch(domain:docs.nautilustrader.io)",
+            "WebFetch(domain:nautilustrader.io)",
+            "WebFetch(domain:packages.nautechsystems.io)",
+            "WebFetch(domain:tardis.dev)",
+            "WebFetch(domain:docs.tardis.dev)",
+            "WebFetch(domain:docs.n8n.io)",
+            "WebFetch(domain:www.youtube.com)",
+            "WebFetch(domain:arxiv.org)",
+            "WebFetch(domain:pypi.org)"
+        ],
+        "deny": [
+            "Read(.claude/tdd-guard/**)"
+        ],
+        "defaultMode": "bypassPermissions"
+    },
+    "enableAllProjectMcpServers": true,
+    "hooks": {
+        "PreToolUse": [
+            {
+                "matcher": "",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "node \"$HOME/.claude/scripts/hooks/suggest-compact.js\"",
+                        "timeout": 2
+                    }
+                ]
+            },
+            {
+                "matcher": "Bash",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "node \"$HOME/.claude/scripts/hooks/safety/smart-safety-check.js\"",
+                        "timeout": 5
+                    },
+                    {
+                        "type": "command",
+                        "command": "node \"$HOME/.claude/scripts/hooks/safety/git-safety-check.js\"",
+                        "timeout": 5
+                    },
+                    {
+                        "type": "command",
+                        "command": "node \"$HOME/.claude/scripts/hooks/safety/ci-batch-check.js\"",
+                        "timeout": 3
+                    },
+                    {
+                        "type": "command",
+                        "command": "node \"$HOME/.claude/scripts/hooks/safety/port-conflict-check.js\"",
+                        "timeout": 3
+                    }
+                ]
+            },
+            {
+                "matcher": "Write|Edit|MultiEdit",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "node \"$HOME/.claude/scripts/hooks/productivity/tdd-guard.js\"",
+                        "timeout": 5
+                    }
+                ]
+            },
+            {
+                "matcher": "Write",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "node \"$HOME/.claude/scripts/hooks/quality/plan-validator.js\"",
+                        "timeout": 3
+                    }
+                ]
+            }
+        ],
+        "PostToolUse": [
+            {
+                "matcher": "",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "node \"$HOME/.claude/scripts/hooks/metrics/dora-tracker.js\"",
+                        "timeout": 5
+                    }
+                ]
+            },
+            {
+                "matcher": "Write|Edit|MultiEdit",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "node \"$HOME/.claude/scripts/hooks/productivity/auto-format.js\"",
+                        "timeout": 10
+                    },
+                    {
+                        "type": "command",
+                        "command": "node \"$HOME/.claude/scripts/hooks/quality/validation-orchestrator.js\"",
+                        "timeout": 15
+                    },
+                    {
+                        "type": "command",
+                        "command": "node \"$HOME/.claude/scripts/hooks/quality/confidence-gate-sync.js\"",
+                        "timeout": 5
+                    }
+                ]
+            },
+            {
+                "matcher": "Bash",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "node \"$HOME/.claude/scripts/hooks/metrics/quality-score.js\"",
+                        "timeout": 5
+                    },
+                    {
+                        "type": "command",
+                        "command": "node \"$HOME/.claude/scripts/hooks/quality/ci-autofix.js\"",
+                        "timeout": 10
+                    },
+                    {
+                        "type": "command",
+                        "command": "node \"$HOME/.claude/scripts/hooks/quality/architecture-validator.js\"",
+                        "timeout": 10
+                    },
+                    {
+                        "type": "command",
+                        "command": "node \"$HOME/.claude/scripts/hooks/quality/readme-generator.js\"",
+                        "timeout": 10
+                    }
+                ]
+            },
+            {
+                "matcher": "Skill",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "node \"$HOME/.claude/scripts/hooks/metrics/claudeflow-sync.js\"",
+                        "timeout": 10
+                    }
+                ]
+            },
+            {
+                "matcher": "Task",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "node \"$HOME/.claude/scripts/hooks/productivity/task-checkpoint.js\"",
+                        "timeout": 10
+                    },
+                    {
+                        "type": "command",
+                        "command": "node \"$HOME/.claude/scripts/hooks/metrics/claudeflow-sync.js\"",
+                        "timeout": 5
+                    }
+                ]
+            }
+        ],
+        "Stop": [
+            {
+                "matcher": "",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "node \"$HOME/.claude/scripts/hooks/intelligence/session-analyzer.js\"",
+                        "timeout": 10
+                    },
+                    {
+                        "type": "command",
+                        "command": "node \"$HOME/.claude/scripts/hooks/ux/session-insights.js\"",
+                        "timeout": 5
+                    },
+                    {
+                        "type": "command",
+                        "command": "node \"$HOME/.claude/scripts/hooks/control/ralph-loop.js\"",
+                        "timeout": 30
+                    },
+                    {
+                        "type": "command",
+                        "command": "node \"$HOME/.claude/scripts/hooks/metrics/claudeflow-sync.js\"",
+                        "timeout": 10
+                    }
+                ]
+            }
+        ],
+        "UserPromptSubmit": [
+            {
+                "matcher": "",
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "node \"$HOME/.claude/scripts/hooks/ux/context-warning.js\"",
+                        "timeout": 3
+                    },
+                    {
+                        "type": "command",
+                        "command": "node \"$HOME/.claude/scripts/hooks/ux/tips-injector.js\"",
+                        "timeout": 5
+                    },
+                    {
+                        "type": "command",
+                        "command": "node \"$HOME/.claude/scripts/hooks/intelligence/session-start-tracker.js\"",
+                        "timeout": 5
+                    },
+                    {
+                        "type": "command",
+                        "command": "node \"$HOME/.claude/scripts/hooks/intelligence/lesson-injector.js\"",
+                        "timeout": 5
+                    },
+                    {
+                        "type": "command",
+                        "command": "node \"$HOME/.claude/scripts/hooks/intelligence/cf-session-workers.js\"",
+                        "timeout": 4
+                    }
+                ]
+            }
+        ],
+        "SessionStart": [
+            {
+                "hooks": [
+                    {
+                        "type": "command",
+                        "command": "node \"$HOME/.claude/hooks/gsd-check-update.js\""
+                    }
+                ]
+            }
         ]
-      },
-      {
-        "matcher": "Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "npx @claude-flow/cli@latest hooks pre-task --description \"$CLAUDE_TOOL_INPUT\" --coordinate-swarm 2>/dev/null || true",
-            "timeout": 8
-          },
-          {
-            "type": "command",
-            "command": "npx @claude-flow/cli@latest hooks route --task \"$CLAUDE_TOOL_INPUT\" 2>/dev/null || true",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "npx @claude-flow/cli@latest hooks pre-command --cmd \"$CLAUDE_TOOL_INPUT\" --enforce warn 2>/dev/null || true",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/safety/smart-safety-check.js\"",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/safety/git-safety-check.js\"",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/safety/ci-batch-check.js\"",
-            "timeout": 3
-          },
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/safety/port-conflict-check.js\"",
-            "timeout": 3
-          }
-        ]
-      },
-      {
-        "matcher": "Write|Edit|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/productivity/tdd-guard.js\"",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "npx @claude-flow/cli@latest hooks pre-edit --file \"$CLAUDE_FILE_PATH\" --enforce warn 2>/dev/null || true",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/quality/plan-validator.js\"",
-            "timeout": 3
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/metrics/dora-tracker.js\"",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "Write|Edit|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/productivity/auto-format.js\"",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/quality/validation-orchestrator.js\"",
-            "timeout": 15
-          },
-          {
-            "type": "command",
-            "command": "npx @claude-flow/cli@latest hooks post-edit --train-neural true 2>/dev/null || true",
-            "timeout": 8
-          },
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/quality/confidence-gate-sync.js\"",
-            "timeout": 5
-          }
-        ]
-      },
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "npx @claude-flow/cli@latest hooks post-command --success \"$CLAUDE_EXIT_CODE\" --learn true 2>/dev/null || true",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/metrics/quality-score.js\"",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/quality/ci-autofix.js\"",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/quality/architecture-validator.js\"",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/quality/readme-generator.js\"",
-            "timeout": 10
-          }
-        ]
-      },
-      {
-        "matcher": "Skill",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/metrics/claudeflow-sync.js\"",
-            "timeout": 10
-          }
-        ]
-      },
-      {
-        "matcher": "Task",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/productivity/task-checkpoint.js\"",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/metrics/claudeflow-sync.js\"",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "npx @claude-flow/cli@latest hooks post-task --success true --store-results true 2>/dev/null || true",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "Stop": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "npx @claude-flow/cli@latest hooks session-end --generate-summary true --persist-state true 2>/dev/null || true",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/intelligence/session-analyzer.js\"",
-            "timeout": 10
-          },
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/ux/session-insights.js\"",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/control/ralph-loop.js\"",
-            "timeout": 30
-          },
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/metrics/claudeflow-sync.js\"",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "UserPromptSubmit": [
-      {
-        "matcher": "",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "npx @claude-flow/cli@latest hooks session-start --auto-configure 2>/dev/null || true",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/ux/context-warning.js\"",
-            "timeout": 3
-          },
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/ux/tips-injector.js\"",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/intelligence/session-start-tracker.js\"",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/intelligence/lesson-injector.js\"",
-            "timeout": 5
-          },
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/intelligence/cf-session-workers.js\"",
-            "timeout": 4
-          }
-        ]
-      }
-    ],
-    "SessionStart": [
-      {
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"/home/sam/.claude/hooks/gsd-check-update.js\""
-          }
-        ]
-      }
-    ]
-  },
-  "statusLine": {
-    "type": "command",
-    "command": "node ~/.claude/scripts/statusline/context-monitor.js"
-  },
-  "enabledPlugins": {
-    "pyright-lsp@claude-plugins-official": true,
-    "code-simplifier@claude-plugins-official": true
-  },
-  "language": "italian",
-  "alwaysThinkingEnabled": true,
-  "skipDangerousModePermissionPrompt": true
+    },
+    "statusLine": {
+        "type": "command",
+        "command": "node ~/.claude/scripts/statusline/context-monitor.js"
+    },
+    "enabledPlugins": {
+        "pyright-lsp@claude-plugins-official": true,
+        "code-simplifier@claude-plugins-official": true
+    },
+    "language": "italian",
+    "alwaysThinkingEnabled": true,
+    "skipDangerousModePermissionPrompt": true
 }

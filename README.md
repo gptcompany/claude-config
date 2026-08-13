@@ -2,6 +2,32 @@
 
 Enterprise-grade Claude Code configuration hub serving multiple repositories.
 
+## Dell Installation
+
+The Git checkout is the versioned source; `~/.claude` is the active Claude Code
+profile. On the Dell the canonical checkout is
+`/data/sata/1TB/claude-config`. The copy below
+`/data/old-system/256GB` is archive/recovery material, not an install source.
+
+Install or update the versioned hooks without replacing user preferences,
+credentials, project history, caches, or Dell-only hook registrations:
+
+```bash
+cd /data/sata/1TB/claude-config
+python3 scripts/install_claude_hooks.py
+python3 scripts/install_claude_hooks.py --check
+```
+
+The installer updates only `scripts/hooks`, `scripts/lib`, the registered GSD
+startup hook, and canonical hook registrations. It removes obsolete
+`npx @claude-flow/cli@latest hooks ...` registrations and invalid legacy
+permission rules, creates a mode-`0600` settings backup when needed, and is
+idempotent. It preserves active settings such as model, theme, notifications,
+permission mode, and locally registered hooks.
+
+Claude Flow remains available as an explicit integration. It is not downloaded
+or invoked through `npx @latest` on every Claude prompt or tool call.
+
 ## Architecture Overview
 
 ```
@@ -77,9 +103,9 @@ global:
 
 ## Shared Infrastructure
 
-### Hooks (`/media/sam/1TB/claude-hooks-shared/`)
+### Hooks (`~/.claude/scripts/hooks/`)
 
-All repositories share the same hooks infrastructure:
+All repositories use the hooks installed from this repository:
 
 | Hook | Type | Purpose |
 |------|------|---------|

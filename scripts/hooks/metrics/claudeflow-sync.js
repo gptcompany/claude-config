@@ -442,15 +442,14 @@ function savePipelineCheckpoint(key, value) {
 
 /**
  * Async MCP sync - fire and forget
- * Spawns detached npx process that syncs to MCP memory in background
+ * Spawns the installed claude-flow CLI to sync MCP memory in background.
  */
 function asyncMcpSync(key, value) {
   try {
     const valueJson = JSON.stringify(value);
     const child = spawn(
-      "npx",
+      "claude-flow",
       [
-        "@claude-flow/cli@latest",
         "memory",
         "store",
         "--key",
@@ -466,6 +465,7 @@ function asyncMcpSync(key, value) {
         shell: false,
       },
     );
+    child.on("error", () => {});
     child.unref(); // Don't wait for process to exit
   } catch (err) {
     // Fire-and-forget: ignore errors
