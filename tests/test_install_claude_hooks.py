@@ -25,6 +25,7 @@ def _active_settings() -> dict:
     return {
         "model": "opus",
         "theme": "dark",
+        "enableAllProjectMcpServers": True,
         "permissions": {
             "allow": ["Edit(//home/sam/**)", "MultiEdit(//home/sam/**)"],
         },
@@ -75,6 +76,7 @@ def test_install_merges_hooks_preserves_preferences_and_is_idempotent(tmp_path: 
     assert settings_changed
     assert installed["model"] == "opus"
     assert installed["theme"] == "dark"
+    assert installed["enableAllProjectMcpServers"] is False
     assert installed["permissions"]["allow"] == ["Edit(//home/sam/**)"]
     commands = [
         hook["command"]

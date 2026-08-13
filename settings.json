@@ -93,7 +93,7 @@
         ],
         "defaultMode": "bypassPermissions"
     },
-    "enableAllProjectMcpServers": true,
+    "enableAllProjectMcpServers": false,
     "hooks": {
         "PreToolUse": [
             {

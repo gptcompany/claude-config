@@ -140,6 +140,9 @@ def _merge_hooks(active: dict[str, Any], canonical: dict[str, Any]) -> None:
 def _merge_settings(active: dict[str, Any], canonical: dict[str, Any]) -> dict[str, Any]:
     merged = json.loads(json.dumps(active))
     _merge_hooks(merged, canonical)
+    merged["enableAllProjectMcpServers"] = bool(
+        canonical.get("enableAllProjectMcpServers", False)
+    )
     permissions = merged.get("permissions", {})
     if isinstance(permissions, dict) and isinstance(permissions.get("allow"), list):
         permissions["allow"] = [
