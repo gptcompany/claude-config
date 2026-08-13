@@ -226,3 +226,52 @@ def test_policy_update_preserves_surrounding_text_and_rejects_bad_markers(
     policy_target.write_text(f"{module.POLICY_BEGIN}\nbroken\n", encoding="utf-8")
     with pytest.raises(module.InstallError, match="malformed"):
         _install(module, target, legacy)
+
+
+def test_policy_update_preserves_owned_symlink(tmp_path: Path) -> None:
+    module = _load_module()
+    target = tmp_path / ".claude.json"
+    legacy = tmp_path / ".mcp.json"
+    policy_link = tmp_path / ".claude/CLAUDE.md"
+    policy_link.parent.mkdir()
+    policy_real = tmp_path / "dotfiles/CLAUDE.md"
+    policy_real.parent.mkdir()
+    policy_real.write_text("# Dotfiles policy\n", encoding="utf-8")
+    policy_real.chmod(0o664)
+    policy_link.symlink_to(policy_real)
+
+    config_changed, policy_changed, hardened = _install(module, target, legacy)
+
+    assert (config_changed, policy_changed, hardened) == (True, True, 0)
+    assert policy_link.is_symlink()
+    assert policy_link.resolve() == policy_real
+    assert policy_real.read_text(encoding="utf-8").startswith("# Dotfiles policy\n")
+    assert policy_real.read_text(encoding="utf-8").count(module.POLICY_BEGIN) == 1
+    assert stat.S_IMODE(policy_real.stat().st_mode) == 0o600
+
+
+def test_policy_symlink_change_is_detected_before_write(tmp_path: Path, monkeypatch) -> None:
+    module = _load_module()
+    target = tmp_path / ".claude.json"
+    legacy = tmp_path / ".mcp.json"
+    policy_link = tmp_path / ".claude/CLAUDE.md"
+    policy_link.parent.mkdir()
+    policy_real = tmp_path / "first.md"
+    policy_other = tmp_path / "second.md"
+    policy_real.write_text("first\n", encoding="utf-8")
+    policy_other.write_text("second\n", encoding="utf-8")
+    policy_link.symlink_to(policy_real)
+    real_verify = module._verify_policy_link
+
+    def changed_link(path: Path, resolved: Path, expected):
+        path.unlink()
+        path.symlink_to(policy_other)
+        real_verify(path, resolved, expected)
+
+    monkeypatch.setattr(module, "_verify_policy_link", changed_link)
+
+    with pytest.raises(module.InstallError, match="symlink changed concurrently"):
+        _install(module, target, legacy)
+    assert policy_real.read_text(encoding="utf-8") == "first\n"
+    assert policy_other.read_text(encoding="utf-8") == "second\n"
+    assert not target.exists()

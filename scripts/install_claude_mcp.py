@@ -96,6 +96,29 @@ def _snapshot(path: Path) -> tuple[int, int, int, int] | None:
     return metadata.st_dev, metadata.st_ino, metadata.st_size, metadata.st_mtime_ns
 
 
+def _policy_target(path: Path) -> tuple[Path, tuple[int, int, str] | None]:
+    if not path.is_symlink():
+        return path, None
+    try:
+        link_metadata = path.lstat()
+        link_value = os.readlink(path)
+        resolved = path.resolve(strict=True)
+    except OSError as exc:
+        raise InstallError(f"unable to resolve active CLAUDE.md symlink: {path}: {exc}") from exc
+    _validate_owned_regular_file(resolved)
+    return resolved, (link_metadata.st_dev, link_metadata.st_ino, link_value)
+
+
+def _verify_policy_link(
+    path: Path,
+    resolved: Path,
+    expected: tuple[int, int, str] | None,
+) -> None:
+    current_resolved, current = _policy_target(path)
+    if current != expected or current_resolved != resolved:
+        raise InstallError(f"active CLAUDE.md symlink changed concurrently: {path}")
+
+
 def _atomic_json(path: Path, value: dict[str, Any]) -> None:
     path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
     fd, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
@@ -206,6 +229,8 @@ def install(
 
     policy_changed = False
     policy_snapshot: tuple[int, int, int, int] | None = None
+    resolved_policy_target: Path | None = None
+    policy_link: tuple[int, int, str] | None = None
     policy_raw = b""
     managed_policy = ""
     if (policy_template is None) != (policy_target is None):
@@ -217,10 +242,11 @@ def install(
             policy = policy_template.read_text(encoding="utf-8")
         except OSError as exc:
             raise InstallError(f"unable to read MCP policy template: {exc}") from exc
-        policy_snapshot = _snapshot(policy_target)
-        if policy_target.exists():
+        resolved_policy_target, policy_link = _policy_target(policy_target)
+        policy_snapshot = _snapshot(resolved_policy_target)
+        if resolved_policy_target.exists():
             try:
-                policy_raw = policy_target.read_bytes()
+                policy_raw = resolved_policy_target.read_bytes()
                 active_policy = policy_raw.decode("utf-8")
             except (OSError, UnicodeDecodeError) as exc:
                 raise InstallError(f"unable to read active CLAUDE.md: {exc}") from exc
@@ -233,9 +259,9 @@ def install(
         _legacy_drift(legacy_paths, check=True)
         target_mode_drift = target.exists() and stat.S_IMODE(target.stat().st_mode) != 0o600
         policy_mode_drift = bool(
-            policy_target
-            and policy_target.exists()
-            and stat.S_IMODE(policy_target.stat().st_mode) != 0o600
+            resolved_policy_target
+            and resolved_policy_target.exists()
+            and stat.S_IMODE(resolved_policy_target.stat().st_mode) != 0o600
         )
         if config_changed or policy_changed or target_mode_drift or policy_mode_drift:
             raise InstallError(
@@ -248,32 +274,35 @@ def install(
 
     target_mode_drift = target.exists() and stat.S_IMODE(target.stat().st_mode) != 0o600
     policy_mode_drift = bool(
-        policy_target
-        and policy_target.exists()
-        and stat.S_IMODE(policy_target.stat().st_mode) != 0o600
+        resolved_policy_target
+        and resolved_policy_target.exists()
+        and stat.S_IMODE(resolved_policy_target.stat().st_mode) != 0o600
     )
     if (config_changed or target_mode_drift) and _snapshot(target) != original_snapshot:
         raise InstallError(f"Claude MCP config changed concurrently: {target}")
     if (
         policy_target is not None
+        and resolved_policy_target is not None
         and (policy_changed or policy_mode_drift)
-        and _snapshot(policy_target) != policy_snapshot
+        and _snapshot(resolved_policy_target) != policy_snapshot
     ):
         raise InstallError(f"active CLAUDE.md changed concurrently: {policy_target}")
+    if policy_target is not None and resolved_policy_target is not None:
+        _verify_policy_link(policy_target, resolved_policy_target, policy_link)
 
     backup_dir = target.parent / ".claude/backups/claude-config"
-    if policy_target is not None and policy_changed:
-        if policy_target.exists():
+    if resolved_policy_target is not None and policy_changed:
+        if resolved_policy_target.exists():
             _backup(
-                policy_target,
+                resolved_policy_target,
                 policy_raw,
                 prefix="claude-md",
                 backup_dir=backup_dir,
             )
-        _atomic_text(policy_target, managed_policy)
-    elif policy_target is not None and policy_target.exists():
+        _atomic_text(resolved_policy_target, managed_policy)
+    elif resolved_policy_target is not None and resolved_policy_target.exists():
         if policy_mode_drift:
-            os.chmod(policy_target, 0o600, follow_symlinks=False)
+            os.chmod(resolved_policy_target, 0o600, follow_symlinks=False)
     if config_changed:
         if target.exists():
             _backup(

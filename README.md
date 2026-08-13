@@ -37,6 +37,9 @@ Serena; other profile data, global instructions, Claude.ai connectors, and
 repository `.mcp.json` files are preserved. It makes private backups before
 changing either active file and hardens legacy `~/.mcp.json` and
 `~/.claude/.mcp.json` permissions without importing their credentials.
+When `~/.claude/CLAUDE.md` is an owned symlink to a dotfiles checkout, the
+installer preserves the link and updates only the managed block in its regular
+file target after revalidating both link and target.
 
 Context7 uses the public remote documentation endpoint, with no local `npx` or
 secret embedded in the config. Serena uses the installed binary in
