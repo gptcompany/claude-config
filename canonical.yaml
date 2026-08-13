@@ -499,15 +499,18 @@ claudeflow:
       provider: questdb
       sync_interval_ms: 30000
 mcp:
-  ssot: ~/.mcp.json
+  ssot: client-specific managed profiles
   tool_search:
     enabled: true
     threshold: 10
     token_savings: 85-95%
   global_servers:
-  - linear
   - context7
   - serena
+  startup_timeout_seconds: 30
+  optional_servers:
+  - openmemory
+  - linear
   - sentry
   - firecrawl-mcp
   - wolframalpha

@@ -18,6 +18,8 @@ python3 scripts/install_claude_hooks.py
 python3 scripts/install_claude_hooks.py --check
 python3 scripts/install_claude_mcp.py
 python3 scripts/install_claude_mcp.py --check
+python3 scripts/install_codex_mcp.py
+python3 scripts/install_codex_mcp.py --check
 ```
 
 The installer updates only `scripts/hooks`, `scripts/lib`, the registered GSD
@@ -49,6 +51,14 @@ for the current task before using symbolic tools. This avoids indexing the data
 root and prevents Serena from silently editing the wrong checkout. Linear,
 Sentry, Grafana, Playwright, Claude Flow, and other integrations belong in a
 repository `.mcp.json` only when that repository actively needs them.
+
+The Codex MCP installer applies the same global allowlist to
+`~/.codex/config.toml` while preserving models, profiles, feature flags, hooks,
+and granular Serena tool policy. Context7 and Serena each have a bounded
+30-second startup timeout; after a timeout Codex remains usable in degraded
+mode. OpenMemory is not a global worker dependency: keep it repository-scoped
+or add it explicitly only for a task that needs shared-memory recall. Existing
+Codex sessions load the new MCP profile on their next `/new` or process start.
 
 ## Architecture Overview
 
