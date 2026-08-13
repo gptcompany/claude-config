@@ -188,7 +188,7 @@ Quando analizzi codice, valuti progressi, o riporti status:
 | `GRAFANA_URL/USERNAME/PASSWORD` | Grafana MCP |
 | `FIRECRAWL_API_KEY` | Firecrawl MCP |
 | `LANGSMITH_*` | LangSmith tracing |
-| `WOLFRAM_LLM_APP_ID` | WolframAlpha (in .claude.json env) |
+| `WOLFRAM_LLM_APP_ID` | WolframAlpha project integration |
 | `BRAVE_AI_API_KEY` | Brave Search API (Web search) |
 | `CLOUDFLARE_API_KEY` | Cloudflare Global API |
 | `CF_API_TOKEN` | Cloudflare Tunnel token |
@@ -382,53 +382,13 @@ cp ~/.claude/templates/validation-config.json .claude/validation/config.json
 - **Esempi**: nautilus_dev, UTXOracle, N8N_dev
 - **Comando**: `/new-project` per scaffold completo
 
-## claude-flow Auto-Sync (OBBLIGATORIO per GSD/Speckit)
+## Claude Flow (opzionale)
 
-**Quando esegui `/gsd:*` o `/speckit.*` con Task agents, DEVI:**
-
-### 1. PRIMA di spawning Task agents
-```
-mcp__claude-flow__session_save sessionId="{project}-{phase}-start"
-mcp__claude-flow__memory_store key="gsd:{project}:{phase}" value={"status":"starting","plans":[...]}
-```
-
-### 2. DOPO completamento Task agents
-```
-mcp__claude-flow__memory_store key="gsd:{project}:{phase}" value={"status":"done","results":[...]}
-mcp__claude-flow__session_save sessionId="{project}-{phase}-done"
-```
-
-### 3. A INIZIO sessione (se riprendi lavoro)
-```
-mcp__claude-flow__memory_retrieve key="gsd:{project}:*"
-# Se trova stato precedente → mostra e chiedi se continuare
-```
-
-### Benefici
-- **Crash recovery**: `session_restore` riprende da ultimo checkpoint
-- **Cross-session**: stato persiste tra /clear e "Brewed"
-- **Metriche**: sync automatico a QuestDB via hook
-
-### Alternative con garanzia
-Usa `/gsd:execute-phase` o `/speckit.implement-sync` per sync automatico garantito.
-
-### GitHub Sync Strategy
-
-Combinazione ottimale per tracking completo:
-
-1. **Durante esecuzione** (real-time, framework agnostic):
-   ```
-   mcp__claude-flow__github_issue_track action="create" title="Plan 05-01" labels=["gsd-plan"]
-   mcp__claude-flow__github_issue_track action="update" issueNumber={n} body="Progress: 2/4 tasks"
-   mcp__claude-flow__github_issue_track action="close" issueNumber={n}
-   ```
-
-2. **Fine milestone** (batch sync via claude-flow):
-   ```
-   mcp__claude-flow__github_issue_track action="create" title="Milestone N" labels=["gsd-milestone"]
-   ```
-   - Crea Issues per ogni Phase
-   - Applica labels standard
+Claude Flow non e un MCP globale e non e richiesto da GSD, Speckit o dal
+coordinator Gobabygo. Non chiamare tool `mcp__claude-flow__*` a meno che la repo
+corrente lo configuri esplicitamente e il server risulti connesso. Per resume e
+handoff usa gli artefatti versionati del workflow e i brief su disco; per il
+coordinamento live usa `mesh live`.
 
 ## Academic Research Pipeline (N8N)
 

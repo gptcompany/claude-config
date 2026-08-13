@@ -28,6 +28,8 @@ def _install(module, target: Path, legacy: Path, *, check: bool = False):
         ROOT / "templates/mcp-config.json",
         target,
         legacy_paths=[legacy],
+        policy_template=ROOT / "templates/global-mcp-policy.md",
+        policy_target=target.parent / ".claude/CLAUDE.md",
         check=check,
         executable=lambda path: path in {"/usr/bin/setpriv", "/usr/local/bin/serena"},
     )
@@ -51,10 +53,16 @@ def test_install_keeps_profile_data_and_replaces_only_user_mcp_allowlist(
     legacy.write_text('{"mcpServers":{"sentry":{"env":{"TOKEN":"secret"}}}}\n')
     legacy.chmod(0o664)
 
-    changed, hardened = _install(module, target, legacy)
+    policy_target = tmp_path / ".claude/CLAUDE.md"
+    policy_target.parent.mkdir()
+    policy_target.write_text("# Existing profile instructions\n", encoding="utf-8")
+    policy_target.chmod(0o600)
+
+    changed, policy_changed, hardened = _install(module, target, legacy)
     installed = json.loads(target.read_text(encoding="utf-8"))
 
     assert changed is True
+    assert policy_changed is True
     assert hardened == 1
     assert installed["projects"] == active["projects"]
     assert installed["oauthAccount"] == active["oauthAccount"]
@@ -66,14 +74,21 @@ def test_install_keeps_profile_data_and_replaces_only_user_mcp_allowlist(
     assert "project-from-cwd" not in installed["mcpServers"]["serena"]["args"]
     assert stat.S_IMODE(target.stat().st_mode) == 0o600
     assert stat.S_IMODE(legacy.stat().st_mode) == 0o600
-    backups = list((tmp_path / ".claude/backups/claude-config").glob("claude-json-*.json"))
-    assert len(backups) == 1
-    assert stat.S_IMODE(backups[0].stat().st_mode) == 0o600
-    assert json.loads(backups[0].read_text(encoding="utf-8")) == active
+    policy = policy_target.read_text(encoding="utf-8")
+    assert policy.startswith("# Existing profile instructions\n")
+    assert policy.count(module.POLICY_BEGIN) == 1
+    assert "activate the exact authorized Git root" in policy
+    backups = list((tmp_path / ".claude/backups/claude-config").glob("*.json"))
+    assert len(backups) == 2
+    assert all(stat.S_IMODE(path.stat().st_mode) == 0o600 for path in backups)
+    config_backup = next(path for path in backups if path.name.startswith("claude-json-"))
+    policy_backup = next(path for path in backups if path.name.startswith("claude-md-"))
+    assert json.loads(config_backup.read_text(encoding="utf-8")) == active
+    assert policy_backup.read_text(encoding="utf-8") == "# Existing profile instructions\n"
 
-    assert _install(module, target, legacy, check=True) == (False, 0)
-    assert _install(module, target, legacy) == (False, 0)
-    assert len(list((tmp_path / ".claude/backups/claude-config").glob("*.json"))) == 1
+    assert _install(module, target, legacy, check=True) == (False, False, 0)
+    assert _install(module, target, legacy) == (False, False, 0)
+    assert len(list((tmp_path / ".claude/backups/claude-config").glob("*.json"))) == 2
 
 
 def test_check_detects_config_and_legacy_permission_drift(tmp_path: Path) -> None:
@@ -145,13 +160,14 @@ def test_install_detects_concurrent_target_change(tmp_path: Path, monkeypatch) -
     target.write_text('{"model":"opus"}\n', encoding="utf-8")
     target.chmod(0o600)
     real_snapshot = module._snapshot
-    calls = 0
+    target_calls = 0
 
     def changed_snapshot(path: Path):
-        nonlocal calls
-        calls += 1
+        nonlocal target_calls
         value = real_snapshot(path)
-        if calls == 2 and value is not None:
+        if path == target:
+            target_calls += 1
+        if path == target and target_calls == 2 and value is not None:
             return (*value[:-1], value[-1] + 1)
         return value
 
@@ -160,3 +176,30 @@ def test_install_detects_concurrent_target_change(tmp_path: Path, monkeypatch) -
     with pytest.raises(module.InstallError, match="changed concurrently"):
         _install(module, target, legacy)
     assert json.loads(target.read_text(encoding="utf-8")) == {"model": "opus"}
+
+
+def test_policy_update_preserves_surrounding_text_and_rejects_bad_markers(
+    tmp_path: Path,
+) -> None:
+    module = _load_module()
+    target = tmp_path / ".claude.json"
+    legacy = tmp_path / ".mcp.json"
+    policy_target = tmp_path / ".claude/CLAUDE.md"
+    policy_target.parent.mkdir()
+    old = (
+        "before\n\n"
+        f"{module.POLICY_BEGIN}\nold policy\n{module.POLICY_END}\n\nafter\n"
+    )
+    policy_target.write_text(old, encoding="utf-8")
+    policy_target.chmod(0o600)
+
+    _install(module, target, legacy)
+    installed = policy_target.read_text(encoding="utf-8")
+    assert installed.startswith("before\n\n")
+    assert installed.endswith("\n\nafter\n")
+    assert "old policy" not in installed
+    assert installed.count(module.POLICY_BEGIN) == 1
+
+    policy_target.write_text(f"{module.POLICY_BEGIN}\nbroken\n", encoding="utf-8")
+    with pytest.raises(module.InstallError, match="malformed"):
+        _install(module, target, legacy)

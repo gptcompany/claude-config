@@ -30,12 +30,13 @@ permission mode, and locally registered hooks.
 Claude Flow remains available as an explicit integration. It is not downloaded
 or invoked through `npx @latest` on every Claude prompt or tool call.
 
-The MCP installer manages only the user-scoped `mcpServers` object in
-`~/.claude.json`. Its allowlist is deliberately limited to Context7 and Serena;
-other profile data, Claude.ai connectors, and repository `.mcp.json` files are
-preserved. It makes a private backup before changing the active file and hardens
-legacy `~/.mcp.json` and `~/.claude/.mcp.json` permissions without importing
-their credentials.
+The MCP installer manages the user-scoped `mcpServers` object in
+`~/.claude.json` and one delimited MCP policy block in
+`~/.claude/CLAUDE.md`. Its allowlist is deliberately limited to Context7 and
+Serena; other profile data, global instructions, Claude.ai connectors, and
+repository `.mcp.json` files are preserved. It makes private backups before
+changing either active file and hardens legacy `~/.mcp.json` and
+`~/.claude/.mcp.json` permissions without importing their credentials.
 
 Context7 uses the public remote documentation endpoint, with no local `npx` or
 secret embedded in the config. Serena uses the installed binary in

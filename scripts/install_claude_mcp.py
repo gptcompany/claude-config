@@ -17,6 +17,8 @@ from typing import Any, Callable, Sequence
 ROOT = Path(__file__).resolve().parents[1]
 EXPECTED_SERVERS = {"context7", "serena"}
 DEFAULT_LEGACY_PATHS = (Path.home() / ".mcp.json", Path.home() / ".claude/.mcp.json")
+POLICY_BEGIN = "<!-- >>> claude-config-mcp-policy >>>"
+POLICY_END = "<!-- <<< claude-config-mcp-policy <<<"
 
 
 class InstallError(RuntimeError):
@@ -110,11 +112,25 @@ def _atomic_json(path: Path, value: dict[str, Any]) -> None:
         temporary.unlink(missing_ok=True)
 
 
-def _backup(path: Path, raw: bytes) -> Path:
-    backup_dir = path.parent / ".claude/backups/claude-config"
+def _atomic_text(path: Path, value: str) -> None:
+    path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    fd, temporary_name = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as handle:
+            handle.write(value)
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.chmod(temporary, 0o600)
+        os.replace(temporary, path)
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def _backup(path: Path, raw: bytes, *, prefix: str, backup_dir: Path) -> Path:
     backup_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
     backup = backup_dir / (
-        f"claude-json-{time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())}"
+        f"{prefix}-{time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())}"
         f"-{time.time_ns()}.json"
     )
     fd = os.open(backup, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
@@ -127,6 +143,20 @@ def _backup(path: Path, raw: bytes) -> Path:
         backup.unlink(missing_ok=True)
         raise
     return backup
+
+
+def _managed_policy(active: str, policy: str) -> str:
+    begin_count = active.count(POLICY_BEGIN)
+    end_count = active.count(POLICY_END)
+    if begin_count != end_count or begin_count > 1:
+        raise InstallError("active CLAUDE.md has malformed MCP policy markers")
+    block = f"{POLICY_BEGIN}\n{policy.strip()}\n{POLICY_END}"
+    if begin_count == 0:
+        separator = "\n\n" if active.strip() else ""
+        return f"{active.rstrip()}{separator}{block}\n"
+    start = active.index(POLICY_BEGIN)
+    end = active.index(POLICY_END, start) + len(POLICY_END)
+    return f"{active[:start]}{block}{active[end:]}"
 
 
 def _legacy_drift(paths: Sequence[Path], *, check: bool) -> int:
@@ -149,9 +179,11 @@ def install(
     target: Path,
     *,
     legacy_paths: Sequence[Path],
+    policy_template: Path | None = None,
+    policy_target: Path | None = None,
     check: bool,
     executable: Callable[[str], bool] = lambda path: os.access(path, os.X_OK),
-) -> tuple[bool, int]:
+) -> tuple[bool, bool, int]:
     template, _template_raw = _read_object(template_path)
     servers = _validate_template(template, executable)
 
@@ -164,43 +196,116 @@ def install(
     merged["mcpServers"] = json.loads(json.dumps(servers))
     config_changed = merged != active
 
+    policy_changed = False
+    policy_snapshot: tuple[int, int, int, int] | None = None
+    policy_raw = b""
+    managed_policy = ""
+    if (policy_template is None) != (policy_target is None):
+        raise InstallError("MCP policy template and target must be provided together")
+    if policy_template is not None and policy_target is not None:
+        if policy_template.is_symlink():
+            raise InstallError(f"refusing symlinked policy template: {policy_template}")
+        try:
+            policy = policy_template.read_text(encoding="utf-8")
+        except OSError as exc:
+            raise InstallError(f"unable to read MCP policy template: {exc}") from exc
+        policy_snapshot = _snapshot(policy_target)
+        if policy_target.exists():
+            try:
+                policy_raw = policy_target.read_bytes()
+                active_policy = policy_raw.decode("utf-8")
+            except (OSError, UnicodeDecodeError) as exc:
+                raise InstallError(f"unable to read active CLAUDE.md: {exc}") from exc
+        else:
+            active_policy = ""
+        managed_policy = _managed_policy(active_policy, policy)
+        policy_changed = managed_policy != active_policy
+
     if check:
         _legacy_drift(legacy_paths, check=True)
-        if config_changed or (target.exists() and stat.S_IMODE(target.stat().st_mode) != 0o600):
+        target_mode_drift = target.exists() and stat.S_IMODE(target.stat().st_mode) != 0o600
+        policy_mode_drift = bool(
+            policy_target
+            and policy_target.exists()
+            and stat.S_IMODE(policy_target.stat().st_mode) != 0o600
+        )
+        if config_changed or policy_changed or target_mode_drift or policy_mode_drift:
             raise InstallError(
                 "Claude MCP drift: "
                 f"config={'yes' if config_changed else 'no'}, "
-                f"mode={'yes' if target.exists() and stat.S_IMODE(target.stat().st_mode) != 0o600 else 'no'}"
+                f"policy={'yes' if policy_changed else 'no'}, "
+                f"mode={'yes' if target_mode_drift or policy_mode_drift else 'no'}"
             )
-        return False, 0
+        return False, False, 0
 
-    hardened = _legacy_drift(legacy_paths, check=False)
+    target_mode_drift = target.exists() and stat.S_IMODE(target.stat().st_mode) != 0o600
+    policy_mode_drift = bool(
+        policy_target
+        and policy_target.exists()
+        and stat.S_IMODE(policy_target.stat().st_mode) != 0o600
+    )
+    if (config_changed or target_mode_drift) and _snapshot(target) != original_snapshot:
+        raise InstallError(f"Claude MCP config changed concurrently: {target}")
+    if (
+        policy_target is not None
+        and (policy_changed or policy_mode_drift)
+        and _snapshot(policy_target) != policy_snapshot
+    ):
+        raise InstallError(f"active CLAUDE.md changed concurrently: {policy_target}")
+
+    backup_dir = target.parent / ".claude/backups/claude-config"
+    if policy_target is not None and policy_changed:
+        if policy_target.exists():
+            _backup(
+                policy_target,
+                policy_raw,
+                prefix="claude-md",
+                backup_dir=backup_dir,
+            )
+        _atomic_text(policy_target, managed_policy)
+    elif policy_target is not None and policy_target.exists():
+        if policy_mode_drift:
+            os.chmod(policy_target, 0o600, follow_symlinks=False)
     if config_changed:
-        if _snapshot(target) != original_snapshot:
-            raise InstallError(f"Claude MCP config changed concurrently: {target}")
         if target.exists():
-            _backup(target, original_raw)
+            _backup(
+                target,
+                original_raw,
+                prefix="claude-json",
+                backup_dir=backup_dir,
+            )
         _atomic_json(target, merged)
-    elif target.exists() and stat.S_IMODE(target.stat().st_mode) != 0o600:
-        if _snapshot(target) != original_snapshot:
-            raise InstallError(f"Claude MCP config changed concurrently: {target}")
+    elif target.exists() and target_mode_drift:
         os.chmod(target, 0o600, follow_symlinks=False)
-    return config_changed, hardened
+    hardened = _legacy_drift(legacy_paths, check=False)
+    return config_changed, policy_changed, hardened
 
 
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--template", type=Path, default=ROOT / "templates/mcp-config.json")
     parser.add_argument("--target", type=Path, default=Path.home() / ".claude.json")
+    parser.add_argument(
+        "--policy-template",
+        type=Path,
+        default=ROOT / "templates/global-mcp-policy.md",
+    )
+    parser.add_argument(
+        "--policy-target",
+        type=Path,
+        default=Path.home() / ".claude/CLAUDE.md",
+    )
     parser.add_argument("--legacy", action="append", type=Path, default=[])
     parser.add_argument("--check", action="store_true")
     args = parser.parse_args()
     legacy = args.legacy or list(DEFAULT_LEGACY_PATHS)
     try:
-        config_changed, hardened = install(
+        config_changed, policy_changed, hardened = install(
             args.template.expanduser().resolve(),
             args.target.expanduser(),
             legacy_paths=[path.expanduser() for path in legacy],
+            policy_template=args.policy_template.expanduser().resolve(),
+            policy_target=args.policy_target.expanduser(),
             check=args.check,
         )
     except InstallError as exc:
@@ -211,6 +316,7 @@ def main() -> int:
         print(
             "Claude MCP: "
             f"config_updated={'yes' if config_changed else 'no'} "
+            f"policy_updated={'yes' if policy_changed else 'no'} "
             f"legacy_permissions_hardened={hardened}"
         )
     return 0
