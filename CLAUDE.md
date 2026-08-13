@@ -260,34 +260,28 @@ cp /media/sam/1TB/.env.keys /media/sam/1TB/.env.keys.bak-$(date +%Y%m%d-%H%M%S)
 
 **Template:** `~/.claude/templates/mcp-config.json`
 
-### MCP Servers Disponibili
+### MCP Globali (KISS)
 
 | Server | Tipo | Descrizione |
 |--------|------|-------------|
-| `linear` | stdio | Issue tracking |
-| `context7` | stdio+dotenvx | Documentation lookup |
-| `serena` | stdio | IDE assistant |
-| `wolframalpha` | stdio | Math/computation |
-| `download-mcp` | stdio | File downloads |
-| `claude-flow` | stdio | Workflow orchestration |
-| `grafana` | stdio+dotenvx | Metrics/dashboards |
-| `n8n-mcp` | stdio+dotenvx | Workflow automation |
-| `firecrawl-mcp` | stdio+dotenvx | Web scraping |
-| `sentry` | stdio+dotenvx | Error tracking |
-| `playwright` | stdio | Browser automation |
-| `bytebot` | **SSE remote** | Desktop automation (Linux container) |
+| `context7` | HTTP | Documentazione librerie aggiornata |
+| `serena` | stdio locale | Navigazione e modifica simbolica |
 
-### Bytebot (Desktop Automation)
+Serena globale non fissa un progetto all'avvio. Prima di usare tool simbolici,
+attiva esplicitamente la Git root autorizzata per il task corrente. Questo e
+obbligatorio nel coordinator multi-repo e quando si lavora in un worktree.
 
-**Endpoint:** `http://192.168.1.100:9990/mcp` (muletto)
+Linear, Sentry, Grafana, Playwright, Claude Flow, browser/desktop automation e
+gli altri MCP sono configurazioni di progetto opt-in. Non aggiungerli al profilo
+globale: aumentano startup, tool surface e accesso a credenziali non necessari.
 
-Capabilities:
-- `computer_screenshot` - Cattura schermo
-- `computer_click_mouse` - Click
-- `computer_type_text` - Digita testo
-- `computer_application` - Apri app (firefox, vscode, terminal)
+Installazione e verifica:
 
-Skill: `~/.claude/skills/bytebot/SKILL.md`
+```bash
+cd /data/sata/1TB/claude-config
+python3 scripts/install_claude_mcp.py
+python3 scripts/install_claude_mcp.py --check
+```
 
 ## Testing Requirements (MANDATORY)
 

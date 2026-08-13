@@ -27,7 +27,11 @@ def _active_settings() -> dict:
         "theme": "dark",
         "enableAllProjectMcpServers": True,
         "permissions": {
-            "allow": ["Edit(//home/sam/**)", "MultiEdit(//home/sam/**)"],
+            "allow": [
+                "Edit(//home/sam/**)",
+                "MultiEdit(//home/sam/**)",
+                "mcp__context7__get-library-docs",
+            ],
         },
         "hooks": {
             "PreToolUse": [

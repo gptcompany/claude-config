@@ -23,6 +23,7 @@ OBSOLETE_PERMISSION_RULES = {
     "MultiEdit(//media/sam/1TB1/**)",
     "Write(//media/sam/1TB/**)",
     "Write(//media/sam/1TB1/**)",
+    "mcp__context7__get-library-docs",
 }
 ASSET_ROOTS = (
     (Path("scripts/hooks"), Path("scripts/hooks")),

@@ -16,6 +16,8 @@ credentials, project history, caches, or Dell-only hook registrations:
 cd /data/sata/1TB/claude-config
 python3 scripts/install_claude_hooks.py
 python3 scripts/install_claude_hooks.py --check
+python3 scripts/install_claude_mcp.py
+python3 scripts/install_claude_mcp.py --check
 ```
 
 The installer updates only `scripts/hooks`, `scripts/lib`, the registered GSD
@@ -27,6 +29,22 @@ permission mode, and locally registered hooks.
 
 Claude Flow remains available as an explicit integration. It is not downloaded
 or invoked through `npx @latest` on every Claude prompt or tool call.
+
+The MCP installer manages only the user-scoped `mcpServers` object in
+`~/.claude.json`. Its allowlist is deliberately limited to Context7 and Serena;
+other profile data, Claude.ai connectors, and repository `.mcp.json` files are
+preserved. It makes a private backup before changing the active file and hardens
+legacy `~/.mcp.json` and `~/.claude/.mcp.json` permissions without importing
+their credentials.
+
+Context7 uses the public remote documentation endpoint, with no local `npx` or
+secret embedded in the config. Serena uses the installed binary in
+`claude-code` context without `--project-from-cwd`: a single-repo session should
+activate that repo, while a multi-repo coordinator must activate the exact repo
+for the current task before using symbolic tools. This avoids indexing the data
+root and prevents Serena from silently editing the wrong checkout. Linear,
+Sentry, Grafana, Playwright, Claude Flow, and other integrations belong in a
+repository `.mcp.json` only when that repository actively needs them.
 
 ## Architecture Overview
 

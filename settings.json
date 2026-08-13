@@ -27,7 +27,6 @@
             "Read(//usr/share/fonts/**)",
             "Read(//boot/grub/**)",
             "Read(//sys/devices/system/clocksource/**)",
-            "mcp__context7__get-library-docs",
             "Bash(docker-compose:*)",
             "Bash(docker:*)",
             "Bash(uv:*)",
