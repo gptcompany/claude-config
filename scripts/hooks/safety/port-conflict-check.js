@@ -8,11 +8,17 @@
  *
  * Prevents orphan processes and port conflicts.
  *
- * Returns: { decision: "block", reason: "..." } or { decision: "warn", message: "..." } or {}
+ * Returns current Claude Code PreToolUse structured output or {}.
  */
 
 const path = require('path');
-const { readStdinJson, output, runCommand } = require(path.join(__dirname, '..', '..', 'lib', 'utils.js'));
+const {
+  readStdinJson,
+  output,
+  runCommand,
+  preToolUseDecision,
+  preToolUseWarning,
+} = require(path.join(__dirname, '..', '..', 'lib', 'utils.js'));
 
 // Reserved ports for known services (port -> service name)
 const RESERVED_PORTS = {
@@ -197,33 +203,32 @@ async function main() {
       const portCheck = isPortInUse(port);
 
       if (portCheck.inUse) {
-        output({
-          decision: 'block',
-          reason: `Port ${port} is reserved for '${service}' and currently in use by '${portCheck.process}'.\n` +
+        output(preToolUseDecision(
+          'deny',
+          `Port ${port} is reserved for '${service}' and currently in use by '${portCheck.process}'.\n` +
             `Use a different port or stop the existing service first:\n` +
             `  kill $(lsof -t -i:${port})`
-        });
+        ));
         process.exit(0);
       }
 
       // Reserved but not in use - warn
-      output({
-        decision: 'warn',
-        message: `Port ${port} is typically reserved for '${service}'.\n` +
+      output(preToolUseWarning(
+        `Port ${port} is typically reserved for '${service}'.\n` +
           `If this conflicts, consider using a different port.`
-      });
+      ));
       process.exit(0);
     }
 
     // Check if port is in use by anything
     const portCheck = isPortInUse(port);
     if (portCheck.inUse) {
-      output({
-        decision: 'block',
-        reason: `Port ${port} is already in use by '${portCheck.process}'.\n` +
+      output(preToolUseDecision(
+        'deny',
+        `Port ${port} is already in use by '${portCheck.process}'.\n` +
           `Use a different port or stop the existing process:\n` +
           `  kill $(lsof -t -i:${port})`
-      });
+      ));
       process.exit(0);
     }
 

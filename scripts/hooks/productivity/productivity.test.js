@@ -20,7 +20,7 @@ const { execSync, spawn } = require('child_process');
 
 // Test directory
 const TEST_DIR = path.join(os.tmpdir(), 'productivity-hooks-test-' + Date.now());
-const HOOKS_DIR = path.join(os.homedir(), '.claude', 'scripts', 'hooks', 'productivity');
+const HOOKS_DIR = __dirname;
 
 /**
  * Helper to run a hook with JSON input
@@ -177,7 +177,7 @@ describe('tdd-guard.js', () => {
     assert.strictEqual(result.code, 0);
     const output = JSON.parse(result.stdout || '{}');
     // Should not warn for test files
-    assert.ok(!output.hookSpecificOutput || output.hookSpecificOutput.decision !== 'warn');
+    assert.ok(!output.hookSpecificOutput || !output.hookSpecificOutput.additionalContext);
   });
 
   it('should warn when no test file exists for production code', async () => {
@@ -192,13 +192,7 @@ describe('tdd-guard.js', () => {
 
     assert.strictEqual(result.code, 0);  // Default mode is 'warn', not block
     const output = JSON.parse(result.stdout || '{}');
-    // Should have a warning
-    if (output.hookSpecificOutput) {
-      assert.ok(
-        output.hookSpecificOutput.decision === 'warn' ||
-        output.hookSpecificOutput.message?.includes('TDD')
-      );
-    }
+    assert.ok(output.hookSpecificOutput.additionalContext.includes('TDD'));
   });
 
   it('should pass when test file exists', async () => {
@@ -219,7 +213,7 @@ describe('tdd-guard.js', () => {
     assert.strictEqual(result.code, 0);
     const output = JSON.parse(result.stdout || '{}');
     // Should NOT have a warning when test exists
-    assert.ok(!output.hookSpecificOutput || !output.hookSpecificOutput.decision);
+    assert.ok(!output.hookSpecificOutput || !output.hookSpecificOutput.additionalContext);
   });
 });
 

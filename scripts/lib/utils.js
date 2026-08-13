@@ -45,6 +45,33 @@ function getLearnedSkillsDir() {
 }
 
 /**
+ * Build Claude Code's current structured output for a PreToolUse hook.
+ */
+function preToolUseDecision(permissionDecision, reason, extra = {}) {
+  return {
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      permissionDecision,
+      permissionDecisionReason: reason,
+      ...extra,
+    },
+  };
+}
+
+/**
+ * Add a non-blocking warning to Claude's context without changing permission.
+ */
+function preToolUseWarning(message) {
+  return {
+    systemMessage: message,
+    hookSpecificOutput: {
+      hookEventName: 'PreToolUse',
+      additionalContext: message,
+    },
+  };
+}
+
+/**
  * Get the temp directory (cross-platform)
  */
 function getTempDir() {
@@ -341,6 +368,8 @@ module.exports = {
   getClaudeDir,
   getSessionsDir,
   getLearnedSkillsDir,
+  preToolUseDecision,
+  preToolUseWarning,
   getTempDir,
   ensureDir,
 

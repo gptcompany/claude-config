@@ -18,6 +18,7 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { execSync } = require('child_process');
+const { preToolUseDecision } = require('../../lib/utils');
 
 // Configuration
 const HOME_DIR = os.homedir();
@@ -161,12 +162,18 @@ function claimFile(filePath, sessionId) {
   const expiry = new Date(now.getTime() + CLAIM_EXPIRY_MS);
 
   // Check if file is already claimed by us
-  if (sessionState.claimedFiles && sessionState.claimedFiles[filePath]) {
+  const sessionClaim = sessionState.claimedFiles?.[filePath];
+  const existingClaim = claims.claims[filePath];
+  const ourAgent = `agent:${sessionId}:editor`;
+  if (
+    sessionClaim?.sessionId === sessionId &&
+    existingClaim?.agent === ourAgent
+  ) {
     log(`Already claimed by us: ${filePath}`);
     // Refresh the claim expiry
     claims.claims[filePath] = {
       file: filePath,
-      agent: `agent:${sessionId}:editor`,
+      agent: ourAgent,
       timestamp: getTimestamp(),
       expiry: expiry.toISOString()
     };
@@ -175,10 +182,8 @@ function claimFile(filePath, sessionId) {
   }
 
   // Check if file is claimed by another agent
-  const existingClaim = claims.claims[filePath];
   if (existingClaim) {
     const claimAgent = existingClaim.agent || 'unknown';
-    const ourAgent = `agent:${sessionId}:editor`;
 
     if (claimAgent !== ourAgent) {
       log(`File claimed by another agent: ${filePath} -> ${claimAgent}`);
@@ -189,7 +194,7 @@ function claimFile(filePath, sessionId) {
   // Claim the file
   claims.claims[filePath] = {
     file: filePath,
-    agent: `agent:${sessionId}:editor`,
+    agent: ourAgent,
     timestamp: getTimestamp(),
     expiry: expiry.toISOString()
   };
@@ -215,7 +220,7 @@ function releaseFile(filePath, sessionId) {
   const sessionState = loadSessionState();
 
   // Check if we have this file claimed
-  if (!sessionState.claimedFiles || !sessionState.claimedFiles[filePath]) {
+  if (sessionState.claimedFiles?.[filePath]?.sessionId !== sessionId) {
     log(`File not in our claims, skipping release: ${filePath}`);
     return { success: false, reason: 'not_our_claim' };
   }
@@ -265,10 +270,7 @@ function handlePreToolUse(toolInput) {
 
   if (!result.success) {
     // Block the edit
-    return {
-      decision: 'block',
-      reason: result.reason
-    };
+    return preToolUseDecision('deny', result.reason);
   }
 
   // Allow the edit

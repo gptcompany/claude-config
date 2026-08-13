@@ -9,12 +9,18 @@
  *
  * Configurable via ~/.claude/safety-config.json
  *
- * Returns: { decision: "block", reason: "..." } or { decision: "warn", message: "..." } or {}
+ * Returns current Claude Code PreToolUse structured output or {}.
  */
 
 const path = require('path');
 const fs = require('fs');
-const { readStdinJson, output, getHomeDir } = require(path.join(__dirname, '..', '..', 'lib', 'utils.js'));
+const {
+  readStdinJson,
+  output,
+  getHomeDir,
+  preToolUseDecision,
+  preToolUseWarning,
+} = require(path.join(__dirname, '..', '..', 'lib', 'utils.js'));
 
 // Risk levels
 const RISK_CRITICAL = 'CRITICAL';
@@ -214,11 +220,11 @@ async function main() {
     // Check for critical path operations
     const criticalPath = checkCriticalPaths(command, config);
     if (criticalPath) {
-      output({
-        decision: 'block',
-        reason: `Operation on critical system path '${criticalPath}' is blocked.\n` +
+      output(preToolUseDecision(
+        'deny',
+        `Operation on critical system path '${criticalPath}' is blocked.\n` +
           `This could damage the system. Run manually if absolutely necessary.`
-      });
+      ));
       process.exit(0);
     }
 
@@ -235,36 +241,34 @@ async function main() {
 
     // Handle CRITICAL risk - BLOCK entirely
     if (risk.level === RISK_CRITICAL) {
-      output({
-        decision: 'block',
-        reason: `BLOCKED: ${risk.reason}\n` +
+      output(preToolUseDecision(
+        'deny',
+        `BLOCKED: ${risk.reason}\n` +
           `Command: ${command.substring(0, 100)}${command.length > 100 ? '...' : ''}\n\n` +
           `This operation is too dangerous and has been blocked.\n` +
           `If absolutely necessary, run it manually outside Claude Code.`
-      });
+      ));
       process.exit(0);
     }
 
     // Handle HIGH risk - Strong warning
     if (risk.level === RISK_HIGH) {
-      output({
-        decision: 'warn',
-        message: `HIGH RISK: ${risk.reason}\n` +
+      output(preToolUseWarning(
+        `HIGH RISK: ${risk.reason}\n` +
           `Command: ${command.substring(0, 100)}${command.length > 100 ? '...' : ''}\n\n` +
           `Current directory: ${cwd}\n` +
           `Consider creating a git checkpoint before proceeding:\n` +
           `  git add . && git commit -m "[CHECKPOINT] Before risky operation"`
-      });
+      ));
       process.exit(0);
     }
 
     // Handle MEDIUM risk - Warning only
     if (risk.level === RISK_MEDIUM) {
-      output({
-        decision: 'warn',
-        message: `MEDIUM RISK: ${risk.reason}\n` +
+      output(preToolUseWarning(
+        `MEDIUM RISK: ${risk.reason}\n` +
           `Review this operation carefully before proceeding.`
-      });
+      ));
       process.exit(0);
     }
 

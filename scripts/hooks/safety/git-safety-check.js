@@ -10,11 +10,17 @@
  * - git checkout . (discards all changes)
  * - git branch -D (force delete)
  *
- * Returns: { decision: "block", reason: "..." } or {} to allow
+ * Returns current Claude Code PreToolUse structured output or {}.
  */
 
 const path = require('path');
-const { readStdinJson, output, runCommand } = require(path.join(__dirname, '..', '..', 'lib', 'utils.js'));
+const {
+  readStdinJson,
+  output,
+  runCommand,
+  preToolUseDecision,
+  preToolUseWarning,
+} = require(path.join(__dirname, '..', '..', 'lib', 'utils.js'));
 
 // Configuration
 const PROTECTED_BRANCHES = ['main', 'master', 'production'];
@@ -184,17 +190,14 @@ async function main() {
 
     // If errors, block the operation
     if (errors.length > 0) {
-      output({
-        decision: 'block',
-        reason: errors.join('\n\n')
-      });
+      output(preToolUseDecision('deny', errors.join('\n\n')));
       process.exit(0);
     }
 
-    // If warnings, show but allow (via empty object - Claude Code handles warnings differently)
+    // If warnings, add context while allowing the operation.
     if (warnings.length > 0) {
-      // For now, just allow with warnings logged to stderr
-      console.error(warnings.join('\n\n'));
+      output(preToolUseWarning(warnings.join('\n\n')));
+      process.exit(0);
     }
 
     // All clear

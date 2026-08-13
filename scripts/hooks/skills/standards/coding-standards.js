@@ -13,6 +13,10 @@
 const fs = require("fs");
 const path = require("path");
 const { checkPatterns, detectFileType } = require("./patterns");
+const {
+  preToolUseDecision,
+  preToolUseWarning,
+} = require("../../../lib/utils");
 
 // Config path
 const CONFIG_PATH = path.join(
@@ -176,7 +180,7 @@ async function main() {
 
     // Check if disabled
     if (!config.enabled || config.mode === "off") {
-      console.log(JSON.stringify({ decision: "allow" }));
+      console.log(JSON.stringify({}));
       return;
     }
 
@@ -185,7 +189,7 @@ async function main() {
 
     // Only check Write, Edit, MultiEdit
     if (!["Write", "Edit", "MultiEdit"].includes(tool_name)) {
-      console.log(JSON.stringify({ decision: "allow" }));
+      console.log(JSON.stringify({}));
       return;
     }
 
@@ -193,20 +197,20 @@ async function main() {
 
     // Check if path is excluded
     if (isExcludedPath(filePath, config.excludePaths)) {
-      console.log(JSON.stringify({ decision: "allow" }));
+      console.log(JSON.stringify({}));
       return;
     }
 
     // Check if file type is supported
     if (!detectFileType(filePath)) {
-      console.log(JSON.stringify({ decision: "allow" }));
+      console.log(JSON.stringify({}));
       return;
     }
 
     // Get content to check
     const content = getContentToCheck(tool_name, tool_input);
     if (!content) {
-      console.log(JSON.stringify({ decision: "allow" }));
+      console.log(JSON.stringify({}));
       return;
     }
 
@@ -215,7 +219,7 @@ async function main() {
 
     // No issues - allow
     if (issues.length === 0) {
-      console.log(JSON.stringify({ decision: "allow" }));
+      console.log(JSON.stringify({}));
       return;
     }
 
@@ -225,27 +229,21 @@ async function main() {
     // Block mode with errors
     if (!passed && config.mode === "block") {
       console.log(
-        JSON.stringify({
-          hookSpecificOutput: {
-            hookEventName: "PreToolUse",
-            decision: "block",
-            reason: `CODING STANDARDS VIOLATION\n\n${issueText}\n\nFix the error-level issues to proceed.`,
-          },
-        }),
+        JSON.stringify(preToolUseDecision(
+          "deny",
+          `CODING STANDARDS VIOLATION\n\n${issueText}\n\nFix the error-level issues to proceed.`,
+        )),
       );
       return;
     }
 
     // Warn mode or passed with warnings
     console.log(
-      JSON.stringify({
-        decision: "allow",
-        message: `Standards check:\n${issueText}`,
-      }),
+      JSON.stringify(preToolUseWarning(`Standards check:\n${issueText}`)),
     );
   } catch (err) {
     // Fail open - any error, allow the operation
-    console.log(JSON.stringify({ decision: "allow" }));
+    console.log(JSON.stringify({}));
   }
 }
 

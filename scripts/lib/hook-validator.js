@@ -25,13 +25,13 @@ const SCRIPT_TIMEOUT = 5000; // 5 seconds
 // Expected output schemas per hook event
 const OUTPUT_SCHEMAS = {
   PreToolUse: {
-    optional: ['decision', 'reason', 'message', 'approve'],
-    decision: ['approve', 'block', 'skip'],
+    optional: ['continue', 'stopReason', 'suppressOutput', 'systemMessage', 'hookSpecificOutput'],
     types: {
-      decision: 'string',
-      reason: 'string',
-      message: 'string',
-      approve: 'boolean'
+      continue: 'boolean',
+      stopReason: 'string',
+      suppressOutput: 'boolean',
+      systemMessage: 'string',
+      hookSpecificOutput: 'object'
     }
   },
   PostToolUse: {
@@ -283,10 +283,64 @@ function validateHookOutput(output, eventType) {
     return result;
   }
 
+  if (!parsed || typeof parsed !== 'object' || Array.isArray(parsed)) {
+    result.addError('Hook output must be a JSON object');
+    return result;
+  }
+
   // Check for unexpected fields
   for (const key of Object.keys(parsed)) {
     if (!schema.optional.includes(key) && !schema.types[key]) {
-      result.addWarning(`Unexpected field in output: ${key}`);
+      if (
+        eventType === 'PreToolUse' &&
+        ['decision', 'reason', 'message', 'approve'].includes(key)
+      ) {
+        result.addError(`Deprecated PreToolUse output field: ${key}`);
+      } else {
+        result.addWarning(`Unexpected field in output: ${key}`);
+      }
+    }
+  }
+
+  if (eventType === 'PreToolUse' && parsed.hookSpecificOutput !== undefined) {
+    const specific = parsed.hookSpecificOutput;
+    if (!specific || typeof specific !== 'object' || Array.isArray(specific)) {
+      result.addError('hookSpecificOutput must be an object');
+    } else {
+      const allowed = new Set([
+        'hookEventName',
+        'permissionDecision',
+        'permissionDecisionReason',
+        'updatedInput',
+        'additionalContext'
+      ]);
+      for (const key of Object.keys(specific)) {
+        if (!allowed.has(key)) {
+          result.addError(`Unexpected PreToolUse hookSpecificOutput field: ${key}`);
+        }
+      }
+      if (specific.hookEventName !== 'PreToolUse') {
+        result.addError('PreToolUse hookSpecificOutput.hookEventName must be "PreToolUse"');
+      }
+      if (
+        specific.permissionDecision !== undefined &&
+        !['allow', 'deny', 'ask', 'defer'].includes(specific.permissionDecision)
+      ) {
+        result.addError(
+          `Invalid PreToolUse permissionDecision: ${specific.permissionDecision}`
+        );
+      }
+      for (const key of ['permissionDecisionReason', 'additionalContext']) {
+        if (specific[key] !== undefined && typeof specific[key] !== 'string') {
+          result.addError(`PreToolUse ${key} must be a string`);
+        }
+      }
+      if (
+        specific.updatedInput !== undefined &&
+        (!specific.updatedInput || typeof specific.updatedInput !== 'object' || Array.isArray(specific.updatedInput))
+      ) {
+        result.addError('PreToolUse updatedInput must be an object');
+      }
     }
   }
 

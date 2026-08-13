@@ -7,12 +7,17 @@
  *
  * Configurable via ~/.claude/ci-config.json
  *
- * Returns: { decision: "warn", message: "..." } or {}
+ * Returns a non-blocking current Claude Code PreToolUse warning or {}.
  */
 
 const path = require('path');
 const fs = require('fs');
-const { readStdinJson, output, getHomeDir } = require(path.join(__dirname, '..', '..', 'lib', 'utils.js'));
+const {
+  readStdinJson,
+  output,
+  getHomeDir,
+  preToolUseWarning,
+} = require(path.join(__dirname, '..', '..', 'lib', 'utils.js'));
 
 // Default configuration
 const DEFAULT_CONFIG = {
@@ -24,7 +29,8 @@ const DEFAULT_CONFIG = {
 };
 
 // History file location
-const PUSH_HISTORY_FILE = path.join(getHomeDir(), '.claude', 'metrics', 'push_history.json');
+const PUSH_HISTORY_FILE = process.env.CLAUDE_PUSH_HISTORY_FILE ||
+  path.join(getHomeDir(), '.claude', 'metrics', 'push_history.json');
 
 /**
  * Load configuration from ~/.claude/ci-config.json
@@ -150,12 +156,11 @@ async function main() {
       const forcePushCount = countRecentEvents(history.forcePushes, 60); // Last hour
 
       if (forcePushCount >= config.maxForcePushesPerHour) {
-        output({
-          decision: 'warn',
-          message: `[CI Batch Warning] ${forcePushCount + 1} force pushes in the last hour.\n` +
+        output(preToolUseWarning(
+          `[CI Batch Warning] ${forcePushCount + 1} force pushes in the last hour.\n` +
             `Force pushing repeatedly can disrupt CI pipelines and collaborators.\n` +
             `Consider squashing your fixes into a single force push.`
-        });
+        ));
 
         // Record this force push
         history.forcePushes.push(now);
@@ -175,16 +180,15 @@ async function main() {
     savePushHistory(history);
 
     if (recentPushCount >= config.maxRapidPushes) {
-      output({
-        decision: 'warn',
-        message: `[CI Batch Warning] ${recentPushCount + 1} pushes in ${config.pushCooldownMinutes} minutes.\n` +
+      output(preToolUseWarning(
+        `[CI Batch Warning] ${recentPushCount + 1} pushes in ${config.pushCooldownMinutes} minutes.\n` +
           `Branch: ${branch}\n\n` +
           `Consider batching fixes into 1 logical unit per push (FAANG best practice).\n` +
           `This helps:\n` +
           `  - Reduce CI queue congestion\n` +
           `  - Create cleaner git history\n` +
           `  - Make code reviews easier`
-      });
+      ));
       process.exit(0);
     }
 

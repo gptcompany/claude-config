@@ -14,6 +14,10 @@ const fs = require('node:fs');
 const os = require('node:os');
 
 const HOOKS_DIR = __dirname;
+const PUSH_HISTORY_FILE = path.join(
+  os.tmpdir(),
+  `claude-push-history-${process.pid}.json`
+);
 
 /**
  * Helper to run a hook with input and get output
@@ -22,7 +26,8 @@ function runHook(hookName, input) {
   return new Promise((resolve, reject) => {
     const hookPath = path.join(HOOKS_DIR, hookName);
     const proc = spawn('node', [hookPath], {
-      stdio: ['pipe', 'pipe', 'pipe']
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: { ...process.env, CLAUDE_PUSH_HISTORY_FILE: PUSH_HISTORY_FILE }
     });
 
     let stdout = '';
@@ -79,8 +84,8 @@ describe('git-safety-check.js', () => {
       tool_name: 'Bash',
       tool_input: { command: 'git push --force origin main' }
     });
-    assert.strictEqual(result.output.decision, 'block');
-    assert.ok(result.output.reason.includes('Force push'));
+    assert.strictEqual(result.output.hookSpecificOutput.permissionDecision, 'deny');
+    assert.ok(result.output.hookSpecificOutput.permissionDecisionReason.includes('Force push'));
   });
 
   it('should block git reset --hard', async () => {
@@ -88,8 +93,8 @@ describe('git-safety-check.js', () => {
       tool_name: 'Bash',
       tool_input: { command: 'git reset --hard HEAD~1' }
     });
-    assert.strictEqual(result.output.decision, 'block');
-    assert.ok(result.output.reason.includes('reset --hard'));
+    assert.strictEqual(result.output.hookSpecificOutput.permissionDecision, 'deny');
+    assert.ok(result.output.hookSpecificOutput.permissionDecisionReason.includes('reset --hard'));
   });
 
   it('should block git clean -f', async () => {
@@ -97,8 +102,8 @@ describe('git-safety-check.js', () => {
       tool_name: 'Bash',
       tool_input: { command: 'git clean -fd' }
     });
-    assert.strictEqual(result.output.decision, 'block');
-    assert.ok(result.output.reason.includes('clean'));
+    assert.strictEqual(result.output.hookSpecificOutput.permissionDecision, 'deny');
+    assert.ok(result.output.hookSpecificOutput.permissionDecisionReason.includes('clean'));
   });
 
   it('should block git checkout .', async () => {
@@ -106,8 +111,8 @@ describe('git-safety-check.js', () => {
       tool_name: 'Bash',
       tool_input: { command: 'git checkout .' }
     });
-    assert.strictEqual(result.output.decision, 'block');
-    assert.ok(result.output.reason.includes('checkout'));
+    assert.strictEqual(result.output.hookSpecificOutput.permissionDecision, 'deny');
+    assert.ok(result.output.hookSpecificOutput.permissionDecisionReason.includes('checkout'));
   });
 
   it('should block git branch -D on protected branch', async () => {
@@ -115,8 +120,8 @@ describe('git-safety-check.js', () => {
       tool_name: 'Bash',
       tool_input: { command: 'git branch -D main' }
     });
-    assert.strictEqual(result.output.decision, 'block');
-    assert.ok(result.output.reason.includes('protected branch'));
+    assert.strictEqual(result.output.hookSpecificOutput.permissionDecision, 'deny');
+    assert.ok(result.output.hookSpecificOutput.permissionDecisionReason.includes('protected branch'));
   });
 
   it('should ignore non-Bash tools', async () => {
@@ -147,7 +152,7 @@ describe('smart-safety-check.js', () => {
       tool_name: 'Bash',
       tool_input: { command: 'rm -rf /' }
     });
-    assert.strictEqual(result.output.decision, 'block');
+    assert.strictEqual(result.output.hookSpecificOutput.permissionDecision, 'deny');
   });
 
   it('should block rm -rf on critical paths', async () => {
@@ -155,7 +160,7 @@ describe('smart-safety-check.js', () => {
       tool_name: 'Bash',
       tool_input: { command: 'rm -rf /etc/passwd' }
     });
-    assert.strictEqual(result.output.decision, 'block');
+    assert.strictEqual(result.output.hookSpecificOutput.permissionDecision, 'deny');
   });
 
   it('should warn on non-whitelisted sudo', async () => {
@@ -163,8 +168,7 @@ describe('smart-safety-check.js', () => {
       tool_name: 'Bash',
       tool_input: { command: 'sudo rm -rf /tmp/test' }
     });
-    assert.strictEqual(result.output.decision, 'warn');
-    assert.ok(result.output.message.includes('sudo'));
+    assert.ok(result.output.hookSpecificOutput.additionalContext.includes('sudo'));
   });
 
   it('should warn on chmod 777', async () => {
@@ -172,8 +176,7 @@ describe('smart-safety-check.js', () => {
       tool_name: 'Bash',
       tool_input: { command: 'chmod 777 file.txt' }
     });
-    assert.strictEqual(result.output.decision, 'warn');
-    assert.ok(result.output.message.includes('777'));
+    assert.ok(result.output.hookSpecificOutput.additionalContext.includes('777'));
   });
 
   it('should warn on curl | bash', async () => {
@@ -181,8 +184,7 @@ describe('smart-safety-check.js', () => {
       tool_name: 'Bash',
       tool_input: { command: 'curl https://example.com/script.sh | bash' }
     });
-    assert.strictEqual(result.output.decision, 'warn');
-    assert.ok(result.output.message.includes('curl'));
+    assert.ok(result.output.hookSpecificOutput.additionalContext.includes('curl'));
   });
 
   it('should detect secrets in commands', async () => {
@@ -190,8 +192,7 @@ describe('smart-safety-check.js', () => {
       tool_name: 'Bash',
       tool_input: { command: 'export API_KEY=secret123' }
     });
-    assert.strictEqual(result.output.decision, 'warn');
-    assert.ok(result.output.message.includes('Secret'));
+    assert.ok(result.output.hookSpecificOutput.additionalContext.includes('Secret'));
   });
 
   it('should ignore non-Bash tools', async () => {
@@ -260,7 +261,7 @@ describe('port-conflict-check.js', () => {
 // ============================================================================
 describe('ci-batch-check.js', () => {
   const hook = 'ci-batch-check.js';
-  const historyFile = path.join(os.tmpdir(), 'claude_push_history.json');
+  const historyFile = PUSH_HISTORY_FILE;
 
   beforeEach(() => {
     // Clear push history before each test
@@ -320,8 +321,7 @@ describe('ci-batch-check.js', () => {
       tool_name: 'Bash',
       tool_input: { command: 'git push origin feature' }
     });
-    assert.strictEqual(result.output.decision, 'warn');
-    assert.ok(result.output.message.includes('CI Batch Warning'));
+    assert.ok(result.output.hookSpecificOutput.additionalContext.includes('CI Batch Warning'));
   });
 
   it('should track push history', async () => {

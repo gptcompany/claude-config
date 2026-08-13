@@ -14,6 +14,10 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 const { execSync } = require('child_process');
+const {
+  preToolUseDecision,
+  preToolUseWarning,
+} = require('../../lib/utils');
 
 // Configuration file path
 const CONFIG_PATH = path.join(os.homedir(), '.claude', 'tdd-config.json');
@@ -340,15 +344,9 @@ Action Required: Write the test FIRST (Red phase), then implement.
 To change mode: Edit ~/.claude/tdd-config.json and set "mode": "warn"
 `;
 
-      const output = {
-        hookSpecificOutput: {
-          hookEventName: 'PreToolUse',
-          decision: 'block',
-          reason: blockMessage,
-        },
-      };
+      const output = preToolUseDecision('deny', blockMessage);
       console.log(JSON.stringify(output));
-      process.exit(1);  // Non-zero exit to block
+      process.exit(0);
     } else {
       // Warn only (default)
       const warning = `
@@ -362,13 +360,7 @@ Expected test file patterns:
 TDD Best Practice: Write failing test BEFORE production code.
 `;
 
-      const output = {
-        hookSpecificOutput: {
-          hookEventName: 'PreToolUse',
-          decision: 'warn',
-          message: warning,
-        },
-      };
+      const output = preToolUseWarning(warning);
       console.log(JSON.stringify(output));
       process.exit(0);
     }

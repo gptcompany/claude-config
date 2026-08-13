@@ -154,6 +154,26 @@ describe('File operations', () => {
 });
 
 describe('Hook I/O', () => {
+  it('builds current PreToolUse decisions', () => {
+    assert.deepStrictEqual(utils.preToolUseDecision('deny', 'unsafe command'), {
+      hookSpecificOutput: {
+        hookEventName: 'PreToolUse',
+        permissionDecision: 'deny',
+        permissionDecisionReason: 'unsafe command',
+      },
+    });
+  });
+
+  it('builds non-blocking PreToolUse warnings', () => {
+    assert.deepStrictEqual(utils.preToolUseWarning('review this command'), {
+      systemMessage: 'review this command',
+      hookSpecificOutput: {
+        hookEventName: 'PreToolUse',
+        additionalContext: 'review this command',
+      },
+    });
+  });
+
   it('log writes to stderr', () => {
     // Just verify it doesn't throw
     assert.doesNotThrow(() => utils.log('test message'));

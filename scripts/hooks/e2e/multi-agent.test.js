@@ -125,7 +125,11 @@ describe('file-coordination claim/release', () => {
     );
 
     assert.strictEqual(result.success, true, 'Claim should succeed');
-    assert.ok(!result.output.decision || result.output.decision !== 'block', 'Should not block');
+    assert.notStrictEqual(
+      result.output.hookSpecificOutput?.permissionDecision,
+      'deny',
+      'Should not block'
+    );
   });
 
   test('Agent B blocked when Agent A holds claim', () => {
@@ -146,8 +150,12 @@ describe('file-coordination claim/release', () => {
       'agent-b-attempts'
     );
 
-    // Should be blocked or allowed (claims have TTL)
     assert.strictEqual(resultB.success, true, 'Hook should complete');
+    assert.strictEqual(
+      resultB.output.hookSpecificOutput?.permissionDecision,
+      'deny',
+      'Conflicting claim should be denied'
+    );
   });
 
   test('Agent A can reclaim own file', () => {
@@ -169,7 +177,11 @@ describe('file-coordination claim/release', () => {
     );
 
     assert.strictEqual(result.success, true, 'Should succeed for same agent');
-    assert.ok(!result.output.decision || result.output.decision !== 'block', 'Should not block own claim');
+    assert.notStrictEqual(
+      result.output.hookSpecificOutput?.permissionDecision,
+      'deny',
+      'Should not block own claim'
+    );
   });
 
   test('stale claim cleanup works', () => {
@@ -218,7 +230,9 @@ describe('file-coordination claim/release', () => {
       );
     });
 
-    const allSuccess = results.every(r => r.success && (!r.output.decision || r.output.decision !== 'block'));
+    const allSuccess = results.every(
+      r => r.success && r.output.hookSpecificOutput?.permissionDecision !== 'deny'
+    );
     assert.strictEqual(allSuccess, true, 'All files should be claimed');
   });
 });

@@ -94,11 +94,10 @@ describe('Safety Hooks Effectiveness', () => {
         tool_name: 'Bash',
         tool_input: { command: 'git push --force origin main' }
       });
-      // Should either exit non-zero or return block decision
+      // Should either exit non-zero or return the current deny decision.
       const output = parseOutput(result.stdout);
       const blocked = result.code !== 0 ||
-                      output?.decision === 'block' ||
-                      output?.approve === false ||
+                      output?.hookSpecificOutput?.permissionDecision === 'deny' ||
                       result.stderr.includes('BLOCKED');
       assert.ok(blocked, 'Should block force push to main');
     });
@@ -558,10 +557,24 @@ describe('Debug Libraries Effectiveness', () => {
 
     it('validates hook output schema', () => {
       const result = validator.validateHookOutput(
-        { decision: 'approve', reason: 'safe' },
+        {
+          hookSpecificOutput: {
+            hookEventName: 'PreToolUse',
+            permissionDecision: 'allow',
+            permissionDecisionReason: 'safe'
+          }
+        },
         'PreToolUse'
       );
       assert.strictEqual(result.valid, true, 'Should validate valid output');
+    });
+
+    it('rejects deprecated PreToolUse output schema', () => {
+      const result = validator.validateHookOutput(
+        { decision: 'block', reason: 'unsafe' },
+        'PreToolUse'
+      );
+      assert.strictEqual(result.valid, false, 'Should reject legacy output');
     });
 
     it('compares expected vs actual', () => {

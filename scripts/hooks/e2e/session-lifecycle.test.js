@@ -175,7 +175,7 @@ describe('tool use chain', () => {
 
     assert.strictEqual(result.success, true, 'File coordination should succeed');
     // Should not block when no conflict
-    assert.ok(!result.output.decision || result.output.decision !== 'block');
+    assert.notStrictEqual(result.output.hookSpecificOutput?.permissionDecision, 'deny');
   });
 
   test('file-coordination blocks on conflict', () => {

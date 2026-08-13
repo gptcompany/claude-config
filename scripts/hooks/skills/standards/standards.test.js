@@ -27,6 +27,31 @@ const CONFIG_PATH = path.join(
 );
 const HOOK_SCRIPT = path.join(__dirname, "coding-standards.js");
 
+function assertWarning(result, expectedText) {
+  assert.strictEqual(result.decision, undefined);
+  assert.strictEqual(result.hookSpecificOutput.hookEventName, "PreToolUse");
+  assert.strictEqual(
+    result.systemMessage,
+    result.hookSpecificOutput.additionalContext,
+  );
+  if (expectedText) {
+    assert.match(result.systemMessage, expectedText);
+  }
+  return result.systemMessage;
+}
+
+function assertDenied(result, expectedText) {
+  assert.strictEqual(result.decision, undefined);
+  assert.strictEqual(result.hookSpecificOutput.hookEventName, "PreToolUse");
+  assert.strictEqual(result.hookSpecificOutput.permissionDecision, "deny");
+  if (expectedText) {
+    assert.match(
+      result.hookSpecificOutput.permissionDecisionReason,
+      expectedText,
+    );
+  }
+}
+
 // ============================================================================
 // Pattern Detection Tests (12 tests)
 // ============================================================================
@@ -265,7 +290,7 @@ describe("Hook Behavior", () => {
       },
     });
 
-    assert.strictEqual(result.decision, "allow");
+    assert.deepStrictEqual(result, {});
   });
 
   it("allows excluded paths", async () => {
@@ -282,7 +307,7 @@ describe("Hook Behavior", () => {
       },
     });
 
-    assert.strictEqual(result.decision, "allow");
+    assert.deepStrictEqual(result, {});
   });
 
   it("allows non-Write tools", async () => {
@@ -298,7 +323,7 @@ describe("Hook Behavior", () => {
       },
     });
 
-    assert.strictEqual(result.decision, "allow");
+    assert.deepStrictEqual(result, {});
   });
 
   it("warns on warn mode with issues", async () => {
@@ -315,12 +340,7 @@ describe("Hook Behavior", () => {
       },
     });
 
-    assert.strictEqual(result.decision, "allow");
-    assert.ok(result.message, "Should have warning message");
-    assert.ok(
-      result.message.includes("console.log"),
-      "Message should mention console.log",
-    );
+    assertWarning(result, /console\.log/);
   });
 
   it("blocks on block mode with errors", async () => {
@@ -337,12 +357,7 @@ describe("Hook Behavior", () => {
       },
     });
 
-    assert.ok(result.hookSpecificOutput, "Should have hookSpecificOutput");
-    assert.strictEqual(result.hookSpecificOutput.decision, "block");
-    assert.ok(
-      result.hookSpecificOutput.reason.includes("CODING STANDARDS VIOLATION"),
-      "Reason should mention violation",
-    );
+    assertDenied(result, /CODING STANDARDS VIOLATION/);
   });
 
   it("allows on block mode with only warnings", async () => {
@@ -359,7 +374,7 @@ describe("Hook Behavior", () => {
       },
     });
 
-    assert.strictEqual(result.decision, "allow");
+    assertWarning(result, /console\.log/);
   });
 
   it("uses default config when missing", async () => {
@@ -378,8 +393,7 @@ describe("Hook Behavior", () => {
     });
 
     // Default is warn mode
-    assert.strictEqual(result.decision, "allow");
-    assert.ok(result.message, "Should warn with default config");
+    assertWarning(result, /console\.log/);
   });
 
   it("config loading works with partial config", async () => {
@@ -393,11 +407,7 @@ describe("Hook Behavior", () => {
       },
     });
 
-    assert.strictEqual(
-      result.decision,
-      "allow",
-      "Default excludes should work",
-    );
+    assert.deepStrictEqual(result, {}, "Default excludes should work");
   });
 });
 
@@ -479,8 +489,7 @@ module.exports = { add };
       },
     });
 
-    assert.strictEqual(result.decision, "allow");
-    assert.ok(!result.message, "No warning for clean code");
+    assert.deepStrictEqual(result, {});
   });
 
   it("Full Write with console.log warns", async () => {
@@ -502,12 +511,7 @@ function process(data) {
       },
     });
 
-    assert.strictEqual(result.decision, "allow");
-    assert.ok(result.message, "Should have warning");
-    assert.ok(
-      result.message.includes("WARNINGS"),
-      "Should categorize as warning",
-    );
+    assertWarning(result, /WARNINGS/);
   });
 
   it("Full Edit with secret blocks", async () => {
@@ -525,8 +529,7 @@ function process(data) {
       },
     });
 
-    assert.ok(result.hookSpecificOutput, "Should block");
-    assert.strictEqual(result.hookSpecificOutput.decision, "block");
+    assertDenied(result, /CODING STANDARDS VIOLATION/);
   });
 
   it("Multi-issue file shows all issues", async () => {
@@ -548,10 +551,8 @@ alert("hi");
       },
     });
 
-    assert.strictEqual(result.decision, "allow");
-    assert.ok(result.message, "Should have message");
+    const message = assertWarning(result);
     // Should mention multiple issues
-    const message = result.message;
     assert.ok(
       message.includes("console.log") || message.includes("TODO"),
       "Should include issue details",
@@ -573,7 +574,7 @@ alert("hi");
       },
     });
 
-    assert.strictEqual(result.decision, "allow", "Should allow in warn mode");
+    assertWarning(result, /hardcoded secret/i);
 
     // Now change to block mode
     fs.writeFileSync(
@@ -589,8 +590,7 @@ alert("hi");
       },
     }));
 
-    assert.ok(result.hookSpecificOutput, "Should block in block mode");
-    assert.strictEqual(result.hookSpecificOutput.decision, "block");
+    assertDenied(result, /CODING STANDARDS VIOLATION/);
   });
 });
 
@@ -846,8 +846,7 @@ describe("Coding Standards Hook Extended", () => {
       },
     });
 
-    assert.strictEqual(result.decision, "allow");
-    assert.ok(result.message, "Should warn about console.log in MultiEdit");
+    assertWarning(result, /console\.log/);
   });
 
   it("allows unsupported file types", async () => {
@@ -864,7 +863,7 @@ describe("Coding Standards Hook Extended", () => {
       },
     });
 
-    assert.strictEqual(result.decision, "allow");
+    assert.deepStrictEqual(result, {});
   });
 
   it("handles empty content", async () => {
@@ -881,7 +880,7 @@ describe("Coding Standards Hook Extended", () => {
       },
     });
 
-    assert.strictEqual(result.decision, "allow");
+    assert.deepStrictEqual(result, {});
   });
 
   it("handles missing file_path", async () => {
@@ -897,7 +896,7 @@ describe("Coding Standards Hook Extended", () => {
       },
     });
 
-    assert.strictEqual(result.decision, "allow");
+    assert.deepStrictEqual(result, {});
   });
 
   it("handles mode=off", async () => {
@@ -914,7 +913,7 @@ describe("Coding Standards Hook Extended", () => {
       },
     });
 
-    assert.strictEqual(result.decision, "allow");
+    assert.deepStrictEqual(result, {});
   });
 
   it("handles malformed JSON input gracefully", async () => {
@@ -936,7 +935,7 @@ describe("Coding Standards Hook Extended", () => {
 
     // Should allow on error
     const result = JSON.parse(stdout.trim());
-    assert.strictEqual(result.decision, "allow");
+    assert.deepStrictEqual(result, {});
   });
 });
 
