@@ -174,6 +174,13 @@ def _legacy_drift(paths: Sequence[Path], *, check: bool) -> int:
     return hardened
 
 
+def _validate_legacy_paths(paths: Sequence[Path]) -> None:
+    for path in paths:
+        if not path.exists() and not path.is_symlink():
+            continue
+        _validate_owned_regular_file(path)
+
+
 def install(
     template_path: Path,
     target: Path,
@@ -186,6 +193,7 @@ def install(
 ) -> tuple[bool, bool, int]:
     template, _template_raw = _read_object(template_path)
     servers = _validate_template(template, executable)
+    _validate_legacy_paths(legacy_paths)
 
     original_snapshot = _snapshot(target)
     if target.exists():

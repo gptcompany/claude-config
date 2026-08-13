@@ -146,6 +146,29 @@ def test_install_rejects_symlinked_target_and_legacy(tmp_path: Path) -> None:
     with pytest.raises(module.InstallError, match="symlinked"):
         _install(module, target, legacy)
 
+
+def test_legacy_symlink_fails_before_active_files_are_changed(tmp_path: Path) -> None:
+    module = _load_module()
+    target = tmp_path / ".claude.json"
+    original_config = '{"model":"opus"}\n'
+    target.write_text(original_config, encoding="utf-8")
+    target.chmod(0o600)
+    policy_target = tmp_path / ".claude/CLAUDE.md"
+    policy_target.parent.mkdir()
+    original_policy = "# Existing policy\n"
+    policy_target.write_text(original_policy, encoding="utf-8")
+    legacy_real = tmp_path / "legacy-real.json"
+    legacy_real.write_text("{}\n", encoding="utf-8")
+    legacy = tmp_path / ".mcp.json"
+    legacy.symlink_to(legacy_real)
+
+    with pytest.raises(module.InstallError, match="symlinked"):
+        _install(module, target, legacy)
+
+    assert target.read_text(encoding="utf-8") == original_config
+    assert policy_target.read_text(encoding="utf-8") == original_policy
+    assert not (tmp_path / ".claude/backups").exists()
+
     target.unlink()
     target.symlink_to(tmp_path / "missing.json")
     legacy.unlink()
