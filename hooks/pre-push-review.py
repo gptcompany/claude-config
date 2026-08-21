@@ -7,19 +7,19 @@ Flow:
 2. If risk > threshold, escalate to AI review with configurable fallback chain
 
 Environment variables:
-  PREPUSH_REVIEWERS    Comma-separated reviewer chain (default: "gemini,codex,claude")
-                       Available: gemini, codex, claude
+  PREPUSH_REVIEWERS    Comma-separated reviewer chain (default: "codex,agy,claude")
+                       Available: codex, agy, claude
                        Examples:
-                         "gemini"             - Gemini only, no fallback
-                         "codex,claude"       - Skip Gemini, try Codex then Claude
+                         "codex,agy"          - Try Codex, then Antigravity
+                         "agy,claude"         - Try Antigravity, then Claude
                          "claude"             - Claude only
   PREPUSH_THRESHOLD    Risk score to trigger AI review (default: 40, range: 0-100)
   PREPUSH_TIMEOUT      Timeout per reviewer in seconds (default: 120)
   PREPUSH_METRICS_DIR  Where to write review logs (default: ~/.claude/metrics)
   QUESTDB_HOST         QuestDB host for ILP metrics (default: localhost)
   QUESTDB_PORT         QuestDB ILP port (default: 9009)
-  GEMINI_MODEL         Gemini model to use (default: gemini-3-flash-preview)
-  CODEX_MODEL          Codex model to use (default: o3-mini)
+  CODEX_MODEL          Optional Codex model override (default: CLI default)
+  AGY_MODEL            Optional Antigravity model override (default: CLI default)
 
 Portable: works as standard git pre-push hook, independent of any specific agent.
 Install: cp pre-push-review.py /path/to/repo/.git/hooks/pre-push && chmod +x ...
@@ -40,14 +40,14 @@ if os.environ.get("CI") or os.environ.get("GITHUB_ACTIONS"):
 
 # Configuration (all overridable via env)
 RISK_THRESHOLD = int(os.environ.get("PREPUSH_THRESHOLD", "40"))
-REVIEWER_CHAIN = os.environ.get("PREPUSH_REVIEWERS", "gemini,codex,claude").split(",")
+REVIEWER_CHAIN = os.environ.get("PREPUSH_REVIEWERS", "codex,agy,claude").split(",")
 REVIEWER_TIMEOUT = int(os.environ.get("PREPUSH_TIMEOUT", "120"))
 METRICS_DIR = Path(os.environ.get("PREPUSH_METRICS_DIR", str(Path.home() / ".claude" / "metrics")))
 REVIEW_LOG = METRICS_DIR / "pre_push_reviews.jsonl"
 QUESTDB_HOST = os.environ.get("QUESTDB_HOST", "localhost")
 QUESTDB_PORT = int(os.environ.get("QUESTDB_PORT", "9009"))
-GEMINI_MODEL = os.environ.get("GEMINI_MODEL", "gemini-3-flash-preview")
-CODEX_MODEL = os.environ.get("CODEX_MODEL", "o3-mini")
+CODEX_MODEL = os.environ.get("CODEX_MODEL", "").strip()
+AGY_MODEL = os.environ.get("AGY_MODEL", "").strip()
 
 REVIEW_PROMPT = """You are a code reviewer. Review this git diff for bugs and security issues.
 
@@ -213,50 +213,66 @@ def run_local_analysis() -> dict:
 # --- AI Review Fallback Chain ---
 
 
-def _review_gemini(prompt: str) -> str | None:
-    """Tier 1: Gemini CLI (free with Google AI Pro, OAuth)."""
-    gemini_bin = shutil.which("gemini")
-    if not gemini_bin:
+def _review_codex(prompt: str) -> str | None:
+    """Review with Codex in an ephemeral read-only session."""
+    codex_bin = shutil.which("codex")
+    if not codex_bin:
         return None
+    command = [codex_bin, "exec", "--sandbox", "read-only", "--ephemeral", "--color", "never"]
+    if CODEX_MODEL:
+        command.extend(["--model", CODEX_MODEL])
+    command.append(prompt)
     try:
         result = subprocess.run(
-            [gemini_bin, "-m", GEMINI_MODEL, "-p", prompt],
+            command,
             capture_output=True, text=True, timeout=REVIEWER_TIMEOUT,
-            env={**os.environ, "NO_COLOR": "1"},
         )
-        if result.returncode == 0:
-            lines = [
-                line for line in result.stdout.split("\n")
-                if not line.startswith("Hook registry")
-                and not line.startswith("[dotenvx")
-            ]
-            output = "\n".join(lines).strip()
-            if output:
-                return f"[gemini-3-flash] {output}"
+        if result.returncode == 0 and result.stdout.strip():
+            return f"[codex] {result.stdout.strip()}"
         return None
     except (subprocess.TimeoutExpired, Exception):
         return None
 
 
-def _review_codex(prompt: str) -> str | None:
-    """Tier 2: Codex CLI (OpenAI subscription)."""
-    codex_bin = shutil.which("codex")
-    if not codex_bin:
+def _review_agy(prompt: str) -> str | None:
+    """Review with Antigravity in non-interactive plan mode."""
+    agy_bin = shutil.which("agy")
+    if not agy_bin:
+        user_bin = Path.home() / ".local" / "bin" / "agy"
+        if user_bin.is_file() and os.access(user_bin, os.X_OK):
+            agy_bin = str(user_bin)
+    if not agy_bin:
         return None
+    command = [
+        agy_bin,
+        "--print",
+        "--mode",
+        "plan",
+        "--output-format",
+        "text",
+        "--print-timeout",
+        f"{REVIEWER_TIMEOUT}s",
+    ]
+    if AGY_MODEL:
+        command.extend(["--model", AGY_MODEL])
+    command.append(prompt)
     try:
         result = subprocess.run(
-            [codex_bin, "-q", "--full-auto", "-m", CODEX_MODEL, prompt],
-            capture_output=True, text=True, timeout=REVIEWER_TIMEOUT,
+            command,
+            capture_output=True,
+            text=True,
+            timeout=REVIEWER_TIMEOUT + 5,
+            env={**os.environ, "NO_COLOR": "1"},
         )
         if result.returncode == 0 and result.stdout.strip():
-            return f"[codex/o3-mini] {result.stdout.strip()}"
+            return f"[agy] {result.stdout.strip()}"
         return None
     except (subprocess.TimeoutExpired, Exception):
         return None
 
 
 def _review_claude(prompt: str, files: list[str]) -> str | None:
-    """Tier 3: Claude CLI (Anthropic Max subscription). Can run git commands."""
+    """Review with Claude as the final fallback."""
     claude_bin = shutil.which("claude")
     if not claude_bin:
         return None
@@ -288,8 +304,7 @@ Be concise (max 10 lines). Focus on real bugs, not style."""
 
 def run_ai_review(files: list[str], local_analysis: dict) -> str:
     """
-    AI review with fallback chain:
-    Gemini CLI (free) → Codex CLI (OpenAI) → Claude CLI (Anthropic)
+    AI review with a configurable fallback chain.
 
     Tries each in order, returns first successful result.
     """
@@ -313,8 +328,8 @@ def run_ai_review(files: list[str], local_analysis: dict) -> str:
 
     # Configurable fallback chain via PREPUSH_REVIEWERS env
     available = {
-        "gemini": lambda: _review_gemini(prompt),
         "codex": lambda: _review_codex(prompt),
+        "agy": lambda: _review_agy(prompt),
         "claude": lambda: _review_claude(prompt, files),
     }
     reviewers = [(name.strip(), available[name.strip()]) for name in REVIEWER_CHAIN if name.strip() in available]
@@ -421,10 +436,10 @@ def main():
         used_ai = True
 
         # Extract which reviewer was used
-        if ai_review.startswith("[gemini"):
-            reviewer = "gemini"
-        elif ai_review.startswith("[codex"):
+        if ai_review.startswith("[codex"):
             reviewer = "codex"
+        elif ai_review.startswith("[agy"):
+            reviewer = "agy"
         elif ai_review.startswith("[claude"):
             reviewer = "claude"
 
