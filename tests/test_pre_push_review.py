@@ -20,7 +20,7 @@ def test_default_chain_uses_current_reviewers(monkeypatch):
     monkeypatch.delenv("PREPUSH_REVIEWERS", raising=False)
     module = load_module()
 
-    assert module.REVIEWER_CHAIN == ["codex", "agy", "claude"]
+    assert module.REVIEWER_CHAIN == ["codex", "claude"]
 
 
 def test_codex_uses_ephemeral_read_only_exec(monkeypatch):

@@ -7,11 +7,11 @@ Flow:
 2. If risk > threshold, escalate to AI review with configurable fallback chain
 
 Environment variables:
-  PREPUSH_REVIEWERS    Comma-separated reviewer chain (default: "codex,agy,claude")
+  PREPUSH_REVIEWERS    Comma-separated reviewer chain (default: "codex,claude")
                        Available: codex, agy, claude
                        Examples:
                          "codex,agy"          - Try Codex, then Antigravity
-                         "agy,claude"         - Try Antigravity, then Claude
+                         "agy,claude"         - Opt-in; AGY needs headless command permission
                          "claude"             - Claude only
   PREPUSH_THRESHOLD    Risk score to trigger AI review (default: 40, range: 0-100)
   PREPUSH_TIMEOUT      Timeout per reviewer in seconds (default: 120)
@@ -40,7 +40,7 @@ if os.environ.get("CI") or os.environ.get("GITHUB_ACTIONS"):
 
 # Configuration (all overridable via env)
 RISK_THRESHOLD = int(os.environ.get("PREPUSH_THRESHOLD", "40"))
-REVIEWER_CHAIN = os.environ.get("PREPUSH_REVIEWERS", "codex,agy,claude").split(",")
+REVIEWER_CHAIN = os.environ.get("PREPUSH_REVIEWERS", "codex,claude").split(",")
 REVIEWER_TIMEOUT = int(os.environ.get("PREPUSH_TIMEOUT", "120"))
 METRICS_DIR = Path(os.environ.get("PREPUSH_METRICS_DIR", str(Path.home() / ".claude" / "metrics")))
 REVIEW_LOG = METRICS_DIR / "pre_push_reviews.jsonl"
