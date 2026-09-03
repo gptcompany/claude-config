@@ -223,6 +223,20 @@ def _copy_asset(source: Path, target: Path) -> None:
     os.replace(temporary, target)
 
 
+def _reject_symlinked_path(target_root: Path, target: Path, *, label: str) -> None:
+    try:
+        relative = target.relative_to(target_root)
+    except ValueError as exc:
+        raise InstallError(f"{label} escapes target root: {target}") from exc
+    current = target_root
+    for part in relative.parts:
+        if current.is_symlink():
+            raise InstallError(f"refusing symlinked {label} path: {current}")
+        current = current / part
+    if current.is_symlink():
+        raise InstallError(f"refusing symlinked {label} path: {current}")
+
+
 def install(source_root: Path, target_root: Path, *, check: bool) -> tuple[int, bool]:
     canonical = _read_json(source_root / "settings.json")
     settings_path = target_root / "settings.json"
@@ -235,8 +249,7 @@ def install(source_root: Path, target_root: Path, *, check: bool) -> tuple[int, 
     for source, target in asset_pairs:
         if not source.exists():
             raise InstallError(f"missing source asset: {source}")
-        if target.is_symlink():
-            raise InstallError(f"refusing symlinked asset: {target}")
+        _reject_symlinked_path(target_root, target, label="asset")
         if not target.exists() or target.read_bytes() != source.read_bytes():
             changed_assets.append((source, target))
     retired_assets = [
@@ -245,7 +258,8 @@ def install(source_root: Path, target_root: Path, *, check: bool) -> tuple[int, 
         if (target_root / relative).exists() or (target_root / relative).is_symlink()
     ]
     for target in retired_assets:
-        if target.is_symlink() or not target.is_file():
+        _reject_symlinked_path(target_root, target, label="retired asset")
+        if not target.is_file():
             raise InstallError(f"refusing unsafe retired asset: {target}")
 
     _verify_registered_assets(

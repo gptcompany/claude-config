@@ -213,8 +213,28 @@ def test_install_rejects_unsafe_retired_asset_before_writes(tmp_path: Path) -> N
     retired.parent.mkdir(parents=True)
     retired.symlink_to(tmp_path / "outside")
 
-    with pytest.raises(module.InstallError, match="unsafe retired asset"):
+    with pytest.raises(module.InstallError, match="retired asset"):
         module.install(ROOT, target, check=False)
 
     assert settings.read_bytes() == original
     assert not (target / "scripts/lib/utils.js").exists()
+
+
+def test_install_rejects_symlinked_retired_parent_before_writes(tmp_path: Path) -> None:
+    module = _load_module()
+    target = tmp_path / ".claude"
+    target.mkdir()
+    settings = target / "settings.json"
+    settings.write_text(json.dumps(_active_settings()), encoding="utf-8")
+    original = settings.read_bytes()
+    outside = tmp_path / "outside"
+    retired = outside / "hooks/metrics/claudeflow-sync.js"
+    retired.parent.mkdir(parents=True)
+    retired.write_text("must survive\n", encoding="utf-8")
+    (target / "scripts").symlink_to(outside, target_is_directory=True)
+
+    with pytest.raises(module.InstallError, match="symlinked .* path"):
+        module.install(ROOT, target, check=False)
+
+    assert settings.read_bytes() == original
+    assert retired.read_text(encoding="utf-8") == "must survive\n"
