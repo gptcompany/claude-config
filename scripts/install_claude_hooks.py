@@ -36,6 +36,14 @@ ASSET_ROOTS = (
     (Path("scripts/lib"), Path("scripts/lib")),
 )
 ASSET_FILES = (
+    (Path("commands/pipeline.gsd.md"), Path("commands/pipeline.gsd.md")),
+    (Path("commands/pipeline.speckit.md"), Path("commands/pipeline.speckit.md")),
+    (Path("commands/pipeline.status.md"), Path("commands/pipeline.status.md")),
+    (Path("commands/research.md"), Path("commands/research.md")),
+    (
+        Path("commands/speckit.implement-sync.md"),
+        Path("commands/speckit.implement-sync.md"),
+    ),
     (Path("hooks/gsd-check-update.js"), Path("hooks/gsd-check-update.js")),
     (
         Path("scripts/statusline/context-monitor.js"),
