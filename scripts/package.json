@@ -7,7 +7,8 @@
     "lib": "lib"
   },
   "scripts": {
-    "test": "jest"
+    "test": "node --test lib/core-libs.test.js statusline/context-monitor.test.js hooks/integration.test.js hooks/debug/effectiveness.test.js hooks/e2e/gsd-workflow.test.js hooks/performance/error-recovery.test.js hooks/performance/concurrent.test.js",
+    "test:all": "node --test"
   },
   "keywords": [],
   "author": "",
