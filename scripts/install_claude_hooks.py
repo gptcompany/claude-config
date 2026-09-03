@@ -262,6 +262,19 @@ def _restore_files(snapshots: dict[Path, tuple[bytes, int] | None]) -> None:
         os.replace(temporary, path)
 
 
+def _backup_file(source: Path, target: Path) -> None:
+    target.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+    fd = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+    try:
+        with os.fdopen(fd, "wb") as handle:
+            handle.write(source.read_bytes())
+            handle.flush()
+            os.fsync(handle.fileno())
+    except BaseException:
+        target.unlink(missing_ok=True)
+        raise
+
+
 def _reject_symlinked_path(target_root: Path, target: Path, *, label: str) -> None:
     try:
         relative = target.relative_to(target_root)
@@ -315,21 +328,22 @@ def install(source_root: Path, target_root: Path, *, check: bool) -> tuple[int, 
             )
         return 0, False
 
+    backup: Path | None = None
     if settings_changed and settings_path.exists():
         backup_dir = target_root / "backups" / "claude-config"
-        backup_dir.mkdir(mode=0o700, parents=True, exist_ok=True)
         backup = backup_dir / (
             f"settings-{time.strftime('%Y%m%dT%H%M%SZ', time.gmtime())}"
             f"-{time.time_ns()}.json"
         )
-        shutil.copyfile(settings_path, backup)
-        os.chmod(backup, 0o600)
+        _reject_symlinked_path(target_root, backup, label="backup")
     touched = [target for _source, target in changed_assets]
     if settings_changed:
         touched.append(settings_path)
     touched.extend(retired_assets)
     snapshots = _snapshot_files(touched)
     try:
+        if backup is not None:
+            _backup_file(settings_path, backup)
         for source, target in changed_assets:
             _copy_asset(source, target)
         if settings_changed:
@@ -337,12 +351,20 @@ def install(source_root: Path, target_root: Path, *, check: bool) -> tuple[int, 
         for target in retired_assets:
             target.unlink()
     except Exception as exc:
+        rollback_errors: list[str] = []
         try:
             _restore_files(snapshots)
         except Exception as rollback_exc:
+            rollback_errors.append(f"profile: {rollback_exc}")
+        if backup is not None:
+            try:
+                backup.unlink(missing_ok=True)
+            except Exception as backup_exc:
+                rollback_errors.append(f"backup: {backup_exc}")
+        if rollback_errors:
             raise InstallError(
-                f"install failed ({exc}); rollback failed ({rollback_exc})"
-            ) from rollback_exc
+                f"install failed ({exc}); rollback failed ({'; '.join(rollback_errors)})"
+            ) from exc
         raise InstallError(f"install failed and was rolled back: {exc}") from exc
     return len(changed_assets), settings_changed
 

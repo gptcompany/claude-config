@@ -263,6 +263,10 @@ def test_install_rejects_symlinked_retired_parent_before_writes(tmp_path: Path) 
     settings = target / "settings.json"
     settings.write_text(json.dumps(_active_settings()), encoding="utf-8")
     original = settings.read_bytes()
+    (target / "hooks").mkdir()
+    (target / "hooks/gsd-context-monitor.js").write_text(
+        "// local hook\n", encoding="utf-8"
+    )
     outside = tmp_path / "outside"
     retired = outside / "hooks/metrics/claudeflow-sync.js"
     retired.parent.mkdir(parents=True)
@@ -307,3 +311,26 @@ def test_install_rolls_back_assets_and_retired_files_on_settings_failure(
     assert settings.read_bytes() == original_settings
     assert managed.read_text(encoding="utf-8") == "old asset\n"
     assert retired.read_text(encoding="utf-8") == "retired\n"
+    assert not list((target / "backups/claude-config").glob("settings-*.json"))
+
+
+def test_install_rejects_symlinked_backup_parent_before_writes(tmp_path: Path) -> None:
+    module = _load_module()
+    target = tmp_path / ".claude"
+    target.mkdir()
+    settings = target / "settings.json"
+    settings.write_text(json.dumps(_active_settings()), encoding="utf-8")
+    original = settings.read_bytes()
+    (target / "hooks").mkdir()
+    (target / "hooks/gsd-context-monitor.js").write_text(
+        "// local hook\n", encoding="utf-8"
+    )
+    outside = tmp_path / "outside"
+    outside.mkdir()
+    (target / "backups").symlink_to(outside, target_is_directory=True)
+
+    with pytest.raises(module.InstallError, match="symlinked backup path"):
+        module.install(ROOT, target, check=False)
+
+    assert settings.read_bytes() == original
+    assert list(outside.iterdir()) == []
