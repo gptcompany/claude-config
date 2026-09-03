@@ -31,7 +31,7 @@ def _install(module, target: Path, legacy: Path, *, check: bool = False):
         policy_template=ROOT / "templates/global-mcp-policy.md",
         policy_target=target.parent / ".claude/CLAUDE.md",
         check=check,
-        executable=lambda path: path in {"/usr/bin/setpriv", "/usr/local/bin/serena"},
+        executable=lambda path: path in {"/usr/bin/env", "serena"},
     )
 
 

@@ -7,6 +7,7 @@ import argparse
 import os
 from pathlib import Path
 import re
+import shutil
 import stat
 import tempfile
 import time
@@ -71,20 +72,18 @@ def _validate_template(
         raise InstallError("Context7 must use the canonical HTTPS endpoint and 30s timeout")
     serena = servers.get("serena")
     expected_args = [
-        "--pdeathsig",
-        "TERM",
-        "/usr/local/bin/serena",
+        "serena",
         "start-mcp-server",
         "--context",
         "ide-assistant",
     ]
     if not isinstance(serena, dict) or serena != {
-        "command": "/usr/bin/setpriv",
+        "command": "/usr/bin/env",
         "args": expected_args,
         "startup_timeout_sec": 30.0,
     }:
-        raise InstallError("Serena must use the canonical bounded Codex launcher")
-    for required in ("/usr/bin/setpriv", "/usr/local/bin/serena"):
+        raise InstallError("Serena must use the canonical portable Codex launcher")
+    for required in ("/usr/bin/env", "serena"):
         if not executable(required):
             raise InstallError(f"required MCP executable is unavailable: {required}")
     return raw.decode("utf-8").strip()
@@ -169,7 +168,9 @@ def install(
     target: Path,
     *,
     check: bool,
-    executable: Callable[[str], bool] = lambda path: os.access(path, os.X_OK),
+    executable: Callable[[str], bool] = lambda command: (
+        os.access(command, os.X_OK) if "/" in command else shutil.which(command) is not None
+    ),
 ) -> bool:
     template = _validate_template(template_path, executable)
     original_snapshot = _snapshot(target)

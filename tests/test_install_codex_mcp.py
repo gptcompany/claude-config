@@ -27,7 +27,7 @@ def _install(module, target: Path, *, check: bool = False):
         ROOT / "templates/codex-mcp.toml",
         target,
         check=check,
-        executable=lambda path: path in {"/usr/bin/setpriv", "/usr/local/bin/serena"},
+        executable=lambda path: path in {"/usr/bin/env", "serena"},
     )
 
 
@@ -68,7 +68,7 @@ def test_install_replaces_global_mcp_only_and_preserves_serena_tool_policy(
     }
     serena = installed["mcp_servers"]["serena"]
     assert serena["startup_timeout_sec"] == 30.0
-    assert serena["command"] == "/usr/bin/setpriv"
+    assert serena["command"] == "/usr/bin/env"
     assert serena["tools"]["activate_project"] == {"enabled": True}
     assert stat.S_IMODE(target.stat().st_mode) == 0o600
     backups = list((target.parent / "backups/claude-config").glob("*.toml"))

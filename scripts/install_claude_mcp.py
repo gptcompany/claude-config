@@ -71,16 +71,14 @@ def _validate_template(
     command = str(serena.get("command") or "")
     args = serena.get("args")
     expected_args = [
-        "--pdeathsig",
-        "TERM",
-        "/usr/local/bin/serena",
+        "serena",
         "start-mcp-server",
         "--context",
         "claude-code",
     ]
-    if command != "/usr/bin/setpriv" or args != expected_args:
-        raise InstallError("Serena must use the canonical bounded launcher")
-    for required in (command, expected_args[2]):
+    if command != "/usr/bin/env" or args != expected_args:
+        raise InstallError("Serena must use the canonical portable launcher")
+    for required in (command, expected_args[0]):
         if not executable(required):
             raise InstallError(f"required MCP executable is unavailable: {required}")
     return servers
@@ -212,7 +210,9 @@ def install(
     policy_template: Path | None = None,
     policy_target: Path | None = None,
     check: bool,
-    executable: Callable[[str], bool] = lambda path: os.access(path, os.X_OK),
+    executable: Callable[[str], bool] = lambda command: (
+        os.access(command, os.X_OK) if "/" in command else shutil.which(command) is not None
+    ),
 ) -> tuple[bool, bool, int]:
     template, _template_raw = _read_object(template_path)
     servers = _validate_template(template, executable)

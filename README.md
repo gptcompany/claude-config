@@ -42,7 +42,8 @@ installer preserves the link and updates only the managed block in its regular
 file target after revalidating both link and target.
 
 Context7 uses the public remote documentation endpoint, with no local `npx` or
-secret embedded in the config. Serena uses the installed binary in
+secret embedded in the config. Serena is resolved from `PATH` through the
+portable `/usr/bin/env` launcher on both macOS and Linux and runs in
 `claude-code` context without `--project-from-cwd`: a single-repo session should
 activate that repo, while a multi-repo coordinator must activate the exact repo
 for the current task before using symbolic tools. This avoids indexing the data

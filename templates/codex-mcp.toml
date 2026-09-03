@@ -3,6 +3,6 @@ url = "https://mcp.context7.com/mcp"
 startup_timeout_sec = 30.0
 
 [mcp_servers.serena]
-command = "/usr/bin/setpriv"
-args = ["--pdeathsig", "TERM", "/usr/local/bin/serena", "start-mcp-server", "--context", "ide-assistant"]
+command = "/usr/bin/env"
+args = ["serena", "start-mcp-server", "--context", "ide-assistant"]
 startup_timeout_sec = 30.0
