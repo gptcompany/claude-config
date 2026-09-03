@@ -121,6 +121,8 @@ def test_install_merges_hooks_preserves_preferences_and_is_idempotent(tmp_path: 
     assert (target / "scripts/hooks/safety/git-safety-check.js").exists()
     assert (target / "scripts/lib/utils.js").exists()
     assert (target / "scripts/statusline/context-monitor.js").exists()
+    assert (target / "scripts/statusline/ui-components.js").exists()
+    assert (target / "skills/swarm/SKILL.md").exists()
     assert (target / "hooks/gsd-check-update.js").exists()
     assert all(not (target / relative).exists() for relative in module.RETIRED_ASSETS)
     assert not (target / "scripts/lib/utils.test.js").exists()

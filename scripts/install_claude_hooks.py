@@ -45,6 +45,13 @@ ASSET_FILES = (
         Path("scripts/statusline/ui-components.js"),
         Path("scripts/statusline/ui-components.js"),
     ),
+    (Path("skills/auto-pipeline/SKILL.md"), Path("skills/auto-pipeline/SKILL.md")),
+    (
+        Path("skills/confidence-gate/SKILL.md"),
+        Path("skills/confidence-gate/SKILL.md"),
+    ),
+    (Path("skills/context-action/SKILL.md"), Path("skills/context-action/SKILL.md")),
+    (Path("skills/swarm/SKILL.md"), Path("skills/swarm/SKILL.md")),
 )
 RETIRED_ASSETS = (
     Path("scripts/hooks/metrics/claudeflow-sync.js"),
