@@ -19,7 +19,12 @@ const os = require('os');
 const { execSync, spawn } = require('child_process');
 
 // Test directory
-const TEST_DIR = path.join(os.tmpdir(), 'productivity-hooks-test-' + Date.now());
+const TEST_DIR = path.join(
+  os.tmpdir(),
+  `productivity-hooks-test-${process.pid}-${Date.now()}`,
+);
+process.env.HOME = TEST_DIR;
+process.env.USERPROFILE = TEST_DIR;
 const HOOKS_DIR = __dirname;
 
 /**

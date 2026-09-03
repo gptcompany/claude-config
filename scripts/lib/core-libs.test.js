@@ -7,7 +7,7 @@
  * - metrics.js
  * - tips-engine.js
  *
- * Run with: node --test ~/.claude/scripts/lib/core-libs.test.js
+ * Run with: node --test scripts/lib/core-libs.test.js
  */
 
 const { test, describe, before, after } = require('node:test');
@@ -17,7 +17,9 @@ const path = require('path');
 const os = require('os');
 
 // Test fixtures directory
-const TEST_DIR = path.join(os.tmpdir(), `core-libs-test-${Date.now()}`);
+const TEST_DIR = path.join(os.tmpdir(), `core-libs-test-${process.pid}-${Date.now()}`);
+process.env.HOME = TEST_DIR;
+process.env.USERPROFILE = TEST_DIR;
 
 // ============================================================================
 // MCP-CLIENT TESTS
