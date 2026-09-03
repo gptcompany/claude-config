@@ -319,8 +319,13 @@ def _validate_asset_path(source: Path, target_root: Path, target: Path) -> None:
     for part in relative.parts:
         current = current / part
         linked = linked or current.is_symlink()
-    if linked and target.resolve(strict=False) != source.resolve(strict=False):
-        raise InstallError(f"refusing non-canonical symlinked asset path: {target}")
+    if linked:
+        try:
+            canonical_asset = target.exists() and target.samefile(source)
+        except OSError:
+            canonical_asset = False
+        if not canonical_asset:
+            raise InstallError(f"refusing non-canonical symlinked asset path: {target}")
 
 
 def install(source_root: Path, target_root: Path, *, check: bool) -> tuple[int, bool]:
