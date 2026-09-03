@@ -48,6 +48,10 @@ def _active_settings() -> dict:
                         },
                         {
                             "type": "command",
+                            "command": "npx Claude-Flow@v3alpha hooks pre-command || true",
+                        },
+                        {
+                            "type": "command",
                             "command": "node \"/home/sam/.claude/scripts/hooks/safety/git-safety-check.js\"",
                             "timeout": 1,
                         },
@@ -111,7 +115,7 @@ def test_install_merges_hooks_preserves_preferences_and_is_idempotent(tmp_path: 
         for hook in group["hooks"]
     ]
     assert not any(
-        marker in command
+        marker in command.lower()
         for command in commands
         for marker in module.LEGACY_CLAUDE_FLOW_MARKERS
     )

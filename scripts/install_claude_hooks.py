@@ -18,6 +18,7 @@ from typing import Any, Iterable
 ROOT = Path(__file__).resolve().parents[1]
 LEGACY_CLAUDE_FLOW_MARKERS = (
     "@claude-flow/",
+    "claude-flow",
     ".claude-flow",
     "ruflo",
     "claudeflow-sync.js",
@@ -130,7 +131,7 @@ def _merge_hooks(active: dict[str, Any], canonical: dict[str, Any]) -> None:
                 if not (
                     isinstance(hook, dict)
                     and any(
-                        marker in str(hook.get("command") or "")
+                        marker in str(hook.get("command") or "").lower()
                         for marker in LEGACY_CLAUDE_FLOW_MARKERS
                     )
                 )
