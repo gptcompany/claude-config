@@ -1,211 +1,35 @@
-# Architecture Integration: SpecKit + ClaudeFlow + Backstage
+# Development Orchestration Architecture
 
-## Overview
+## Supported Layers
 
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           DEVELOPMENT WORKFLOW                               │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐                   │
-│  │  Backstage   │───▶│   SpecKit    │───▶│  ClaudeFlow  │                   │
-│  │  (Portal)    │    │  (Planning)  │    │ (Execution)  │                   │
-│  └──────────────┘    └──────────────┘    └──────────────┘                   │
-│         │                   │                   │                            │
-│         ▼                   ▼                   ▼                            │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐                   │
-│  │   Catalog    │    │   spec.md    │    │ Multi-Agent  │                   │
-│  │  Templates   │    │   plan.md    │    │   Swarms     │                   │
-│  │   Projects   │    │   tasks.md   │    │   Workers    │                   │
-│  └──────────────┘    └──────────────┘    └──────────────┘                   │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
+| Concern | Source of truth | Role |
+|---|---|---|
+| Feature intent and acceptance criteria | Spec Kit artifacts in the repository | Versioned specification, plan and tasks |
+| Task/review visibility | GitHub Issues plus the repository ledger | Shared status and durable evidence |
+| Live execution | Gobabygo Mesh Live over tmux | Persistent Claude, Codex and Antigravity sessions |
+| Operator layout | Terminal or iTerm2 | Optional presentation only |
 
-## Component Responsibilities
+Claude Flow/Ruflo is retired from the global Claude profile. It is not required
+for Spec Kit, task sync, worker delegation or session persistence.
 
-### Backstage (Developer Portal)
-- **Software Catalog**: Inventory of all repos/services
-- **Software Templates**: Scaffold new repos with standard structure
-- **TechDocs**: Centralized documentation
-- **Plugins**: GitHub Actions, Grafana dashboards
+## Workflow
 
-### SpecKit (Specification Framework)
-- **Workflow Commands**:
-  - `/speckit.specify` → Creates spec.md
-  - `/speckit.plan` → Creates plan.md, research.md, contracts/
-  - `/speckit.tasks` → Creates tasks.md
-  - `/speckit.implement` → Executes tasks
-  - `/speckit.analyze` → Validates consistency
-- **Files Generated**:
-  ```
-  specs/{feature}/
-  ├── spec.md           # Requirements, user stories
-  ├── plan.md           # Architecture, tech decisions
-  ├── tasks.md          # Actionable checklist
-  ├── research.md       # Decisions log
-  ├── data-model.md     # Entity definitions
-  └── contracts/        # API schemas
-  ```
+1. Select one repository and one feature.
+2. Create or update `spec.md`, `plan.md` and `tasks.md` with Spec Kit.
+3. Sync approved tasks to GitHub when the repository enables the ledger.
+4. Start the Gobabygo coordinator with `mcoordinator --workflow speckit`.
+5. Delegate bounded tasks to persistent workers through Mesh Live.
+6. Require tests and immutable evidence before marking a task complete.
+7. Use a different provider for independent review when practical.
+8. Persist review decisions and handoff state in the repository.
 
-### ClaudeFlow (Multi-Agent Orchestration)
-- **Protocol**: MCP (Model Context Protocol)
-- **Architecture**: Hive-Mind with Queen + Workers
-- **Modes**:
-  - `orchestrator` - Full autonomous execution
-  - `on-demand` - Called for specific tasks
-- **Integration**: Validates SpecKit checkpoints
+The coordinator may operate across repositories, but every delegation must name
+the exact repository, scope and acceptance criteria. Production, secrets,
+destructive actions, money movement and unresolved product choices remain manual
+approval boundaries.
 
-## How They Work Together
+## Optional Integrations
 
-### 1. New Feature Request
-
-```
-User Request → Backstage Template → New Repo with structure
-                                          │
-                                          ▼
-                                    .claude/
-                                    .specify/
-                                    specs/
-                                    catalog-info.yaml
-```
-
-### 2. Feature Development
-
-```
-/speckit.specify "Add user authentication"
-        │
-        ▼
-    spec.md created
-        │
-        ▼
-/speckit.plan
-        │
-        ▼
-    plan.md + research.md + contracts/
-        │
-        ▼
-/speckit.tasks
-        │
-        ▼
-    tasks.md with T001, T002, ...
-        │
-        ▼
-/speckit.taskstoissues --auto-project
-        │
-        ▼
-    GitHub Issues → Project Board → Milestones
-        │
-        ▼
-/speckit.implement (or ClaudeFlow swarm)
-        │
-        ▼
-    Code written, tests pass
-```
-
-### 3. ClaudeFlow Integration Points
-
-ClaudeFlow can be invoked at specific checkpoints:
-
-```yaml
-# canonical.yaml
-claudeflow:
-  speckit_integration:
-    checkpoints:
-      - phase: specify
-        validator: truth_score      # Validate spec quality
-        threshold: 0.7
-      - phase: plan
-        validator: feasibility_check # Check technical feasibility
-      - phase: implement
-        validator: tests_pass        # Run tests after each task
-```
-
-## Standard Repo Structure
-
-Every repo should follow this structure for full integration:
-
-```
-{repo}/
-├── .claude/                    # Claude Code config
-│   ├── CLAUDE.md              # Project-specific instructions
-│   ├── settings.local.json    # Local settings
-│   ├── commands/              # Custom slash commands
-│   ├── skills/                # Custom skills
-│   └── validation/            # Validation config
-│       └── config.json
-├── .specify/                   # SpecKit templates
-│   ├── memory/
-│   │   └── constitution.md    # Project principles
-│   ├── templates/
-│   │   ├── spec-template.md
-│   │   └── tasks-template.md
-│   └── scripts/
-│       └── bash/
-├── specs/                      # Feature specifications
-│   └── {feature}/
-│       ├── spec.md
-│       ├── plan.md
-│       └── tasks.md
-├── tests/                      # Test suite
-├── catalog-info.yaml           # Backstage catalog entry
-└── README.md
-```
-
-## nautilus_dev Split Proposal
-
-Current monolith should be split into:
-
-| New Repo | Modules | Purpose |
-|----------|---------|---------|
-| `nautilus_core` | trading/, strategies/, risk/ | Trading engine |
-| `nautilus_data` | data/, data_loaders/, feeds/, pipeline/ | Data + ML |
-| `nautilus_ops` | monitoring/, dashboard/, security/, config/ | Operations |
-
-Each repo gets:
-- Own `.claude/` with context
-- Own `.specify/` with constitution
-- Own `specs/` for features
-- Own `catalog-info.yaml` for Backstage
-- Own GitHub Project board
-
-## ClaudeFlow vs SpecKit
-
-| Aspect | SpecKit | ClaudeFlow |
-|--------|---------|------------|
-| **Type** | Slash commands + templates | MCP server + agents |
-| **Format** | Markdown (spec.md, tasks.md) | JSON + Hive-Mind protocol |
-| **Execution** | Single Claude instance | Multi-agent swarms |
-| **Use Case** | Planning, specification | Parallel execution |
-| **Autonomy** | Human-in-loop | Can run autonomously |
-
-**Current practice**: use Spec Kit for planning and Gobabygo Mesh Live for
-persistent multi-provider execution. Claude-Flow is retired from the global
-Claude profile.
-
-```bash
-# Planning phase (SpecKit)
-/speckit.specify → /speckit.plan → /speckit.tasks
-
-# Execution phase (Gobabygo)
-mcoordinator --workflow speckit
-```
-
-## Backstage Template Usage
-
-1. **Create new repo via Backstage**:
-   - Go to http://localhost:7007/create
-   - Select "SpecKit-Ready Repository"
-   - Fill in name, language, framework
-   - Click Create
-
-2. **Result**:
-   - New GitHub repo with standard structure
-   - Registered in Backstage catalog
-   - GitHub labels created
-   - Project board ready
-
-## Sources
-
-- [Gobabygo operator guide](../README.md)
-- [Backstage Software Templates](https://backstage.io/docs/features/software-templates/)
+Backstage, observability systems and repository-specific MCP servers may enrich
+the workflow. They do not become control-plane dependencies and belong in the
+repository that owns them.
