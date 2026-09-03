@@ -131,14 +131,6 @@ describe('tool use chain', () => {
     assert.strictEqual(result.success, true);
   });
 
-  test('claudeflow-sync handles Task tool', () => {
-    const result = runHook(
-      path.join(HOOKS_DIR, 'metrics', 'claudeflow-sync.js'),
-      { tool_name: 'Task', tool_input: { description: 'Test' } }
-    );
-    assert.strictEqual(result.success, true);
-  });
-
   test('hive-manager handles Task tool', () => {
     const result = runHook(
       path.join(HOOKS_DIR, 'control', 'hive-manager.js'),
@@ -248,8 +240,7 @@ describe('hook chain integration', () => {
       'coordination/file-coordination.js',
       'coordination/task-coordination.js',
       'metrics/dora-tracker.js',
-      'metrics/quality-score.js',
-      'metrics/claudeflow-sync.js'
+      'metrics/quality-score.js'
     ];
 
     for (const hookPath of hookPaths) {

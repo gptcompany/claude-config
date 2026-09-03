@@ -240,26 +240,6 @@ describe('malformed input handling', () => {
 // =============================================================================
 
 describe('external dependency failures', () => {
-  test('QuestDB unavailable uses local fallback', async () => {
-    const hookPath = path.join(HOOKS_DIR, 'metrics', 'claudeflow-sync.js');
-    if (!hookExists(hookPath)) {
-      return;
-    }
-
-    // Hook should work even without QuestDB
-    const result = runHook(hookPath, {
-      tool_name: 'Task',
-      tool_input: { description: 'Test task' }
-    });
-
-    assert.strictEqual(result.exitCode, 0, 'Should fall back gracefully without QuestDB');
-    // Should still return valid output
-    assert.ok(
-      result.output !== null || result.stdout.includes('{'),
-      'Should return JSON even without QuestDB'
-    );
-  });
-
   test('git repo unavailable degrades gracefully', async () => {
     const hookPath = path.join(HOOKS_DIR, 'safety', 'git-safety-check.js');
     if (!hookExists(hookPath)) {
@@ -389,7 +369,6 @@ describe('output validation', () => {
 
     const testHooks = [
       'ux/tips-injector.js',
-      'metrics/claudeflow-sync.js',
       'coordination/file-coordination.js'
     ];
 

@@ -304,42 +304,6 @@ describe('gsd:execute-plan workflow', () => {
 });
 
 // =============================================================================
-// /gsd:sync-github Workflow
-// =============================================================================
-
-describe('gsd:sync-github workflow', () => {
-  test('claudeflow-sync handles Task tool', () => {
-    const result = runHook(
-      path.join(HOOKS_DIR, 'metrics', 'claudeflow-sync.js'),
-      { tool_name: 'Task', tool_input: { description: 'Sync test' } }
-    );
-
-    assert.strictEqual(result.success, true, 'ClaudeFlow sync should succeed');
-  });
-
-  test('claudeflow-sync handles non-Task tools gracefully', () => {
-    const result = runHook(
-      path.join(HOOKS_DIR, 'metrics', 'claudeflow-sync.js'),
-      { tool_name: 'Edit', tool_input: { file_path: '/tmp/test.js' } }
-    );
-
-    assert.strictEqual(result.success, true, 'Should handle non-Task gracefully');
-    // Returns sync state info regardless of tool type (state tracking)
-    assert.ok(typeof result.output === 'object', 'Should return object');
-  });
-
-  test('github sync handles missing config gracefully', () => {
-    // Should not crash even without GitHub config
-    const result = runHook(
-      path.join(HOOKS_DIR, 'metrics', 'claudeflow-sync.js'),
-      { tool_name: 'Task', tool_input: { description: 'GitHub sync test' } }
-    );
-
-    assert.strictEqual(result.success, true, 'Should handle missing config');
-  });
-});
-
-// =============================================================================
 // Plan Validator with Real .planning/
 // =============================================================================
 

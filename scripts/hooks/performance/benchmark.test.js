@@ -198,8 +198,7 @@ describe('individual hook latency', () => {
   test('metrics hooks complete within 100ms', async () => {
     const metricsHooks = [
       'metrics/dora-tracker.js',
-      'metrics/quality-score.js',
-      'metrics/claudeflow-sync.js'
+      'metrics/quality-score.js'
     ];
 
     for (const hookName of metricsHooks) {

@@ -371,19 +371,6 @@ describe('Metrics Hooks Effectiveness', () => {
     });
   });
 
-  // claudeflow-sync.js
-  describe('claudeflow-sync', () => {
-    const hookPath = 'metrics/claudeflow-sync.js';
-
-    it('syncs state for task operations', async () => {
-      const result = await runHook(hookPath, {
-        tool_name: 'Task',
-        tool_input: { action: 'create' },
-        tool_output: { success: true }
-      });
-      assert.strictEqual(result.code, 0, 'Should sync without error');
-    });
-  });
 });
 
 // =============================================================================

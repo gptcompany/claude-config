@@ -222,45 +222,6 @@ describe('parallel hook execution', () => {
     }
   });
 
-  test('verify metrics not duplicated in parallel writes', async () => {
-    const hookPath = path.join(HOOKS_DIR, 'metrics', 'claudeflow-sync.js');
-    if (!hookExists(hookPath)) {
-      return;
-    }
-
-    const syncStateFile = path.join(os.homedir(), '.claude-flow', 'sync_state.json');
-
-    // Get initial sync count
-    let initialCount = 0;
-    if (fs.existsSync(syncStateFile)) {
-      try {
-        const data = JSON.parse(fs.readFileSync(syncStateFile, 'utf8'));
-        initialCount = data.syncCount || 0;
-      } catch (err) {}
-    }
-
-    // Run 5 syncs in parallel
-    const results = await Promise.all(
-      Array.from({ length: 5 }, () =>
-        runHookAsync(hookPath, { tool_name: 'Task', tool_input: { description: 'Test' } })
-      )
-    );
-
-    // All should succeed
-    const successCount = results.filter(r => r.success).length;
-    assert.ok(successCount >= 4, `At least 4/5 syncs should succeed, got ${successCount}`);
-
-    // Sync count should increase by approximately 5
-    if (fs.existsSync(syncStateFile)) {
-      try {
-        const data = JSON.parse(fs.readFileSync(syncStateFile, 'utf8'));
-        const finalCount = data.syncCount || 0;
-        const increase = finalCount - initialCount;
-        // Allow for some variance due to timing
-        assert.ok(increase >= 3 && increase <= 10, `Sync count should increase by ~5, got ${increase}`);
-      } catch (err) {}
-    }
-  });
 });
 
 // =============================================================================
@@ -387,30 +348,4 @@ describe('race condition prevention', () => {
     assert.strictEqual(successCount, 4, 'All session operations should succeed');
   });
 
-  test('simultaneous QuestDB exports', async () => {
-    const hookPath = path.join(HOOKS_DIR, 'metrics', 'claudeflow-sync.js');
-    if (!hookExists(hookPath)) {
-      return;
-    }
-
-    // Run multiple sync operations that export to QuestDB
-    const results = await Promise.all(
-      Array.from({ length: 5 }, (_, i) =>
-        runHookAsync(hookPath, {
-          tool_name: 'TodoWrite',
-          tool_input: { todos: [{ content: `Race test ${i}`, status: 'pending' }] }
-        })
-      )
-    );
-
-    // All should succeed (QuestDB or fallback)
-    const successCount = results.filter(r => r.success).length;
-    assert.ok(successCount >= 4, `At least 4/5 exports should succeed, got ${successCount}`);
-
-    // Verify sync state is consistent
-    const syncStateFile = path.join(os.homedir(), '.claude-flow', 'sync_state.json');
-    if (fs.existsSync(syncStateFile)) {
-      assert.ok(isValidJsonFile(syncStateFile), 'Sync state should remain valid');
-    }
-  });
 });
