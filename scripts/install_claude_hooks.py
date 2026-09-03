@@ -356,7 +356,7 @@ def main() -> int:
     try:
         assets, settings_changed = install(
             args.source.expanduser().resolve(),
-            args.target.expanduser().resolve(),
+            args.target.expanduser().absolute(),
             check=args.check,
         )
     except InstallError as exc:

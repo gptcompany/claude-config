@@ -225,6 +225,19 @@ def test_install_allows_matching_assets_through_symlinked_managed_root(
     assert (target / "scripts/lib/utils.js").samefile(ROOT / "scripts/lib/utils.js")
 
 
+def test_install_rejects_symlinked_profile_root(tmp_path: Path) -> None:
+    module = _load_module()
+    real_target = tmp_path / "real-profile"
+    real_target.mkdir()
+    target = tmp_path / "linked-profile"
+    target.symlink_to(real_target, target_is_directory=True)
+
+    with pytest.raises(module.InstallError, match="symlinked settings path"):
+        module.install(ROOT, target, check=False)
+
+    assert list(real_target.iterdir()) == []
+
+
 def test_install_rejects_unsafe_retired_asset_before_writes(tmp_path: Path) -> None:
     module = _load_module()
     target = tmp_path / ".claude"
