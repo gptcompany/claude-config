@@ -223,6 +223,29 @@ def _copy_asset(source: Path, target: Path) -> None:
     os.replace(temporary, target)
 
 
+def _snapshot_files(paths: Iterable[Path]) -> dict[Path, tuple[bytes, int] | None]:
+    snapshots: dict[Path, tuple[bytes, int] | None] = {}
+    for path in paths:
+        if path.exists():
+            snapshots[path] = (path.read_bytes(), stat.S_IMODE(path.stat().st_mode))
+        else:
+            snapshots[path] = None
+    return snapshots
+
+
+def _restore_files(snapshots: dict[Path, tuple[bytes, int] | None]) -> None:
+    for path, snapshot in reversed(tuple(snapshots.items())):
+        if snapshot is None:
+            path.unlink(missing_ok=True)
+            continue
+        content, mode = snapshot
+        path.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
+        temporary = path.with_name(f".{path.name}.rollback-{os.getpid()}")
+        temporary.write_bytes(content)
+        os.chmod(temporary, mode)
+        os.replace(temporary, path)
+
+
 def _reject_symlinked_path(target_root: Path, target: Path, *, label: str) -> None:
     try:
         relative = target.relative_to(target_root)
@@ -240,6 +263,7 @@ def _reject_symlinked_path(target_root: Path, target: Path, *, label: str) -> No
 def install(source_root: Path, target_root: Path, *, check: bool) -> tuple[int, bool]:
     canonical = _read_json(source_root / "settings.json")
     settings_path = target_root / "settings.json"
+    _reject_symlinked_path(target_root, settings_path, label="settings")
     active = _read_json(settings_path) if settings_path.exists() else {}
     merged = _merge_settings(active, canonical)
     settings_changed = merged != active
@@ -284,12 +308,26 @@ def install(source_root: Path, target_root: Path, *, check: bool) -> tuple[int, 
         )
         shutil.copyfile(settings_path, backup)
         os.chmod(backup, 0o600)
-    for source, target in changed_assets:
-        _copy_asset(source, target)
-    for target in retired_assets:
-        target.unlink()
+    touched = [target for _source, target in changed_assets]
     if settings_changed:
-        _atomic_json(settings_path, merged)
+        touched.append(settings_path)
+    touched.extend(retired_assets)
+    snapshots = _snapshot_files(touched)
+    try:
+        for source, target in changed_assets:
+            _copy_asset(source, target)
+        if settings_changed:
+            _atomic_json(settings_path, merged)
+        for target in retired_assets:
+            target.unlink()
+    except Exception as exc:
+        try:
+            _restore_files(snapshots)
+        except Exception as rollback_exc:
+            raise InstallError(
+                f"install failed ({exc}); rollback failed ({rollback_exc})"
+            ) from rollback_exc
+        raise InstallError(f"install failed and was rolled back: {exc}") from exc
     return len(changed_assets), settings_changed
 
 

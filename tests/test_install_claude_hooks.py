@@ -238,3 +238,36 @@ def test_install_rejects_symlinked_retired_parent_before_writes(tmp_path: Path) 
 
     assert settings.read_bytes() == original
     assert retired.read_text(encoding="utf-8") == "must survive\n"
+
+
+def test_install_rolls_back_assets_and_retired_files_on_settings_failure(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    module = _load_module()
+    target = tmp_path / ".claude"
+    target.mkdir()
+    settings = target / "settings.json"
+    settings.write_text(json.dumps(_active_settings()), encoding="utf-8")
+    original_settings = settings.read_bytes()
+    (target / "hooks").mkdir()
+    (target / "hooks/gsd-context-monitor.js").write_text(
+        "// local hook\n", encoding="utf-8"
+    )
+    managed = target / "scripts/lib/utils.js"
+    managed.parent.mkdir(parents=True)
+    managed.write_text("old asset\n", encoding="utf-8")
+    retired = target / module.RETIRED_ASSETS[0]
+    retired.parent.mkdir(parents=True, exist_ok=True)
+    retired.write_text("retired\n", encoding="utf-8")
+
+    def fail_settings(*_args, **_kwargs) -> None:
+        raise OSError("injected settings failure")
+
+    monkeypatch.setattr(module, "_atomic_json", fail_settings)
+
+    with pytest.raises(module.InstallError, match="rolled back"):
+        module.install(ROOT, target, check=False)
+
+    assert settings.read_bytes() == original_settings
+    assert managed.read_text(encoding="utf-8") == "old asset\n"
+    assert retired.read_text(encoding="utf-8") == "retired\n"
