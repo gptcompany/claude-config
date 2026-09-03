@@ -198,10 +198,26 @@ def test_install_rejects_symlinked_asset_before_reading_it(tmp_path: Path) -> No
     (target / "settings.json").write_text("{}\n", encoding="utf-8")
     linked = target / "scripts/lib/utils.js"
     linked.parent.mkdir(parents=True)
-    linked.symlink_to(ROOT / "scripts/lib/utils.js")
+    outside = tmp_path / "outside.js"
+    outside.write_text("drift\n", encoding="utf-8")
+    linked.symlink_to(outside)
 
     with pytest.raises(module.InstallError, match="symlinked asset"):
         module.install(ROOT, target, check=False)
+
+
+def test_install_allows_matching_assets_through_symlinked_managed_root(
+    tmp_path: Path,
+) -> None:
+    module = _load_module()
+    target = tmp_path / ".claude"
+    target.mkdir()
+    (target / "settings.json").write_text("{}\n", encoding="utf-8")
+    (target / "scripts").symlink_to(ROOT / "scripts", target_is_directory=True)
+
+    module.install(ROOT, target, check=False)
+
+    assert (target / "scripts/lib/utils.js").samefile(ROOT / "scripts/lib/utils.js")
 
 
 def test_install_rejects_unsafe_retired_asset_before_writes(tmp_path: Path) -> None:

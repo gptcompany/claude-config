@@ -280,8 +280,8 @@ def install(source_root: Path, target_root: Path, *, check: bool) -> tuple[int, 
     for source, target in asset_pairs:
         if not source.exists():
             raise InstallError(f"missing source asset: {source}")
-        _reject_symlinked_path(target_root, target, label="asset")
         if not target.exists() or target.read_bytes() != source.read_bytes():
+            _reject_symlinked_path(target_root, target, label="asset")
             changed_assets.append((source, target))
     retired_assets = [
         target_root / relative
