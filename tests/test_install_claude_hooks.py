@@ -119,7 +119,7 @@ def test_install_merges_hooks_preserves_preferences_and_is_idempotent(tmp_path: 
         for command in commands
         for marker in module.LEGACY_CLAUDE_FLOW_MARKERS
     )
-    assert any("gsd-context-monitor.js" in command for command in commands)
+    assert not any("gsd-context-monitor.js" in command for command in commands)
     git_safety = next(command for command in commands if "git-safety-check.js" in command)
     assert git_safety == 'node "$HOME/.claude/scripts/hooks/safety/git-safety-check.js"'
     assert (target / "scripts/hooks/safety/git-safety-check.js").exists()

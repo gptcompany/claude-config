@@ -24,6 +24,7 @@ LEGACY_CLAUDE_FLOW_MARKERS = (
     "claudeflow-sync.js",
     "cf-session-workers.js",
 )
+RETIRED_HOOK_MARKERS = (*LEGACY_CLAUDE_FLOW_MARKERS, "gsd-context-monitor.js")
 OBSOLETE_PERMISSION_RULES = {
     "MultiEdit(//home/sam/**)",
     "MultiEdit(//media/sam/1TB/**)",
@@ -132,7 +133,7 @@ def _merge_hooks(active: dict[str, Any], canonical: dict[str, Any]) -> None:
                     isinstance(hook, dict)
                     and any(
                         marker in str(hook.get("command") or "").lower()
-                        for marker in LEGACY_CLAUDE_FLOW_MARKERS
+                        for marker in RETIRED_HOOK_MARKERS
                     )
                 )
             ]
