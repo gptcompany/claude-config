@@ -17,7 +17,9 @@ from typing import Any, Iterable
 
 ROOT = Path(__file__).resolve().parents[1]
 LEGACY_CLAUDE_FLOW_MARKERS = (
-    "@claude-flow/cli@latest hooks",
+    "@claude-flow/",
+    ".claude-flow",
+    "ruflo",
     "claudeflow-sync.js",
     "cf-session-workers.js",
 )

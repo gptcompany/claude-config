@@ -44,6 +44,10 @@ def _active_settings() -> dict:
                         },
                         {
                             "type": "command",
+                            "command": "npx ruflo hooks pre-command --cmd x || true",
+                        },
+                        {
+                            "type": "command",
                             "command": "node \"/home/sam/.claude/scripts/hooks/safety/git-safety-check.js\"",
                             "timeout": 1,
                         },

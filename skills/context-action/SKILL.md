@@ -14,9 +14,9 @@ AskUserQuestion({
     question: "Context alto - quale azione vuoi eseguire?",
     header: "Context",
     options: [
-      {label: "Checkpoint + /compact", description: "Salva stato in claude-flow, poi compatta"},
-      {label: "Checkpoint + /clear", description: "Salva stato, poi nuova sessione"},
-      {label: "Solo /compact", description: "Compatta senza salvare"},
+      {label: "Aggiorna stato + /compact", description: "Aggiorna gli artefatti del workflow, poi compatta"},
+      {label: "Aggiorna stato + nuova sessione", description: "Aggiorna gli artefatti e prepara un handoff"},
+      {label: "Solo /compact", description: "Compatta usando la history nativa"},
       {label: "Ignora", description: "Continua senza azione"}
     ],
     multiSelect: false
@@ -26,17 +26,15 @@ AskUserQuestion({
 
 2. **Eseguire azione scelta**:
 
-- **Checkpoint + /compact**:
-  ```bash
-  npx @claude-flow/cli@latest session save --name "pre-compact-$(date +%Y%m%d-%H%M%S)"
-  ```
-  Poi suggerire `/compact`
+- **Aggiorna stato + /compact**:
+  Aggiornare soltanto gli artefatti gia adottati dal workflow corrente, per
+  esempio `tasks.md`, il ledger di review e l'handoff del coordinator. Non
+  creare un secondo database di sessione. Poi suggerire `/compact`.
 
-- **Checkpoint + /clear**:
-  ```bash
-  npx @claude-flow/cli@latest session save --name "pre-clear-$(date +%Y%m%d-%H%M%S)"
-  ```
-  Poi suggerire `/clear`
+- **Aggiorna stato + nuova sessione**:
+  Aggiornare gli stessi artefatti e scrivere un handoff conciso che contenga
+  obiettivo, stato verificato, blocchi e prossima azione. Poi suggerire una
+  nuova sessione o un resume esplicito.
 
 - **Solo /compact**:
   Suggerire `/compact`

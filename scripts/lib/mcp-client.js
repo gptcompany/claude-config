@@ -8,7 +8,7 @@
  * - Pattern storage for learning
  * - Project and timestamp utilities
  *
- * Storage location: ~/.claude-flow/memory/store.json
+ * Storage location: ~/.claude/memory/store.json
  */
 
 const fs = require('fs');
@@ -18,7 +18,7 @@ const { execSync } = require('child_process');
 
 // Configuration
 const HOME_DIR = os.homedir();
-const MCP_STORE_DIR = path.join(HOME_DIR, '.claude-flow', 'memory');
+const MCP_STORE_DIR = path.join(HOME_DIR, '.claude', 'memory');
 const MCP_STORE_FILE = path.join(MCP_STORE_DIR, 'store.json');
 const PATTERNS_FILE = path.join(MCP_STORE_DIR, 'patterns.json');
 
