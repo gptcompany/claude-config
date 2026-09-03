@@ -289,6 +289,18 @@ def _reject_symlinked_path(target_root: Path, target: Path, *, label: str) -> No
         raise InstallError(f"refusing symlinked {label} path: {current}")
 
 
+def _validate_asset_path(source: Path, target_root: Path, target: Path) -> None:
+    """Allow canonical checkout links, but reject every other linked asset path."""
+    relative = target.relative_to(target_root)
+    current = target_root
+    linked = current.is_symlink()
+    for part in relative.parts:
+        current = current / part
+        linked = linked or current.is_symlink()
+    if linked and target.resolve(strict=False) != source.resolve(strict=False):
+        raise InstallError(f"refusing non-canonical symlinked asset path: {target}")
+
+
 def install(source_root: Path, target_root: Path, *, check: bool) -> tuple[int, bool]:
     canonical = _read_json(source_root / "settings.json")
     settings_path = target_root / "settings.json"
@@ -302,6 +314,7 @@ def install(source_root: Path, target_root: Path, *, check: bool) -> tuple[int, 
     for source, target in asset_pairs:
         if not source.exists():
             raise InstallError(f"missing source asset: {source}")
+        _validate_asset_path(source, target_root, target)
         if not target.exists() or target.read_bytes() != source.read_bytes():
             _reject_symlinked_path(target_root, target, label="asset")
             changed_assets.append((source, target))

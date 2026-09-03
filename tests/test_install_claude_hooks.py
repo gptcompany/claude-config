@@ -225,6 +225,21 @@ def test_install_allows_matching_assets_through_symlinked_managed_root(
     assert (target / "scripts/lib/utils.js").samefile(ROOT / "scripts/lib/utils.js")
 
 
+def test_install_rejects_matching_asset_through_noncanonical_symlink(tmp_path: Path) -> None:
+    module = _load_module()
+    target = tmp_path / ".claude"
+    target.mkdir()
+    (target / "settings.json").write_text("{}\n", encoding="utf-8")
+    linked = target / "scripts/lib/utils.js"
+    linked.parent.mkdir(parents=True)
+    outside = tmp_path / "outside.js"
+    outside.write_bytes((ROOT / "scripts/lib/utils.js").read_bytes())
+    linked.symlink_to(outside)
+
+    with pytest.raises(module.InstallError, match="non-canonical symlinked asset"):
+        module.install(ROOT, target, check=False)
+
+
 def test_install_rejects_symlinked_profile_root(tmp_path: Path) -> None:
     module = _load_module()
     real_target = tmp_path / "real-profile"
