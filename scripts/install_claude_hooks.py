@@ -16,7 +16,11 @@ from typing import Any, Iterable
 
 
 ROOT = Path(__file__).resolve().parents[1]
-LEGACY_CLAUDE_FLOW = "@claude-flow/cli@latest hooks"
+LEGACY_CLAUDE_FLOW_MARKERS = (
+    "@claude-flow/cli@latest hooks",
+    "claudeflow-sync.js",
+    "cf-session-workers.js",
+)
 OBSOLETE_PERMISSION_RULES = {
     "MultiEdit(//home/sam/**)",
     "MultiEdit(//media/sam/1TB/**)",
@@ -31,6 +35,15 @@ ASSET_ROOTS = (
 )
 ASSET_FILES = (
     (Path("hooks/gsd-check-update.js"), Path("hooks/gsd-check-update.js")),
+    (
+        Path("scripts/statusline/context-monitor.js"),
+        Path("scripts/statusline/context-monitor.js"),
+    ),
+)
+RETIRED_ASSETS = (
+    Path("scripts/hooks/metrics/claudeflow-sync.js"),
+    Path("scripts/hooks/intelligence/cf-session-workers.js"),
+    Path("scripts/statusline/update-cf-status.sh"),
 )
 IGNORED_PARTS = {"node_modules", "__pycache__"}
 
@@ -95,7 +108,10 @@ def _merge_hooks(active: dict[str, Any], canonical: dict[str, Any]) -> None:
                 for hook in hooks
                 if not (
                     isinstance(hook, dict)
-                    and LEGACY_CLAUDE_FLOW in str(hook.get("command") or "")
+                    and any(
+                        marker in str(hook.get("command") or "")
+                        for marker in LEGACY_CLAUDE_FLOW_MARKERS
+                    )
                 )
             ]
             if cleaned:
@@ -215,6 +231,14 @@ def install(source_root: Path, target_root: Path, *, check: bool) -> tuple[int, 
             raise InstallError(f"refusing symlinked asset: {target}")
         if not target.exists() or target.read_bytes() != source.read_bytes():
             changed_assets.append((source, target))
+    retired_assets = [
+        target_root / relative
+        for relative in RETIRED_ASSETS
+        if (target_root / relative).exists() or (target_root / relative).is_symlink()
+    ]
+    for target in retired_assets:
+        if target.is_symlink() or not target.is_file():
+            raise InstallError(f"refusing unsafe retired asset: {target}")
 
     _verify_registered_assets(
         merged,
@@ -222,10 +246,10 @@ def install(source_root: Path, target_root: Path, *, check: bool) -> tuple[int, 
         set() if check else {target for _source, target in asset_pairs},
     )
     if check:
-        if settings_changed or changed_assets:
+        if settings_changed or changed_assets or retired_assets:
             raise InstallError(
                 f"Claude hook drift: settings={'yes' if settings_changed else 'no'}, "
-                f"assets={len(changed_assets)}"
+                f"assets={len(changed_assets)}, retired={len(retired_assets)}"
             )
         return 0, False
 
@@ -240,6 +264,8 @@ def install(source_root: Path, target_root: Path, *, check: bool) -> tuple[int, 
         os.chmod(backup, 0o600)
     for source, target in changed_assets:
         _copy_asset(source, target)
+    for target in retired_assets:
+        target.unlink()
     if settings_changed:
         _atomic_json(settings_path, merged)
     return len(changed_assets), settings_changed

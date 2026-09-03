@@ -669,39 +669,6 @@ Complete reference for all 40+ hooks in the Claude Code hooks system.
 
 ---
 
-### claudeflow-sync.js
-
-**Event:** PostToolUse
-**Path:** `~/.claude/scripts/hooks/metrics/claudeflow-sync.js`
-**Purpose:** Sync state with claude-flow MCP for crash recovery
-
-**Input JSON:**
-```json
-{
-  "tool_name": "Task",
-  "tool_input": {
-    "description": "Implement feature X"
-  }
-}
-```
-
-**Output JSON:**
-```json
-{
-  "synced": true,
-  "syncCount": 42,
-  "agentSpawns": 3,
-  "taskProgress": 5
-}
-```
-
-**Configuration:**
-- Sync triggers: Task, TodoWrite, Skill
-- Memory store: `~/.claude-flow/memory/store.json`
-- Periodic full sync: Every 10 tool calls
-
----
-
 ## Coordination Hooks
 
 ### file-coordination.js

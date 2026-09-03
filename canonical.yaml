@@ -286,7 +286,6 @@ global:
     - session-summary.py
     - auto-ralph.py
     - ralph-loop.py
-    - claudeflow-sync.py
     subagent_stop:
     - subagent-checkpoint.sh
     user_prompt_submit:
@@ -463,41 +462,6 @@ features:
     enabled: true
     tips_file: ~/.claude/metrics/last_session_tips.json
     command: /tips
-claudeflow:
-  enabled: true
-  mode: orchestrator
-  install_path: /media/sam/1TB/claude-flow
-  version: v3
-  global_hive_mind_db: ~/.claude/hive-mind/hive-mind.db
-  speckit_integration:
-    checkpoints:
-    - phase: specify
-      validator: truth_score
-      threshold: 0.7
-    - phase: plan
-      validator: feasibility_check
-      threshold: 0.7
-    - phase: implement
-      validator: tests_pass
-    worktrees:
-      enabled: true
-      base_dir: /tmp/claude-worktrees
-      cleanup_on_merge: true
-  self_healing:
-    circuit_breaker:
-      max_failures: 3
-      cooldown_seconds: 300
-    rollback:
-      mode: partial
-      auto_on_failure: true
-  hooks_integration:
-    external_hooks:
-      enabled: true
-      python_hooks_path: /media/sam/1TB/claude-hooks-shared/hooks
-      timeout_ms: 5000
-    session_sync:
-      provider: questdb
-      sync_interval_ms: 30000
 mcp:
   ssot: client-specific managed profiles
   tool_search:

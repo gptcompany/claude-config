@@ -25,7 +25,7 @@
 const fs = require("fs");
 const path = require("path");
 const os = require("os");
-const { execSync, spawn } = require("child_process");
+const { execSync } = require("child_process");
 const net = require("net");
 
 const {
@@ -43,36 +43,6 @@ const STATS_DIR = path.join(os.homedir(), ".claude", "stats");
 const METRICS_FILE = path.join(STATS_DIR, "session_metrics.jsonl");
 const CONTEXT_WINDOW = 200000; // Assume 200k for Claude
 const CONTEXT_WARNING_THRESHOLD = 70; // Warn when context > 70%
-
-// ============= Async MCP Sync (fire-and-forget) =============
-
-function asyncMcpSync(key, value) {
-  try {
-    const valueJson = JSON.stringify(value).replace(/"/g, '\\"');
-    const child = spawn(
-      "npx",
-      [
-        "@claude-flow/cli@latest",
-        "memory",
-        "store",
-        "--key",
-        key,
-        "--value",
-        valueJson,
-        "--namespace",
-        "context-autosave",
-      ],
-      {
-        detached: true,
-        stdio: "ignore",
-        shell: true,
-      },
-    );
-    child.unref();
-  } catch {
-    // Fire-and-forget: ignore errors
-  }
-}
 
 // QuestDB settings
 const QUESTDB_HOST = process.env.QUESTDB_HOST || "localhost";
@@ -395,33 +365,9 @@ function persistMetrics(
   }
 }
 
-// ============= Claude Flow V3 Integration =============
-
-/**
- * Read pre-generated claude-flow statusline from cache file
- * Cache is updated by: ~/.claude/scripts/statusline/update-cf-status.sh (runs via cron or daemon)
- */
-function getClaudeFlowStatus() {
-  const cacheFile = path.join(os.homedir(), '.claude-flow', 'statusline-cache.txt');
-
-  try {
-    if (fs.existsSync(cacheFile)) {
-      // Check if cache is fresh (less than 60 seconds old)
-      const stats = fs.statSync(cacheFile);
-      const ageMs = Date.now() - stats.mtimeMs;
-      if (ageMs < 60000) {
-        return fs.readFileSync(cacheFile, 'utf8').trim();
-      }
-    }
-    return null;
-  } catch (err) {
-    return null;
-  }
-}
-
 // ============= Status Line Display =============
 
-function buildStatusLine(modelName, workspace, contextInfo, costData, sessionId) {
+function buildStatusLine(modelName, workspace, contextInfo, costData) {
   const parts = [];
 
   // Model badge with context-aware color
@@ -445,15 +391,6 @@ function buildStatusLine(modelName, workspace, contextInfo, costData, sessionId)
     // WARNING: Context high - suggest /context-action skill
     if (contextInfo.percent > CONTEXT_WARNING_THRESHOLD) {
       parts.push(`${COLORS.brightYellow}⚠️ /context-action${COLORS.reset}`);
-
-      // Auto-save checkpoint to claude-flow memory (fire-and-forget)
-      asyncMcpSync(`session:${sessionId}:autosave`, {
-        timestamp: new Date().toISOString(),
-        contextPercent: Math.round(contextInfo.percent),
-        tokens: contextInfo.tokens || 0,
-        project: getProjectName(),
-        branch: branch,
-      });
 
       // Write flag file for UserPromptSubmit hook to trigger AskUserQuestion
       const flagFile = path.join(STATS_DIR, "context-high-flag.json");
@@ -520,17 +457,11 @@ async function main() {
       workspace,
       contextInfo,
       costData,
-      sessionId,
     );
 
     // Add reset at the beginning to override Claude Code's dim setting (like ccstatusline)
     console.log("\x1b[0m" + statusLine);
 
-    // Add Claude Flow V3 status (second line)
-    const cfStatus = getClaudeFlowStatus();
-    if (cfStatus) {
-      console.log("\x1b[0m" + cfStatus);
-    }
   } catch (err) {
     // Fallback display on any error
     const cwd = path.basename(process.cwd());

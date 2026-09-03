@@ -179,14 +179,16 @@ Each repo gets:
 | **Use Case** | Planning, specification | Parallel execution |
 | **Autonomy** | Human-in-loop | Can run autonomously |
 
-**Best Practice**: Use SpecKit for planning → ClaudeFlow for execution
+**Current practice**: use Spec Kit for planning and Gobabygo Mesh Live for
+persistent multi-provider execution. Claude-Flow is retired from the global
+Claude profile.
 
 ```bash
 # Planning phase (SpecKit)
 /speckit.specify → /speckit.plan → /speckit.tasks
 
-# Execution phase (ClaudeFlow)
-claude-flow swarm create --from-tasks specs/XXX/tasks.md
+# Execution phase (Gobabygo)
+mcoordinator --workflow speckit
 ```
 
 ## Backstage Template Usage
@@ -205,5 +207,5 @@ claude-flow swarm create --from-tasks specs/XXX/tasks.md
 
 ## Sources
 
-- [ClaudeFlow GitHub](https://github.com/ruvnet/claude-flow)
+- [Gobabygo operator guide](../README.md)
 - [Backstage Software Templates](https://backstage.io/docs/features/software-templates/)

@@ -271,16 +271,6 @@
         "description": "[14.5] Auto simplify - detect and suggest code simplifications"
       },
       {
-        "matcher": "tool == \"Task\" || tool == \"TodoWrite\" || tool == \"Skill\"",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$HOME/.claude/scripts/hooks/metrics/claudeflow-sync.js\""
-          }
-        ],
-        "description": "[14.5] Claude-flow sync - sync state for crash recovery"
-      },
-      {
         "matcher": "tool == \"Task\"",
         "hooks": [
           {

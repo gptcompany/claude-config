@@ -22,15 +22,13 @@ python3 scripts/install_codex_mcp.py
 python3 scripts/install_codex_mcp.py --check
 ```
 
-The installer updates only `scripts/hooks`, `scripts/lib`, the registered GSD
-startup hook, and canonical hook registrations. It removes obsolete
-`npx @claude-flow/cli@latest hooks ...` registrations and invalid legacy
-permission rules, creates a mode-`0600` settings backup when needed, and is
-idempotent. It preserves active settings such as model, theme, notifications,
-permission mode, and locally registered hooks.
-
-Claude Flow remains available as an explicit integration. It is not downloaded
-or invoked through `npx @latest` on every Claude prompt or tool call.
+The installer updates only versioned hook assets, the statusline, the registered
+GSD startup hook, and canonical hook registrations. It removes retired
+Claude-Flow/Ruflo registrations and assets plus invalid legacy permission rules,
+creates a mode-`0600` settings backup when needed, and is idempotent. It
+preserves active settings such as model, theme, notifications, permission mode,
+and locally registered hooks. Claude-Flow is no longer part of the global
+profile; repository-specific experiments must opt in explicitly.
 
 The MCP installer manages the user-scoped `mcpServers` object in
 `~/.claude.json` and one delimited MCP policy block in
@@ -150,9 +148,9 @@ All repositories use the hooks installed from this repository:
 | context-preservation.py | Stop | Save context on exit |
 | session-summary.py | Stop | Generate session summaries |
 
-Note: These hooks are Claude Code-specific (expect Claude hooks JSON input,
-`CLAUDE_*` env, and `.claude`/`claude-flow` paths). Codex uses its own
-Git hooks in `/home/sam/.codex/hooks`.
+Note: These hooks are Claude Code-specific and expect Claude hooks JSON input
+and `CLAUDE_*` environment variables. Codex uses its own Git hooks in
+`/home/sam/.codex/hooks`.
 
 ### Metrics (QuestDB)
 

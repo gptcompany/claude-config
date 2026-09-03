@@ -208,27 +208,12 @@
                 ]
             },
             {
-                "matcher": "Skill",
-                "hooks": [
-                    {
-                        "type": "command",
-                        "command": "node \"$HOME/.claude/scripts/hooks/metrics/claudeflow-sync.js\"",
-                        "timeout": 10
-                    }
-                ]
-            },
-            {
                 "matcher": "Task",
                 "hooks": [
                     {
                         "type": "command",
                         "command": "node \"$HOME/.claude/scripts/hooks/productivity/task-checkpoint.js\"",
                         "timeout": 10
-                    },
-                    {
-                        "type": "command",
-                        "command": "node \"$HOME/.claude/scripts/hooks/metrics/claudeflow-sync.js\"",
-                        "timeout": 5
                     }
                 ]
             }
@@ -251,11 +236,6 @@
                         "type": "command",
                         "command": "node \"$HOME/.claude/scripts/hooks/control/ralph-loop.js\"",
                         "timeout": 30
-                    },
-                    {
-                        "type": "command",
-                        "command": "node \"$HOME/.claude/scripts/hooks/metrics/claudeflow-sync.js\"",
-                        "timeout": 10
                     }
                 ]
             }
@@ -283,11 +263,6 @@
                         "type": "command",
                         "command": "node \"$HOME/.claude/scripts/hooks/intelligence/lesson-injector.js\"",
                         "timeout": 5
-                    },
-                    {
-                        "type": "command",
-                        "command": "node \"$HOME/.claude/scripts/hooks/intelligence/cf-session-workers.js\"",
-                        "timeout": 4
                     }
                 ]
             }

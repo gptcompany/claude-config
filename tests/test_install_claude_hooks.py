@@ -57,8 +57,22 @@ def _active_settings() -> dict:
                         {
                             "type": "command",
                             "command": "node \"$HOME/.claude/hooks/gsd-context-monitor.js\"",
-                        }
+                        },
+                        {
+                            "type": "command",
+                            "command": "node \"$HOME/.claude/scripts/hooks/metrics/claudeflow-sync.js\"",
+                        },
                     ],
+                }
+            ],
+            "UserPromptSubmit": [
+                {
+                    "hooks": [
+                        {
+                            "type": "command",
+                            "command": "node \"$HOME/.claude/scripts/hooks/intelligence/cf-session-workers.js\"",
+                        }
+                    ]
                 }
             ],
         },
@@ -71,6 +85,10 @@ def test_install_merges_hooks_preserves_preferences_and_is_idempotent(tmp_path: 
     target.mkdir()
     (target / "hooks").mkdir()
     (target / "hooks/gsd-context-monitor.js").write_text("// local hook\n", encoding="utf-8")
+    for relative in module.RETIRED_ASSETS:
+        retired = target / relative
+        retired.parent.mkdir(parents=True, exist_ok=True)
+        retired.write_text("retired\n", encoding="utf-8")
     (target / "settings.json").write_text(json.dumps(_active_settings()), encoding="utf-8")
 
     assets, settings_changed = module.install(ROOT, target, check=False)
@@ -88,13 +106,19 @@ def test_install_merges_hooks_preserves_preferences_and_is_idempotent(tmp_path: 
         for group in groups
         for hook in group["hooks"]
     ]
-    assert not any(module.LEGACY_CLAUDE_FLOW in command for command in commands)
+    assert not any(
+        marker in command
+        for command in commands
+        for marker in module.LEGACY_CLAUDE_FLOW_MARKERS
+    )
     assert any("gsd-context-monitor.js" in command for command in commands)
     git_safety = next(command for command in commands if "git-safety-check.js" in command)
     assert git_safety == 'node "$HOME/.claude/scripts/hooks/safety/git-safety-check.js"'
     assert (target / "scripts/hooks/safety/git-safety-check.js").exists()
     assert (target / "scripts/lib/utils.js").exists()
+    assert (target / "scripts/statusline/context-monitor.js").exists()
     assert (target / "hooks/gsd-check-update.js").exists()
+    assert all(not (target / relative).exists() for relative in module.RETIRED_ASSETS)
     assert not (target / "scripts/lib/utils.test.js").exists()
     assert len(list((target / "backups/claude-config").glob("settings-*.json"))) == 1
 
@@ -140,3 +164,21 @@ def test_install_rejects_symlinked_asset_before_reading_it(tmp_path: Path) -> No
 
     with pytest.raises(module.InstallError, match="symlinked asset"):
         module.install(ROOT, target, check=False)
+
+
+def test_install_rejects_unsafe_retired_asset_before_writes(tmp_path: Path) -> None:
+    module = _load_module()
+    target = tmp_path / ".claude"
+    target.mkdir()
+    settings = target / "settings.json"
+    settings.write_text(json.dumps(_active_settings()), encoding="utf-8")
+    original = settings.read_bytes()
+    retired = target / module.RETIRED_ASSETS[0]
+    retired.parent.mkdir(parents=True)
+    retired.symlink_to(tmp_path / "outside")
+
+    with pytest.raises(module.InstallError, match="unsafe retired asset"):
+        module.install(ROOT, target, check=False)
+
+    assert settings.read_bytes() == original
+    assert not (target / "scripts/lib/utils.js").exists()
