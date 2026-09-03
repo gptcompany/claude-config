@@ -69,8 +69,9 @@ Sentry, Grafana, Playwright, Claude Flow, and other integrations belong in a
 repository `.mcp.json` only when that repository actively needs them.
 
 The Codex MCP installer applies the same global allowlist to
-`~/.codex/config.toml` while preserving models, profiles, feature flags, hooks,
-and granular Serena tool policy. Context7 and Serena each have a bounded
+`~/.codex/config.toml` while preserving models, profiles, feature flags, and
+hooks. The complete MCP subtree is canonical, so stale machine-local server or
+tool policy cannot make Mac and Dell behave differently. Context7 and Serena each have a bounded
 30-second startup timeout; after a timeout Codex remains usable in degraded
 mode. OpenMemory is not a global worker dependency: keep it repository-scoped
 or add it explicitly only for a task that needs shared-memory recall. Existing

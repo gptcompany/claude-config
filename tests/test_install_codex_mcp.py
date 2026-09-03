@@ -31,7 +31,7 @@ def _install(module, target: Path, *, check: bool = False):
     )
 
 
-def test_install_replaces_global_mcp_only_and_preserves_serena_tool_policy(
+def test_install_replaces_entire_global_mcp_subtree_and_preserves_other_settings(
     tmp_path: Path,
 ) -> None:
     module = _load_module()
@@ -69,7 +69,7 @@ def test_install_replaces_global_mcp_only_and_preserves_serena_tool_policy(
     serena = installed["mcp_servers"]["serena"]
     assert serena["startup_timeout_sec"] == 30.0
     assert serena["command"] == "/usr/bin/env"
-    assert serena["tools"]["activate_project"] == {"enabled": True}
+    assert "tools" not in serena
     assert stat.S_IMODE(target.stat().st_mode) == 0o600
     backups = list((target.parent / "backups/claude-config").glob("*.toml"))
     assert len(backups) == 1

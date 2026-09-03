@@ -109,11 +109,8 @@ def _managed_config(active: str, template: str) -> str:
     preamble, sections = _section_chunks(active)
     output: list[str] = [preamble.rstrip()]
     inserted = False
-    preserved_serena_tools: list[str] = []
     for name, chunk in sections:
         if name.startswith("mcp_servers."):
-            if name.startswith("mcp_servers.serena.tools."):
-                preserved_serena_tools.append(chunk.strip())
             if not inserted:
                 output.append(template)
                 inserted = True
@@ -121,7 +118,6 @@ def _managed_config(active: str, template: str) -> str:
         output.append(chunk.strip())
     if not inserted:
         output.append(template)
-    output.extend(preserved_serena_tools)
     rendered = "\n\n".join(part for part in output if part).rstrip() + "\n"
     try:
         parsed = tomllib.loads(rendered)
