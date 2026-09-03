@@ -2,11 +2,28 @@
 
 Enterprise-grade Claude Code configuration hub serving multiple repositories.
 
-## Dell Installation
+## Mac/Dell Parity
+
+Mac and Dell use this repository as the source of truth for `CLAUDE.md`,
+agents, commands, hooks, scripts, skills, templates, and the global Context7 +
+Serena MCP allowlist. Their canonical checkouts are:
+
+- macOS: `/Users/sam/claude-config`
+- Dell: `/data/sata/1TB/claude-config`
+
+The corresponding entries below `~/.claude` link to the local canonical
+checkout. Both checkouts must be on the same commit, and all three installer
+`--check` commands below must pass. Home-dependent executable paths (for
+example the Probity hook), credentials, history, caches, model choice, and
+machine-local runtime state are intentionally not byte-identical.
+
+Existing Claude and Codex processes keep their startup configuration. Start a
+new process or resume in a fresh process after an update.
+
+## Installation
 
 The Git checkout is the versioned source; `~/.claude` is the active Claude Code
-profile. On the Dell the canonical checkout is
-`/data/sata/1TB/claude-config`. The copy below
+profile. The Dell copy below
 `/data/old-system/256GB` is archive/recovery material, not an install source.
 
 Install or update the versioned hooks without replacing user preferences,
