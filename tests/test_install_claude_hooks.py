@@ -327,6 +327,9 @@ def test_install_rolls_back_assets_and_retired_files_on_settings_failure(
     assert managed.read_text(encoding="utf-8") == "old asset\n"
     assert retired.read_text(encoding="utf-8") == "retired\n"
     assert not list((target / "backups/claude-config").glob("settings-*.json"))
+    assert not (target / "commands").exists()
+    assert not (target / "skills").exists()
+    assert not (target / "backups").exists()
 
 
 def test_install_rejects_symlinked_backup_parent_before_writes(tmp_path: Path) -> None:

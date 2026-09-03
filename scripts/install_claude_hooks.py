@@ -262,6 +262,28 @@ def _restore_files(snapshots: dict[Path, tuple[bytes, int] | None]) -> None:
         os.replace(temporary, path)
 
 
+def _missing_parent_dirs(paths: Iterable[Path], target_root: Path) -> set[Path]:
+    missing: set[Path] = set()
+    for path in paths:
+        current = path.parent
+        while current != target_root:
+            if current.exists():
+                break
+            missing.add(current)
+            current = current.parent
+    return missing
+
+
+def _remove_empty_dirs(paths: Iterable[Path]) -> None:
+    for path in sorted(paths, key=lambda item: len(item.parts), reverse=True):
+        try:
+            path.rmdir()
+        except FileNotFoundError:
+            continue
+        except OSError as exc:
+            raise InstallError(f"unable to remove transaction directory {path}: {exc}") from exc
+
+
 def _backup_file(source: Path, target: Path) -> None:
     target.parent.mkdir(mode=0o700, parents=True, exist_ok=True)
     fd = os.open(target, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
@@ -354,6 +376,10 @@ def install(source_root: Path, target_root: Path, *, check: bool) -> tuple[int, 
         touched.append(settings_path)
     touched.extend(retired_assets)
     snapshots = _snapshot_files(touched)
+    transaction_paths = [*touched]
+    if backup is not None:
+        transaction_paths.append(backup)
+    missing_dirs = _missing_parent_dirs(transaction_paths, target_root)
     try:
         if backup is not None:
             _backup_file(settings_path, backup)
@@ -374,6 +400,10 @@ def install(source_root: Path, target_root: Path, *, check: bool) -> tuple[int, 
                 backup.unlink(missing_ok=True)
             except Exception as backup_exc:
                 rollback_errors.append(f"backup: {backup_exc}")
+        try:
+            _remove_empty_dirs(missing_dirs)
+        except Exception as directory_exc:
+            rollback_errors.append(f"directories: {directory_exc}")
         if rollback_errors:
             raise InstallError(
                 f"install failed ({exc}); rollback failed ({'; '.join(rollback_errors)})"
