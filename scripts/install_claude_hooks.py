@@ -39,6 +39,10 @@ ASSET_FILES = (
         Path("scripts/statusline/context-monitor.js"),
         Path("scripts/statusline/context-monitor.js"),
     ),
+    (
+        Path("scripts/statusline/ui-components.js"),
+        Path("scripts/statusline/ui-components.js"),
+    ),
 )
 RETIRED_ASSETS = (
     Path("scripts/hooks/metrics/claudeflow-sync.js"),
@@ -182,8 +186,10 @@ def _verify_registered_assets(
                     r"(?:\$HOME|\$\{HOME\}|/(?:home|Users)/[^/]+)/\.claude/([^\"' ]+)",
                     command,
                 )
+                if not match:
+                    continue
                 target = target_root / match.group(1)
-                if match and not target.is_file() and target not in planned_targets:
+                if not target.is_file() and target not in planned_targets:
                     raise InstallError(
                         f"registered {event} hook asset is missing: {match.group(1)}"
                     )

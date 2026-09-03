@@ -143,6 +143,10 @@ def test_install_rejects_missing_extra_registered_hook(tmp_path: Path) -> None:
     module = _load_module()
     target = tmp_path / ".claude"
     target.mkdir()
+    (target / "hooks").mkdir()
+    (target / "hooks/gsd-context-monitor.js").write_text(
+        "// local hook\n", encoding="utf-8"
+    )
     active = _active_settings()
     active["hooks"]["PostToolUse"][0]["hooks"][0]["command"] = (
         'node "$HOME/.claude/hooks/missing-extra.js"'
@@ -151,6 +155,34 @@ def test_install_rejects_missing_extra_registered_hook(tmp_path: Path) -> None:
 
     with pytest.raises(module.InstallError, match="missing-extra.js"):
         module.install(ROOT, target, check=False)
+
+
+def test_install_allows_registered_commands_without_managed_asset_paths(
+    tmp_path: Path,
+) -> None:
+    module = _load_module()
+    target = tmp_path / ".claude"
+    target.mkdir()
+    (target / "hooks").mkdir()
+    (target / "hooks/gsd-context-monitor.js").write_text(
+        "// local hook\n", encoding="utf-8"
+    )
+    active = _active_settings()
+    active["hooks"]["PostToolUse"][0]["hooks"].append(
+        {"type": "command", "command": "printf ok"}
+    )
+    (target / "settings.json").write_text(json.dumps(active), encoding="utf-8")
+
+    module.install(ROOT, target, check=False)
+
+    installed = json.loads((target / "settings.json").read_text(encoding="utf-8"))
+    commands = [
+        hook["command"]
+        for groups in installed["hooks"].values()
+        for group in groups
+        for hook in group["hooks"]
+    ]
+    assert "printf ok" in commands
 
 
 def test_install_rejects_symlinked_asset_before_reading_it(tmp_path: Path) -> None:
